@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: returnradar-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: returnradar
+      POSTGRES_USER: returnradar_user
+      POSTGRES_PASSWORD: returnradar_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - returnradar_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  returnradar_postgres_data:
