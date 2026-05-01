@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -11,7 +11,7 @@ import {
 
 import { listProducts } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 
 function formatPrice(product: Product): string {
     if (product.price_cents === null) {
@@ -54,9 +54,12 @@ export default function ProductsScreen() {
         }
     }, []);
 
-    useEffect(() => {
-        void loadProducts();
-    }, [loadProducts]);
+    useFocusEffect(
+        useCallback(() => {
+            setIsLoading(true);
+            void loadProducts();
+        }, [loadProducts])
+    );
 
     const handleRefresh = () => {
         setIsRefreshing(true);
