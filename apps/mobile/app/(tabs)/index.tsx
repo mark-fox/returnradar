@@ -1,6 +1,84 @@
-import { StyleSheet, Text, View } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+import { listProducts } from "@/src/features/products/api";
+import type { Product } from "@/src/features/products/types";
+
+function getDaysUntilDate(dateValue: string | null): number | null {
+  if (!dateValue) {
+    return null;
+  }
+
+  const today = new Date();
+  const targetDate = new Date(`${dateValue}T00:00:00`);
+
+  today.setHours(0, 0, 0, 0);
+  targetDate.setHours(0, 0, 0, 0);
+
+  const millisecondsPerDay = 1000 * 60 * 60 * 24;
+
+  return Math.ceil(
+    (targetDate.getTime() - today.getTime()) / millisecondsPerDay
+  );
+}
 
 export default function HomeScreen() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const loadProducts = useCallback(async () => {
+    try {
+      setErrorMessage(null);
+      const data = await listProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Could not load dashboard data.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsLoading(true);
+      void loadProducts();
+    }, [loadProducts])
+  );
+
+  const dashboardStats = useMemo(() => {
+    let upcomingReturns = 0;
+    let expiredReturns = 0;
+    let missingReturnDeadlines = 0;
+
+    for (const product of products) {
+      const daysUntilReturn = getDaysUntilDate(product.return_deadline);
+
+      if (daysUntilReturn === null) {
+        missingReturnDeadlines += 1;
+      } else if (daysUntilReturn < 0) {
+        expiredReturns += 1;
+      } else if (daysUntilReturn <= 7) {
+        upcomingReturns += 1;
+      }
+    }
+
+    return {
+      totalProducts: products.length,
+      upcomingReturns,
+      expiredReturns,
+      missingReturnDeadlines,
+    };
+  }, [products]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.eyebrow}>ReturnRadar</Text>
@@ -10,17 +88,70 @@ export default function HomeScreen() {
       </Text>
 
       <Text style={styles.description}>
-        Scan receipts, confirm AI-suggested details, and keep important return
-        and warranty deadlines in one place.
+        Keep return windows and warranty deadlines visible before they become
+        expensive surprises.
       </Text>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>MVP Focus</Text>
-        <Text style={styles.cardText}>
-          Product tracking will come first. Receipt scanning and AI extraction
-          will be added after the core product flow is working.
-        </Text>
-      </View>
+      {isLoading ? (
+        <View style={styles.stateCard}>
+          <ActivityIndicator />
+          <Text style={styles.stateText}>Loading dashboard...</Text>
+        </View>
+      ) : errorMessage ? (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorTitle}>Dashboard unavailable</Text>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+
+          <Pressable style={styles.primaryButton} onPress={() => void loadProducts()}>
+            <Text style={styles.primaryButtonText}>Try again</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <View style={styles.dashboardGrid}>
+          <StatCard
+            label="Tracked products"
+            value={dashboardStats.totalProducts.toString()}
+          />
+
+          <StatCard
+            label="Returns due soon"
+            value={dashboardStats.upcomingReturns.toString()}
+          />
+
+          <StatCard
+            label="Expired returns"
+            value={dashboardStats.expiredReturns.toString()}
+          />
+
+          <StatCard
+            label="Missing deadlines"
+            value={dashboardStats.missingReturnDeadlines.toString()}
+          />
+        </View>
+      )}
+
+      <Pressable
+        style={styles.primaryButton}
+        onPress={() => router.push("/products/new")}
+      >
+        <Text style={styles.primaryButtonText}>Add Product</Text>
+      </Pressable>
+
+      <Pressable
+        style={styles.secondaryButton}
+        onPress={() => router.push("/(tabs)/products")}
+      >
+        <Text style={styles.secondaryButtonText}>View Products</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.statCard}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
 }
@@ -51,25 +182,91 @@ const styles = StyleSheet.create({
     color: "#475569",
     marginBottom: 28,
   },
-  card: {
+  dashboardGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 20,
+  },
+  statCard: {
+    width: "48%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  statValue: {
+    fontSize: 30,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 6,
+  },
+  statLabel: {
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  stateCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 20,
-    shadowColor: "#0F172A",
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 20,
   },
-  cardTitle: {
+  stateText: {
+    marginTop: 12,
+    fontSize: 15,
+    color: "#475569",
+  },
+  errorCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#FCA5A5",
+    marginBottom: 20,
+  },
+  errorTitle: {
     fontSize: 18,
-    fontWeight: "700",
-    color: "#0F172A",
+    fontWeight: "800",
+    color: "#991B1B",
     marginBottom: 8,
   },
-  cardText: {
+  errorText: {
     fontSize: 15,
     lineHeight: 22,
-    color: "#475569",
+    color: "#7F1D1D",
+    marginBottom: 16,
+  },
+  primaryButton: {
+    backgroundColor: "#2563EB",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  secondaryButton: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+  },
+  secondaryButtonText: {
+    color: "#0F172A",
+    fontSize: 16,
+    fontWeight: "800",
   },
 });
