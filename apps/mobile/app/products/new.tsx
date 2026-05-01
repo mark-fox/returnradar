@@ -31,6 +31,28 @@ function parsePriceToCents(value: string): number | null {
     return Math.round(parsedValue * 100);
 }
 
+function isValidDateString(value: string): boolean {
+    if (!value.trim()) {
+        return true;
+    }
+
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (!datePattern.test(value)) {
+        return false;
+    }
+
+    const parsedDate = new Date(`${value}T00:00:00`);
+
+    return !Number.isNaN(parsedDate.getTime());
+}
+
+function normalizeOptionalDate(value: string): string | null {
+    const trimmedValue = value.trim();
+
+    return trimmedValue ? trimmedValue : null;
+}
+
 export default function NewProductScreen() {
     const [name, setName] = useState("");
     const [merchant, setMerchant] = useState("");
@@ -40,6 +62,10 @@ export default function NewProductScreen() {
     const [validationMessage, setValidationMessage] = useState<string | null>(null);
     const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [purchaseDate, setPurchaseDate] = useState("");
+    const [returnDeadline, setReturnDeadline] = useState("");
+    const [warrantyDeadline, setWarrantyDeadline] = useState("");
 
     const handleSubmit = async () => {
         const trimmedName = name.trim();
@@ -56,6 +82,23 @@ export default function NewProductScreen() {
             return;
         }
 
+        const dateFields = [
+            { label: "purchase date", value: purchaseDate },
+            { label: "return deadline", value: returnDeadline },
+            { label: "warranty deadline", value: warrantyDeadline },
+        ];
+
+        const invalidDateField = dateFields.find(
+            (field) => !isValidDateString(field.value)
+        );
+
+        if (invalidDateField) {
+            setValidationMessage(
+                `Enter a valid ${invalidDateField.label} using YYYY-MM-DD.`
+            );
+            return;
+        }
+
         try {
             setIsSubmitting(true);
             setValidationMessage(null);
@@ -64,6 +107,9 @@ export default function NewProductScreen() {
             await createProduct({
                 name: trimmedName,
                 merchant: merchant.trim() || null,
+                purchase_date: normalizeOptionalDate(purchaseDate),
+                return_deadline: normalizeOptionalDate(returnDeadline),
+                warranty_deadline: normalizeOptionalDate(warrantyDeadline),
                 price_cents: priceCents,
                 currency: "USD",
                 notes: notes.trim() || null,
@@ -123,6 +169,33 @@ export default function NewProductScreen() {
                         onChangeText={setPrice}
                         placeholder="399.99"
                         keyboardType="decimal-pad"
+                        style={styles.input}
+                    />
+
+                    <FieldLabel label="Purchase date" />
+                    <TextInput
+                        value={purchaseDate}
+                        onChangeText={setPurchaseDate}
+                        placeholder="2026-04-28"
+                        keyboardType="numbers-and-punctuation"
+                        style={styles.input}
+                    />
+
+                    <FieldLabel label="Return deadline" />
+                    <TextInput
+                        value={returnDeadline}
+                        onChangeText={setReturnDeadline}
+                        placeholder="2026-05-28"
+                        keyboardType="numbers-and-punctuation"
+                        style={styles.input}
+                    />
+
+                    <FieldLabel label="Warranty deadline" />
+                    <TextInput
+                        value={warrantyDeadline}
+                        onChangeText={setWarrantyDeadline}
+                        placeholder="2027-04-28"
+                        keyboardType="numbers-and-punctuation"
                         style={styles.input}
                     />
 
