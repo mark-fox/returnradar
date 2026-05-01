@@ -1,7 +1,8 @@
-import { useLocalSearchParams, Stack } from "expo-router";
+import { useLocalSearchParams, Stack, router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
+    Alert,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -9,7 +10,7 @@ import {
     View,
 } from "react-native";
 
-import { getProduct } from "@/src/features/products/api";
+import { deleteProduct, getProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 
 function formatDate(value: string | null): string {
@@ -37,6 +38,7 @@ export default function ProductDetailScreen() {
 
     const [product, setProduct] = useState<Product | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const loadProduct = useCallback(async () => {
@@ -60,6 +62,41 @@ export default function ProductDetailScreen() {
     useEffect(() => {
         void loadProduct();
     }, [loadProduct]);
+
+    const handleDelete = async () => {
+        if (!Number.isFinite(productId)) {
+            return;
+        }
+
+        try {
+            setIsDeleting(true);
+            await deleteProduct(productId);
+            router.replace("/(tabs)/products");
+        } catch (error) {
+            console.error(error);
+            setErrorMessage("Could not delete this product. Please try again.");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const confirmDelete = () => {
+        Alert.alert(
+            "Delete product?",
+            "This will remove the product from ReturnRadar. This action cannot be undone.",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: () => void handleDelete(),
+                },
+            ]
+        );
+    };
 
     if (isLoading) {
         return (
@@ -112,6 +149,17 @@ export default function ProductDetailScreen() {
                 <Text style={styles.sectionTitle}>Notes</Text>
                 <Text style={styles.notes}>{product.notes ?? "No notes added."}</Text>
             </View>
+            <Pressable
+                style={[styles.deleteButton, isDeleting && styles.disabledButton]}
+                onPress={confirmDelete}
+                disabled={isDeleting}
+            >
+                {isDeleting ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                    <Text style={styles.deleteButtonText}>Delete Product</Text>
+                )}
+            </Pressable>
         </ScrollView>
     );
 }
@@ -221,5 +269,22 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "700",
+    },
+    deleteButton: {
+        backgroundColor: "#DC2626",
+        borderRadius: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        marginTop: 4,
+        marginBottom: 20,
+    },
+    deleteButtonText: {
+        color: "#FFFFFF",
+        fontSize: 16,
+        fontWeight: "800",
+    },
+    disabledButton: {
+        opacity: 0.7,
     },
 });
