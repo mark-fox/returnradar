@@ -11,6 +11,7 @@ import {
 
 import { listProducts } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
+import { router } from "expo-router";
 
 function formatPrice(product: Product): string {
     if (product.price_cents === null) {
@@ -116,7 +117,8 @@ export default function ProductsScreen() {
                 </View>
             }
             renderItem={({ item }) => (
-                <View style={styles.productCard}>
+                <Pressable style={styles.productCard}
+                    onPress={() => router.push(`/products/${item.id}`)}>
                     <Text style={styles.productName}>{item.name}</Text>
 
                     <Text style={styles.productMeta}>
@@ -136,7 +138,7 @@ export default function ProductsScreen() {
                             {formatDeadline(item.warranty_deadline)}
                         </Text>
                     </View>
-                </View>
+                </Pressable>
             )}
         />
     );
