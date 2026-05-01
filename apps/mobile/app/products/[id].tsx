@@ -1,5 +1,5 @@
-import { useLocalSearchParams, Stack, router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { Stack, router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -59,9 +59,12 @@ export default function ProductDetailScreen() {
         }
     }, [productId]);
 
-    useEffect(() => {
-        void loadProduct();
-    }, [loadProduct]);
+    useFocusEffect(
+        useCallback(() => {
+            setIsLoading(true);
+            void loadProduct();
+        }, [loadProduct])
+    );
 
     const handleDelete = async () => {
         if (!Number.isFinite(productId)) {
@@ -132,6 +135,13 @@ export default function ProductDetailScreen() {
 
             <Text style={styles.eyebrow}>Product Details</Text>
             <Text style={styles.title}>{product.name}</Text>
+
+            <Pressable
+                style={styles.editButton}
+                onPress={() => router.push(`/products/${product.id}/edit`)}
+            >
+                <Text style={styles.editButtonText}>Edit Product</Text>
+            </Pressable>
 
             <View style={styles.card}>
                 <DetailRow label="Merchant" value={product.merchant ?? "Not set"} />
@@ -286,5 +296,18 @@ const styles = StyleSheet.create({
     },
     disabledButton: {
         opacity: 0.7,
+    },
+    editButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: 14,
+        paddingVertical: 13,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        marginBottom: 18,
+    },
+    editButtonText: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "800",
     },
 });
