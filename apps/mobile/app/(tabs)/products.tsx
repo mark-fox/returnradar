@@ -105,6 +105,12 @@ export default function ProductsScreen() {
                     <Text style={styles.description}>
                         Saved products from your ReturnRadar backend will appear here.
                     </Text>
+                    <Pressable
+                        style={styles.addButton}
+                        onPress={() => router.push("/products/new")}
+                    >
+                        <Text style={styles.addButtonText}>Add Product</Text>
+                    </Pressable>
                 </View>
             }
             ListEmptyComponent={
@@ -275,5 +281,18 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "700",
+    },
+    addButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: 14,
+        paddingVertical: 13,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        marginTop: 18,
+    },
+    addButtonText: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "800",
     },
 });
