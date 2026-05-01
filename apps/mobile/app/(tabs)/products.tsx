@@ -32,6 +32,37 @@ function formatDeadline(value: string | null): string {
     return new Date(`${value}T00:00:00`).toLocaleDateString();
 }
 
+function getReturnStatus(returnDeadline: string | null): string {
+    if (!returnDeadline) {
+        return "No return deadline";
+    }
+
+    const today = new Date();
+    const deadline = new Date(`${returnDeadline}T00:00:00`);
+
+    today.setHours(0, 0, 0, 0);
+    deadline.setHours(0, 0, 0, 0);
+
+    const millisecondsPerDay = 1000 * 60 * 60 * 24;
+    const daysRemaining = Math.ceil(
+        (deadline.getTime() - today.getTime()) / millisecondsPerDay
+    );
+
+    if (daysRemaining < 0) {
+        return "Return expired";
+    }
+
+    if (daysRemaining === 0) {
+        return "Return ends today";
+    }
+
+    if (daysRemaining <= 7) {
+        return `${daysRemaining} days left`;
+    }
+
+    return "Return open";
+}
+
 export default function ProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -133,6 +164,12 @@ export default function ProductsScreen() {
                     <Text style={styles.productMeta}>
                         {item.merchant ?? "Merchant not set"} · {formatPrice(item)}
                     </Text>
+
+                    <View style={styles.statusPill}>
+                        <Text style={styles.statusPillText}>
+                            {getReturnStatus(item.return_deadline)}
+                        </Text>
+                    </View>
 
                     <View style={styles.deadlineRow}>
                         <Text style={styles.deadlineLabel}>Return</Text>
@@ -296,6 +333,19 @@ const styles = StyleSheet.create({
     addButtonText: {
         color: "#FFFFFF",
         fontSize: 15,
+        fontWeight: "800",
+    },
+    statusPill: {
+        alignSelf: "flex-start",
+        backgroundColor: "#EFF6FF",
+        borderRadius: 999,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        marginBottom: 14,
+    },
+    statusPillText: {
+        color: "#1D4ED8",
+        fontSize: 13,
         fontWeight: "800",
     },
 });
