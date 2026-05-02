@@ -132,6 +132,13 @@ export default function HomeScreen() {
 
       <Pressable
         style={styles.primaryButton}
+        onPress={() => router.push("/receipt-scan")}
+      >
+        <Text style={styles.primaryButtonText}>Scan Receipt</Text>
+      </Pressable>
+
+      <Pressable
+        style={styles.primaryButton}
         onPress={() => router.push("/products/new")}
       >
         <Text style={styles.primaryButtonText}>Add Product</Text>
