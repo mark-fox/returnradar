@@ -12,35 +12,72 @@ import {
     View,
 } from "react-native";
 
-import { extractReceipt } from "@/src/features/receiptExtraction/api";
 import { createProduct } from "@/src/features/products/api";
+import { extractReceipt } from "@/src/features/receiptExtraction/api";
 import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction/types";
 
 const SAMPLE_RECEIPT_TEXT =
     "BEST BUY\nSony WH-1000XM5 Headphones\nSubtotal 399.99\nTax 31.20\nTotal 431.19\nVISA";
 
-function formatPrice(priceCents: number | null, currency: string): string {
-    if (priceCents === null) {
-        return "Not found";
+function centsToPriceInput(value: number | null): string {
+    if (value === null) {
+        return "";
     }
 
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency,
-    }).format(priceCents / 100);
+    return (value / 100).toFixed(2);
 }
 
-function formatDate(value: string | null): string {
-    if (!value) {
-        return "Not found";
+function parsePriceToCents(value: string): number | null {
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue) {
+        return null;
     }
 
-    return new Date(`${value}T00:00:00`).toLocaleDateString();
+    const normalizedValue = trimmedValue.replace("$", "");
+    const parsedValue = Number(normalizedValue);
+
+    if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+        return null;
+    }
+
+    return Math.round(parsedValue * 100);
+}
+
+function isValidDateString(value: string): boolean {
+    if (!value.trim()) {
+        return true;
+    }
+
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (!datePattern.test(value)) {
+        return false;
+    }
+
+    const parsedDate = new Date(`${value}T00:00:00`);
+
+    return !Number.isNaN(parsedDate.getTime());
+}
+
+function normalizeOptionalDate(value: string): string | null {
+    const trimmedValue = value.trim();
+
+    return trimmedValue ? trimmedValue : null;
 }
 
 export default function ReceiptScanScreen() {
     const [rawText, setRawText] = useState(SAMPLE_RECEIPT_TEXT);
     const [result, setResult] = useState<ReceiptExtractionResponse | null>(null);
+
+    const [suggestedName, setSuggestedName] = useState("");
+    const [suggestedMerchant, setSuggestedMerchant] = useState("");
+    const [suggestedPrice, setSuggestedPrice] = useState("");
+    const [suggestedPurchaseDate, setSuggestedPurchaseDate] = useState("");
+    const [suggestedReturnDeadline, setSuggestedReturnDeadline] = useState("");
+    const [suggestedWarrantyDeadline, setSuggestedWarrantyDeadline] = useState("");
+    const [suggestedNotes, setSuggestedNotes] = useState("");
+
     const [validationMessage, setValidationMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isExtracting, setIsExtracting] = useState(false);
@@ -65,6 +102,16 @@ export default function ReceiptScanScreen() {
             });
 
             setResult(extractionResult);
+
+            setSuggestedName(extractionResult.suggestion.name);
+            setSuggestedMerchant(extractionResult.suggestion.merchant ?? "");
+            setSuggestedPrice(centsToPriceInput(extractionResult.suggestion.price_cents));
+            setSuggestedPurchaseDate(extractionResult.suggestion.purchase_date ?? "");
+            setSuggestedReturnDeadline(extractionResult.suggestion.return_deadline ?? "");
+            setSuggestedWarrantyDeadline(
+                extractionResult.suggestion.warranty_deadline ?? ""
+            );
+            setSuggestedNotes(extractionResult.suggestion.notes ?? "");
         } catch (error) {
             console.error(error);
             setErrorMessage(
@@ -76,23 +123,51 @@ export default function ReceiptScanScreen() {
     };
 
     const handleSaveSuggestion = async () => {
-        if (!result) {
+        const trimmedName = suggestedName.trim();
+
+        if (!trimmedName) {
+            setValidationMessage("Product name is required before saving.");
+            return;
+        }
+
+        const priceCents = parsePriceToCents(suggestedPrice);
+
+        if (suggestedPrice.trim() && priceCents === null) {
+            setValidationMessage("Enter a valid price, like 19.99.");
+            return;
+        }
+
+        const dateFields = [
+            { label: "purchase date", value: suggestedPurchaseDate },
+            { label: "return deadline", value: suggestedReturnDeadline },
+            { label: "warranty deadline", value: suggestedWarrantyDeadline },
+        ];
+
+        const invalidDateField = dateFields.find(
+            (field) => !isValidDateString(field.value)
+        );
+
+        if (invalidDateField) {
+            setValidationMessage(
+                `Enter a valid ${invalidDateField.label} using YYYY-MM-DD.`
+            );
             return;
         }
 
         try {
             setIsSaving(true);
+            setValidationMessage(null);
             setErrorMessage(null);
 
             const savedProduct = await createProduct({
-                name: result.suggestion.name,
-                merchant: result.suggestion.merchant,
-                purchase_date: result.suggestion.purchase_date,
-                return_deadline: result.suggestion.return_deadline,
-                warranty_deadline: result.suggestion.warranty_deadline,
-                price_cents: result.suggestion.price_cents,
-                currency: result.suggestion.currency,
-                notes: result.suggestion.notes,
+                name: trimmedName,
+                merchant: suggestedMerchant.trim() || null,
+                purchase_date: normalizeOptionalDate(suggestedPurchaseDate),
+                return_deadline: normalizeOptionalDate(suggestedReturnDeadline),
+                warranty_deadline: normalizeOptionalDate(suggestedWarrantyDeadline),
+                price_cents: priceCents,
+                currency: result?.suggestion.currency ?? "USD",
+                notes: suggestedNotes.trim() || null,
             });
 
             router.replace(`/products/${savedProduct.id}`);
@@ -120,9 +195,8 @@ export default function ReceiptScanScreen() {
                 <Text style={styles.eyebrow}>AI Receipt Extraction</Text>
                 <Text style={styles.title}>Paste receipt text</Text>
                 <Text style={styles.description}>
-                    This is the first version of the receipt flow. The backend currently
-                    returns mock AI-suggested details so we can build the app contract
-                    before adding camera/OCR support.
+                    Extract suggested product details, review them, then save only after
+                    confirming the information looks right.
                 </Text>
 
                 <View style={styles.formCard}>
@@ -135,12 +209,6 @@ export default function ReceiptScanScreen() {
                         textAlignVertical="top"
                         style={[styles.input, styles.receiptInput]}
                     />
-
-                    {validationMessage ? (
-                        <Text style={styles.validationText}>{validationMessage}</Text>
-                    ) : null}
-
-                    {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
                     <Pressable
                         style={[styles.primaryButton, isExtracting && styles.disabledButton]}
@@ -162,32 +230,79 @@ export default function ReceiptScanScreen() {
                             {Math.round(result.confidence * 100)}%
                         </Text>
 
-                        <Text style={styles.resultTitle}>Suggested product details</Text>
+                        <Text style={styles.resultTitle}>Review suggested details</Text>
 
-                        <SuggestionRow label="Name" value={result.suggestion.name} />
-                        <SuggestionRow
-                            label="Merchant"
-                            value={result.suggestion.merchant ?? "Not found"}
+                        <FieldLabel label="Product name" required />
+                        <TextInput
+                            value={suggestedName}
+                            onChangeText={setSuggestedName}
+                            placeholder="Product name"
+                            autoCapitalize="words"
+                            style={styles.input}
                         />
-                        <SuggestionRow
-                            label="Price"
-                            value={formatPrice(
-                                result.suggestion.price_cents,
-                                result.suggestion.currency
-                            )}
+
+                        <FieldLabel label="Merchant" />
+                        <TextInput
+                            value={suggestedMerchant}
+                            onChangeText={setSuggestedMerchant}
+                            placeholder="Merchant"
+                            autoCapitalize="words"
+                            style={styles.input}
                         />
-                        <SuggestionRow
-                            label="Purchase date"
-                            value={formatDate(result.suggestion.purchase_date)}
+
+                        <FieldLabel label="Price" />
+                        <TextInput
+                            value={suggestedPrice}
+                            onChangeText={setSuggestedPrice}
+                            placeholder="399.99"
+                            keyboardType="decimal-pad"
+                            style={styles.input}
                         />
-                        <SuggestionRow
-                            label="Return deadline"
-                            value={formatDate(result.suggestion.return_deadline)}
+
+                        <FieldLabel label="Purchase date" />
+                        <TextInput
+                            value={suggestedPurchaseDate}
+                            onChangeText={setSuggestedPurchaseDate}
+                            placeholder="2026-04-28"
+                            keyboardType="numbers-and-punctuation"
+                            style={styles.input}
                         />
-                        <SuggestionRow
-                            label="Warranty deadline"
-                            value={formatDate(result.suggestion.warranty_deadline)}
+
+                        <FieldLabel label="Return deadline" />
+                        <TextInput
+                            value={suggestedReturnDeadline}
+                            onChangeText={setSuggestedReturnDeadline}
+                            placeholder="2026-05-28"
+                            keyboardType="numbers-and-punctuation"
+                            style={styles.input}
                         />
+
+                        <FieldLabel label="Warranty deadline" />
+                        <TextInput
+                            value={suggestedWarrantyDeadline}
+                            onChangeText={setSuggestedWarrantyDeadline}
+                            placeholder="2027-04-28"
+                            keyboardType="numbers-and-punctuation"
+                            style={styles.input}
+                        />
+
+                        <FieldLabel label="Notes" />
+                        <TextInput
+                            value={suggestedNotes}
+                            onChangeText={setSuggestedNotes}
+                            placeholder="Notes"
+                            multiline
+                            textAlignVertical="top"
+                            style={[styles.input, styles.notesInput]}
+                        />
+
+                        {validationMessage ? (
+                            <Text style={styles.validationText}>{validationMessage}</Text>
+                        ) : null}
+
+                        {errorMessage ? (
+                            <Text style={styles.errorText}>{errorMessage}</Text>
+                        ) : null}
 
                         <View style={styles.warningBox}>
                             <Text style={styles.warningTitle}>Before saving</Text>
@@ -206,22 +321,30 @@ export default function ReceiptScanScreen() {
                             {isSaving ? (
                                 <ActivityIndicator color="#FFFFFF" />
                             ) : (
-                                <Text style={styles.saveButtonText}>Save Suggested Product</Text>
+                                <Text style={styles.saveButtonText}>Save Confirmed Product</Text>
                             )}
                         </Pressable>
                     </View>
+                ) : null}
+
+                {!result && validationMessage ? (
+                    <Text style={styles.validationText}>{validationMessage}</Text>
+                ) : null}
+
+                {!result && errorMessage ? (
+                    <Text style={styles.errorText}>{errorMessage}</Text>
                 ) : null}
             </ScrollView>
         </KeyboardAvoidingView>
     );
 }
 
-function SuggestionRow({ label, value }: { label: string; value: string }) {
+function FieldLabel({ label, required = false }: { label: string; required?: boolean }) {
     return (
-        <View style={styles.suggestionRow}>
-            <Text style={styles.suggestionLabel}>{label}</Text>
-            <Text style={styles.suggestionValue}>{value}</Text>
-        </View>
+        <Text style={styles.label}>
+            {label}
+            {required ? <Text style={styles.required}> *</Text> : null}
+        </Text>
     );
 }
 
@@ -268,6 +391,9 @@ const styles = StyleSheet.create({
         color: "#334155",
         marginBottom: 8,
     },
+    required: {
+        color: "#DC2626",
+    },
     input: {
         borderWidth: 1,
         borderColor: "#CBD5E1",
@@ -281,6 +407,9 @@ const styles = StyleSheet.create({
     },
     receiptInput: {
         minHeight: 180,
+    },
+    notesInput: {
+        minHeight: 110,
     },
     validationText: {
         color: "#B45309",
@@ -301,13 +430,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         alignItems: "center",
     },
-    disabledButton: {
-        opacity: 0.7,
-    },
     primaryButtonText: {
         color: "#FFFFFF",
         fontSize: 16,
         fontWeight: "800",
+    },
+    disabledButton: {
+        opacity: 0.7,
     },
     resultCard: {
         backgroundColor: "#FFFFFF",
@@ -327,29 +456,14 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: "800",
         color: "#0F172A",
-        marginBottom: 12,
-    },
-    suggestionRow: {
-        paddingVertical: 10,
-        borderTopWidth: 1,
-        borderTopColor: "#E2E8F0",
-    },
-    suggestionLabel: {
-        fontSize: 13,
-        fontWeight: "700",
-        color: "#64748B",
-        marginBottom: 4,
-        textTransform: "uppercase",
-    },
-    suggestionValue: {
-        fontSize: 16,
-        color: "#0F172A",
+        marginBottom: 16,
     },
     warningBox: {
         backgroundColor: "#FFFBEB",
         borderRadius: 16,
         padding: 14,
-        marginTop: 16,
+        marginTop: 4,
+        marginBottom: 16,
         borderWidth: 1,
         borderColor: "#FDE68A",
     },
@@ -371,7 +485,6 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 16,
         alignItems: "center",
-        marginTop: 16,
     },
     saveButtonText: {
         color: "#FFFFFF",
