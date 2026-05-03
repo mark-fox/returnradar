@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { useState } from "react";
 import {
     ActivityIndicator,
@@ -13,6 +13,7 @@ import {
 } from "react-native";
 
 import { extractReceipt } from "@/src/features/receiptExtraction/api";
+import { createProduct } from "@/src/features/products/api";
 import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction/types";
 
 const SAMPLE_RECEIPT_TEXT =
@@ -43,6 +44,7 @@ export default function ReceiptScanScreen() {
     const [validationMessage, setValidationMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isExtracting, setIsExtracting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const handleExtract = async () => {
         const trimmedText = rawText.trim();
@@ -70,6 +72,37 @@ export default function ReceiptScanScreen() {
             );
         } finally {
             setIsExtracting(false);
+        }
+    };
+
+    const handleSaveSuggestion = async () => {
+        if (!result) {
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+            setErrorMessage(null);
+
+            const savedProduct = await createProduct({
+                name: result.suggestion.name,
+                merchant: result.suggestion.merchant,
+                purchase_date: result.suggestion.purchase_date,
+                return_deadline: result.suggestion.return_deadline,
+                warranty_deadline: result.suggestion.warranty_deadline,
+                price_cents: result.suggestion.price_cents,
+                currency: result.suggestion.currency,
+                notes: result.suggestion.notes,
+            });
+
+            router.replace(`/products/${savedProduct.id}`);
+        } catch (error) {
+            console.error(error);
+            setErrorMessage(
+                "Could not save the suggested product. Please review the details and try again."
+            );
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -164,6 +197,18 @@ export default function ReceiptScanScreen() {
                                 </Text>
                             ))}
                         </View>
+
+                        <Pressable
+                            style={[styles.saveButton, isSaving && styles.disabledButton]}
+                            onPress={() => void handleSaveSuggestion()}
+                            disabled={isSaving}
+                        >
+                            {isSaving ? (
+                                <ActivityIndicator color="#FFFFFF" />
+                            ) : (
+                                <Text style={styles.saveButtonText}>Save Suggested Product</Text>
+                            )}
+                        </Pressable>
                     </View>
                 ) : null}
             </ScrollView>
@@ -319,5 +364,18 @@ const styles = StyleSheet.create({
         lineHeight: 20,
         color: "#92400E",
         marginBottom: 4,
+    },
+    saveButton: {
+        backgroundColor: "#16A34A",
+        borderRadius: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        marginTop: 16,
+    },
+    saveButtonText: {
+        color: "#FFFFFF",
+        fontSize: 16,
+        fontWeight: "800",
     },
 });
