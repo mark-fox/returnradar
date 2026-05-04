@@ -11,6 +11,12 @@ import {
     TextInput,
     View,
 } from "react-native";
+import {
+    centsToPriceInput,
+    isValidDateString,
+    normalizeOptionalDate,
+    parsePriceToCents,
+} from "@/src/features/products/formUtils";
 
 import { createProduct } from "@/src/features/products/api";
 import { extractReceipt } from "@/src/features/receiptExtraction/api";
@@ -19,52 +25,6 @@ import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction
 const SAMPLE_RECEIPT_TEXT =
     "BEST BUY\nSony WH-1000XM5 Headphones\nSubtotal 399.99\nTax 31.20\nTotal 431.19\nVISA";
 
-function centsToPriceInput(value: number | null): string {
-    if (value === null) {
-        return "";
-    }
-
-    return (value / 100).toFixed(2);
-}
-
-function parsePriceToCents(value: string): number | null {
-    const trimmedValue = value.trim();
-
-    if (!trimmedValue) {
-        return null;
-    }
-
-    const normalizedValue = trimmedValue.replace("$", "");
-    const parsedValue = Number(normalizedValue);
-
-    if (!Number.isFinite(parsedValue) || parsedValue < 0) {
-        return null;
-    }
-
-    return Math.round(parsedValue * 100);
-}
-
-function isValidDateString(value: string): boolean {
-    if (!value.trim()) {
-        return true;
-    }
-
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-
-    if (!datePattern.test(value)) {
-        return false;
-    }
-
-    const parsedDate = new Date(`${value}T00:00:00`);
-
-    return !Number.isNaN(parsedDate.getTime());
-}
-
-function normalizeOptionalDate(value: string): string | null {
-    const trimmedValue = value.trim();
-
-    return trimmedValue ? trimmedValue : null;
-}
 
 export default function ReceiptScanScreen() {
     const [rawText, setRawText] = useState(SAMPLE_RECEIPT_TEXT);
