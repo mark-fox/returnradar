@@ -12,6 +12,7 @@ import {
 import { listProducts } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 import { router, useFocusEffect } from "expo-router";
+import { getReturnDeadlineStatus } from "@/src/features/products/deadlineUtils";
 
 function formatPrice(product: Product): string {
     if (product.price_cents === null) {
@@ -32,36 +33,6 @@ function formatDeadline(value: string | null): string {
     return new Date(`${value}T00:00:00`).toLocaleDateString();
 }
 
-function getReturnStatus(returnDeadline: string | null): string {
-    if (!returnDeadline) {
-        return "No return deadline";
-    }
-
-    const today = new Date();
-    const deadline = new Date(`${returnDeadline}T00:00:00`);
-
-    today.setHours(0, 0, 0, 0);
-    deadline.setHours(0, 0, 0, 0);
-
-    const millisecondsPerDay = 1000 * 60 * 60 * 24;
-    const daysRemaining = Math.ceil(
-        (deadline.getTime() - today.getTime()) / millisecondsPerDay
-    );
-
-    if (daysRemaining < 0) {
-        return "Return expired";
-    }
-
-    if (daysRemaining === 0) {
-        return "Return ends today";
-    }
-
-    if (daysRemaining <= 7) {
-        return `${daysRemaining} days left`;
-    }
-
-    return "Return open";
-}
 
 export default function ProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -167,7 +138,7 @@ export default function ProductsScreen() {
 
                     <View style={styles.statusPill}>
                         <Text style={styles.statusPillText}>
-                            {getReturnStatus(item.return_deadline)}
+                            {getReturnDeadlineStatus(item.return_deadline).label}
                         </Text>
                     </View>
 

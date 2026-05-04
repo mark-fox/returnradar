@@ -10,24 +10,8 @@ import {
 
 import { listProducts } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
+import { getDaysUntilDate } from "@/src/features/products/deadlineUtils";
 
-function getDaysUntilDate(dateValue: string | null): number | null {
-  if (!dateValue) {
-    return null;
-  }
-
-  const today = new Date();
-  const targetDate = new Date(`${dateValue}T00:00:00`);
-
-  today.setHours(0, 0, 0, 0);
-  targetDate.setHours(0, 0, 0, 0);
-
-  const millisecondsPerDay = 1000 * 60 * 60 * 24;
-
-  return Math.ceil(
-    (targetDate.getTime() - today.getTime()) / millisecondsPerDay
-  );
-}
 
 export default function HomeScreen() {
   const [products, setProducts] = useState<Product[]>([]);
