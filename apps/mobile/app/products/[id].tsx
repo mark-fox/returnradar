@@ -12,6 +12,7 @@ import {
 
 import { deleteProduct, getProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
+import { getReturnDeadlineStatus } from "@/src/features/products/deadlineUtils";
 
 function formatDate(value: string | null): string {
     if (!value) {
@@ -129,6 +130,8 @@ export default function ProductDetailScreen() {
         );
     }
 
+    const returnStatus = getReturnDeadlineStatus(product.return_deadline);
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <Stack.Screen options={{ title: product.name }} />
@@ -148,6 +151,11 @@ export default function ProductDetailScreen() {
                 <DetailRow label="Price" value={formatPrice(product)} />
                 <DetailRow label="Purchase date" value={formatDate(product.purchase_date)} />
                 <DetailRow label="Return deadline" value={formatDate(product.return_deadline)} />
+
+                <View style={styles.statusPill}>
+                    <Text style={styles.statusPillText}>{returnStatus.label}</Text>
+                </View>
+
                 <DetailRow
                     label="Warranty deadline"
                     value={formatDate(product.warranty_deadline)}
@@ -308,6 +316,20 @@ const styles = StyleSheet.create({
     editButtonText: {
         color: "#FFFFFF",
         fontSize: 15,
+        fontWeight: "800",
+    },
+    statusPill: {
+        alignSelf: "flex-start",
+        backgroundColor: "#EFF6FF",
+        borderRadius: 999,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        marginTop: -4,
+        marginBottom: 14,
+    },
+    statusPillText: {
+        color: "#1D4ED8",
+        fontSize: 13,
         fontWeight: "800",
     },
 });
