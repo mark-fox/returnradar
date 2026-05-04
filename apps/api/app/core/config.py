@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     api_prefix: str = "/api/v1"
 
     database_url: str
+    receipt_extractor_provider: str = "mock"
 
     model_config = SettingsConfigDict(env_file=".env")
 

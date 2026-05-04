@@ -6,6 +6,7 @@ from app.schemas.receipt_extraction import (
     ReceiptExtractionResponse,
     ReceiptProductSuggestion,
 )
+from app.core.config import settings
 
 
 class ReceiptExtractor(Protocol):
@@ -80,7 +81,16 @@ class MockReceiptExtractor:
         )
 
 
-default_receipt_extractor: ReceiptExtractor = MockReceiptExtractor()
+def build_receipt_extractor() -> ReceiptExtractor:
+    if settings.receipt_extractor_provider == "mock":
+        return MockReceiptExtractor()
+
+    raise ValueError(
+        f"Unsupported receipt extractor provider: {settings.receipt_extractor_provider}"
+    )
+
+
+default_receipt_extractor: ReceiptExtractor = build_receipt_extractor()
 
 
 def extract_receipt_suggestion(raw_text: str) -> ReceiptExtractionResponse:
