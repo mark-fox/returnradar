@@ -1,10 +1,16 @@
 import re
 from datetime import date, timedelta
+from typing import Protocol
 
 from app.schemas.receipt_extraction import (
     ReceiptExtractionResponse,
     ReceiptProductSuggestion,
 )
+
+
+class ReceiptExtractor(Protocol):
+    def extract(self, raw_text: str) -> ReceiptExtractionResponse:
+        pass
 
 
 def extract_price_cents(raw_text: str) -> int | None:
@@ -44,30 +50,38 @@ def extract_product_name(raw_text: str) -> str:
     return "Unknown product"
 
 
+class MockReceiptExtractor:
+    def extract(self, raw_text: str) -> ReceiptExtractionResponse:
+        merchant = extract_merchant(raw_text)
+        product_name = extract_product_name(raw_text)
+        price_cents = extract_price_cents(raw_text)
+
+        today = date.today()
+
+        warnings = [
+            "This is a mock extraction. User confirmation is required before saving.",
+            "Return and warranty dates are estimates, not guarantees.",
+        ]
+
+        return ReceiptExtractionResponse(
+            source="mock",
+            confidence=0.62,
+            suggestion=ReceiptProductSuggestion(
+                name=product_name,
+                merchant=merchant,
+                purchase_date=today,
+                return_deadline=today + timedelta(days=30),
+                warranty_deadline=today + timedelta(days=365),
+                price_cents=price_cents,
+                currency="USD",
+                notes="AI-suggested details. Verify against the receipt and retailer policy.",
+            ),
+            warnings=warnings,
+        )
+
+
+default_receipt_extractor: ReceiptExtractor = MockReceiptExtractor()
+
+
 def extract_receipt_suggestion(raw_text: str) -> ReceiptExtractionResponse:
-    merchant = extract_merchant(raw_text)
-    product_name = extract_product_name(raw_text)
-    price_cents = extract_price_cents(raw_text)
-
-    today = date.today()
-
-    warnings = [
-        "This is a mock extraction. User confirmation is required before saving.",
-        "Return and warranty dates are estimates, not guarantees.",
-    ]
-
-    return ReceiptExtractionResponse(
-        source="mock",
-        confidence=0.62,
-        suggestion=ReceiptProductSuggestion(
-            name=product_name,
-            merchant=merchant,
-            purchase_date=today,
-            return_deadline=today + timedelta(days=30),
-            warranty_deadline=today + timedelta(days=365),
-            price_cents=price_cents,
-            currency="USD",
-            notes="AI-suggested details. Verify against the receipt and retailer policy.",
-        ),
-        warnings=warnings,
-    )
+    return default_receipt_extractor.extract(raw_text)
