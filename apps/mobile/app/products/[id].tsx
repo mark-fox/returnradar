@@ -152,8 +152,15 @@ export default function ProductDetailScreen() {
                 <DetailRow label="Purchase date" value={formatDate(product.purchase_date)} />
                 <DetailRow label="Return deadline" value={formatDate(product.return_deadline)} />
 
-                <View style={styles.statusPill}>
-                    <Text style={styles.statusPillText}>{returnStatus.label}</Text>
+                <View style={[styles.statusPill, styles[`statusPill_${returnStatus.variant}`]]}>
+                    <Text
+                        style={[
+                            styles.statusPillText,
+                            styles[`statusPillText_${returnStatus.variant}`],
+                        ]}
+                    >
+                        {returnStatus.label}
+                    </Text>
                 </View>
 
                 <DetailRow
@@ -331,5 +338,35 @@ const styles = StyleSheet.create({
         color: "#1D4ED8",
         fontSize: 13,
         fontWeight: "800",
+    },
+    statusPill_missing: {
+        backgroundColor: "#F1F5F9",
+    },
+    statusPill_expired: {
+        backgroundColor: "#FEE2E2",
+    },
+    statusPill_today: {
+        backgroundColor: "#FFEDD5",
+    },
+    statusPill_soon: {
+        backgroundColor: "#FEF3C7",
+    },
+    statusPill_open: {
+        backgroundColor: "#DCFCE7",
+    },
+    statusPillText_missing: {
+        color: "#475569",
+    },
+    statusPillText_expired: {
+        color: "#991B1B",
+    },
+    statusPillText_today: {
+        color: "#C2410C",
+    },
+    statusPillText_soon: {
+        color: "#92400E",
+    },
+    statusPillText_open: {
+        color: "#166534",
     },
 });
