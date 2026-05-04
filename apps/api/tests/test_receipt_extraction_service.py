@@ -1,4 +1,9 @@
+import pytest
+
+from app.core.config import settings
 from app.services.receipt_extraction import (
+    MockReceiptExtractor,
+    build_receipt_extractor,
     extract_merchant,
     extract_price_cents,
     extract_product_name,
@@ -67,3 +72,20 @@ def test_extract_receipt_suggestion_returns_expected_contract() -> None:
     assert result.suggestion.return_deadline is not None
     assert result.suggestion.warranty_deadline is not None
     assert result.warnings
+
+
+def test_build_receipt_extractor_returns_mock_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "receipt_extractor_provider", "mock")
+
+    extractor = build_receipt_extractor()
+
+    assert isinstance(extractor, MockReceiptExtractor)
+
+
+def test_build_receipt_extractor_rejects_unsupported_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "receipt_extractor_provider", "unsupported")
+
+    with pytest.raises(ValueError, match="Unsupported receipt extractor provider"):
+        build_receipt_extractor()
