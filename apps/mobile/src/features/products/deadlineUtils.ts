@@ -67,3 +67,47 @@ export function getReturnDeadlineStatus(
         daysRemaining,
     };
 }
+
+export function getWarrantyDeadlineStatus(
+    warrantyDeadline: string | null
+): DeadlineStatus {
+    const daysRemaining = getDaysUntilDate(warrantyDeadline);
+
+    if (daysRemaining === null) {
+        return {
+            label: "No warranty deadline",
+            variant: "missing",
+            daysRemaining,
+        };
+    }
+
+    if (daysRemaining < 0) {
+        return {
+            label: "Warranty expired",
+            variant: "expired",
+            daysRemaining,
+        };
+    }
+
+    if (daysRemaining === 0) {
+        return {
+            label: "Warranty ends today",
+            variant: "today",
+            daysRemaining,
+        };
+    }
+
+    if (daysRemaining <= 30) {
+        return {
+            label: `${daysRemaining} days left`,
+            variant: "soon",
+            daysRemaining,
+        };
+    }
+
+    return {
+        label: "Warranty active",
+        variant: "open",
+        daysRemaining,
+    };
+}

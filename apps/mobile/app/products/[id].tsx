@@ -12,7 +12,10 @@ import {
 
 import { deleteProduct, getProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
-import { getReturnDeadlineStatus } from "@/src/features/products/deadlineUtils";
+import {
+    getReturnDeadlineStatus,
+    getWarrantyDeadlineStatus,
+} from "@/src/features/products/deadlineUtils";
 
 function formatDate(value: string | null): string {
     if (!value) {
@@ -131,6 +134,7 @@ export default function ProductDetailScreen() {
     }
 
     const returnStatus = getReturnDeadlineStatus(product.return_deadline);
+    const warrantyStatus = getWarrantyDeadlineStatus(product.warranty_deadline);
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -167,6 +171,18 @@ export default function ProductDetailScreen() {
                     label="Warranty deadline"
                     value={formatDate(product.warranty_deadline)}
                 />
+
+                <View style={[styles.statusPill, styles[`statusPill_${warrantyStatus.variant}`]]}>
+                    <Text
+                        style={[
+                            styles.statusPillText,
+                            styles[`statusPillText_${warrantyStatus.variant}`],
+                        ]}
+                    >
+                        {warrantyStatus.label}
+                    </Text>
+                </View>
+
                 <DetailRow label="Currency" value={product.currency} />
             </View>
 
