@@ -148,6 +148,14 @@ export default function ProductsScreen() {
                         autoCorrect={false}
                         style={styles.searchInput}
                     />
+                    {searchQuery.trim() ? (
+                        <Pressable
+                            style={styles.clearSearchButton}
+                            onPress={() => setSearchQuery("")}
+                        >
+                            <Text style={styles.clearSearchButtonText}>Clear search</Text>
+                        </Pressable>
+                    ) : null}
                 </View>
             }
             ListEmptyComponent={
@@ -347,5 +355,16 @@ const styles = StyleSheet.create({
         color: "#0F172A",
         backgroundColor: "#FFFFFF",
         marginTop: 14,
+    },
+    clearSearchButton: {
+        alignSelf: "flex-start",
+        marginTop: 10,
+        paddingVertical: 6,
+        paddingHorizontal: 2,
+    },
+    clearSearchButtonText: {
+        color: "#2563EB",
+        fontSize: 14,
+        fontWeight: "800",
     },
 });
