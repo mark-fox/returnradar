@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -6,6 +6,7 @@ import {
     RefreshControl,
     StyleSheet,
     Text,
+    TextInput,
     View,
 } from "react-native";
 
@@ -40,6 +41,7 @@ export default function ProductsScreen() {
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     const loadProducts = useCallback(async () => {
         try {
@@ -69,6 +71,27 @@ export default function ProductsScreen() {
         void loadProducts();
     };
 
+    const filteredProducts = useMemo(() => {
+        const normalizedQuery = searchQuery.trim().toLowerCase();
+
+        if (!normalizedQuery) {
+            return products;
+        }
+
+        return products.filter((product) => {
+            const searchableText = [
+                product.name,
+                product.merchant,
+                product.notes,
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+
+            return searchableText.includes(normalizedQuery);
+        });
+    }, [products, searchQuery]);
+
     if (isLoading) {
         return (
             <View style={styles.centeredState}>
@@ -95,11 +118,11 @@ export default function ProductsScreen() {
 
     return (
         <FlatList
-            data={products}
+            data={filteredProducts}
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={[
                 styles.listContent,
-                products.length === 0 && styles.emptyListContent,
+                filteredProducts.length === 0 && styles.emptyListContent
             ]}
             refreshControl={
                 <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
@@ -117,14 +140,25 @@ export default function ProductsScreen() {
                     >
                         <Text style={styles.addButtonText}>Add Product</Text>
                     </Pressable>
+                    <TextInput
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        placeholder="Search products, merchants, or notes"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        style={styles.searchInput}
+                    />
                 </View>
             }
             ListEmptyComponent={
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyTitle}>No products yet</Text>
+                    <Text style={styles.emptyTitle}>
+                        {products.length === 0 ? "No products yet" : "No matching products"}
+                    </Text>
                     <Text style={styles.emptyText}>
-                        Add a product through the API docs for now. Soon, you’ll be able to
-                        add products directly from the app.
+                        {products.length === 0
+                            ? "Add your first product manually or save one from the receipt extraction flow."
+                            : "Try a different search term or clear the search box."}
                     </Text>
                 </View>
             }
@@ -302,5 +336,16 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "800",
+    },
+    searchInput: {
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        borderRadius: 14,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        fontSize: 16,
+        color: "#0F172A",
+        backgroundColor: "#FFFFFF",
+        marginTop: 14,
     },
 });
