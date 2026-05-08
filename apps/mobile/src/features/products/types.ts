@@ -8,6 +8,7 @@ export type Product = {
     price_cents: number | null;
     currency: string;
     notes: string | null;
+    source: string;
     created_at: string;
     updated_at: string;
 };
@@ -21,6 +22,7 @@ export type CreateProductInput = {
     price_cents?: number | null;
     currency?: string;
     notes?: string | null;
+    source?: string;
 };
 
 export type UpdateProductInput = Partial<CreateProductInput>;

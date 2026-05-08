@@ -128,6 +128,7 @@ export default function ReceiptScanScreen() {
                 price_cents: priceCents,
                 currency: result?.suggestion.currency ?? "USD",
                 notes: suggestedNotes.trim() || null,
+                source: "receipt_ai",
             });
 
             router.replace(`/products/${savedProduct.id}`);

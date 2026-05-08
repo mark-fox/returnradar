@@ -80,6 +80,7 @@ export default function NewProductScreen() {
                 price_cents: priceCents,
                 currency: "USD",
                 notes: notes.trim() || null,
+                source: "manual",
             });
 
             router.replace("/(tabs)/products");

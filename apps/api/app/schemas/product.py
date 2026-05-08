@@ -16,6 +16,7 @@ class ProductBase(BaseModel):
     currency: str = Field(default="USD", min_length=3, max_length=3)
 
     notes: Optional[str] = None
+    source: str = Field(default="manual", max_length=50)
 
 
 class ProductCreate(ProductBase):
@@ -34,6 +35,7 @@ class ProductUpdate(BaseModel):
     currency: Optional[str] = Field(default=None, min_length=3, max_length=3)
 
     notes: Optional[str] = None
+    source: Optional[str] = Field(default=None, max_length=50)
 
 
 class ProductRead(ProductBase):
