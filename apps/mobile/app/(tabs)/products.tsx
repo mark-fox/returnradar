@@ -16,6 +16,8 @@ import { router, useFocusEffect } from "expo-router";
 import { getReturnDeadlineStatus } from "@/src/features/products/deadlineUtils";
 import { DeadlineStatusPill } from "@/src/features/products/DeadlineStatusPill";
 
+type ProductSortOption = "newest" | "returnDeadline" | "warrantyDeadline" | "name";
+
 function formatPrice(product: Product): string {
     if (product.price_cents === null) {
         return "Price not set";
@@ -35,6 +37,24 @@ function formatDeadline(value: string | null): string {
     return new Date(`${value}T00:00:00`).toLocaleDateString();
 }
 
+function compareOptionalDates(firstDate: string | null, secondDate: string | null): number {
+    if (!firstDate && !secondDate) {
+        return 0;
+    }
+
+    if (!firstDate) {
+        return 1;
+    }
+
+    if (!secondDate) {
+        return -1;
+    }
+
+    return (
+        new Date(`${firstDate}T00:00:00`).getTime() -
+        new Date(`${secondDate}T00:00:00`).getTime()
+    );
+}
 
 export default function ProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -42,6 +62,7 @@ export default function ProductsScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [sortOption, setSortOption] = useState<ProductSortOption>("newest");
 
     const loadProducts = useCallback(async () => {
         try {
@@ -71,26 +92,49 @@ export default function ProductsScreen() {
         void loadProducts();
     };
 
-    const filteredProducts = useMemo(() => {
+    const visibleProducts = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase();
 
-        if (!normalizedQuery) {
-            return products;
-        }
+        const filteredProducts = normalizedQuery
+            ? products.filter((product) => {
+                const searchableText = [
+                    product.name,
+                    product.merchant,
+                    product.notes,
+                ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
 
-        return products.filter((product) => {
-            const searchableText = [
-                product.name,
-                product.merchant,
-                product.notes,
-            ]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
+                return searchableText.includes(normalizedQuery);
+            })
+            : products;
 
-            return searchableText.includes(normalizedQuery);
+        return [...filteredProducts].sort((firstProduct, secondProduct) => {
+            if (sortOption === "name") {
+                return firstProduct.name.localeCompare(secondProduct.name);
+            }
+
+            if (sortOption === "returnDeadline") {
+                return compareOptionalDates(
+                    firstProduct.return_deadline,
+                    secondProduct.return_deadline
+                );
+            }
+
+            if (sortOption === "warrantyDeadline") {
+                return compareOptionalDates(
+                    firstProduct.warranty_deadline,
+                    secondProduct.warranty_deadline
+                );
+            }
+
+            return (
+                new Date(secondProduct.created_at).getTime() -
+                new Date(firstProduct.created_at).getTime()
+            );
         });
-    }, [products, searchQuery]);
+    }, [products, searchQuery, sortOption]);
 
     if (isLoading) {
         return (
@@ -118,11 +162,11 @@ export default function ProductsScreen() {
 
     return (
         <FlatList
-            data={filteredProducts}
+            data={visibleProducts}
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={[
                 styles.listContent,
-                filteredProducts.length === 0 && styles.emptyListContent
+                visibleProducts.length === 0 && styles.emptyListContent
             ]}
             refreshControl={
                 <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
@@ -156,6 +200,33 @@ export default function ProductsScreen() {
                             <Text style={styles.clearSearchButtonText}>Clear search</Text>
                         </Pressable>
                     ) : null}
+
+                    <View style={styles.sortSection}>
+                        <Text style={styles.sortLabel}>Sort by</Text>
+
+                        <View style={styles.sortButtonRow}>
+                            <SortButton
+                                label="Newest"
+                                isActive={sortOption === "newest"}
+                                onPress={() => setSortOption("newest")}
+                            />
+                            <SortButton
+                                label="Return"
+                                isActive={sortOption === "returnDeadline"}
+                                onPress={() => setSortOption("returnDeadline")}
+                            />
+                            <SortButton
+                                label="Warranty"
+                                isActive={sortOption === "warrantyDeadline"}
+                                onPress={() => setSortOption("warrantyDeadline")}
+                            />
+                            <SortButton
+                                label="Name"
+                                isActive={sortOption === "name"}
+                                onPress={() => setSortOption("name")}
+                            />
+                        </View>
+                    </View>
                 </View>
             }
             ListEmptyComponent={
@@ -199,6 +270,34 @@ export default function ProductsScreen() {
         />
     );
 }
+
+
+function SortButton({
+    label,
+    isActive,
+    onPress,
+}: {
+    label: string;
+    isActive: boolean;
+    onPress: () => void;
+}) {
+    return (
+        <Pressable
+            style={[styles.sortButton, isActive && styles.sortButtonActive]}
+            onPress={onPress}
+        >
+            <Text
+                style={[
+                    styles.sortButtonText,
+                    isActive && styles.sortButtonTextActive,
+                ]}
+            >
+                {label}
+            </Text>
+        </Pressable>
+    );
+}
+
 
 const styles = StyleSheet.create({
     centeredState: {
@@ -366,5 +465,40 @@ const styles = StyleSheet.create({
         color: "#2563EB",
         fontSize: 14,
         fontWeight: "800",
+    },
+    sortSection: {
+        marginTop: 16,
+    },
+    sortLabel: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#64748B",
+        marginBottom: 8,
+        textTransform: "uppercase",
+    },
+    sortButtonRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 8,
+    },
+    sortButton: {
+        borderRadius: 999,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+    },
+    sortButtonActive: {
+        backgroundColor: "#2563EB",
+        borderColor: "#2563EB",
+    },
+    sortButtonText: {
+        color: "#334155",
+        fontSize: 14,
+        fontWeight: "800",
+    },
+    sortButtonTextActive: {
+        color: "#FFFFFF",
     },
 });
