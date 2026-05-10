@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -19,8 +19,18 @@ def create_product(product_in: ProductCreate, db: Session = Depends(get_db)) -> 
 
 
 @router.get("", response_model=list[ProductRead])
-def list_products(db: Session = Depends(get_db)) -> list[Product]:
-    statement = select(Product).order_by(Product.created_at.desc())
+def list_products(
+    db: Session = Depends(get_db),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> list[Product]:
+    statement = (
+        select(Product)
+        .order_by(Product.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+
     return list(db.scalars(statement).all())
 
 

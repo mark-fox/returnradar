@@ -132,3 +132,33 @@ def test_update_product_rejects_invalid_source(client: TestClient) -> None:
     )
 
     assert update_response.status_code == 422
+
+
+def test_list_products_supports_limit_and_offset(client: TestClient) -> None:
+    for index in range(3):
+        response = client.post(
+            "/api/v1/products",
+            json={
+                "name": f"Paginated Product {index}",
+                "source": "manual",
+            },
+        )
+
+        assert response.status_code == 201
+
+    list_response = client.get("/api/v1/products?limit=2&offset=0")
+
+    assert list_response.status_code == 200
+    assert len(list_response.json()) <= 2
+
+
+def test_list_products_rejects_invalid_limit(client: TestClient) -> None:
+    response = client.get("/api/v1/products?limit=0")
+
+    assert response.status_code == 422
+
+
+def test_list_products_rejects_invalid_offset(client: TestClient) -> None:
+    response = client.get("/api/v1/products?offset=-1")
+
+    assert response.status_code == 422
