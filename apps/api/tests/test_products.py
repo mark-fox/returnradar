@@ -162,3 +162,67 @@ def test_list_products_rejects_invalid_offset(client: TestClient) -> None:
     response = client.get("/api/v1/products?offset=-1")
 
     assert response.status_code == 422
+
+
+def test_list_products_supports_search(client: TestClient) -> None:
+    create_matching_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Searchable Headphones",
+            "merchant": "Best Buy",
+            "notes": "Noise cancelling audio gear",
+            "source": "manual",
+        },
+    )
+
+    assert create_matching_response.status_code == 201
+
+    create_non_matching_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Reusable Water Bottle",
+            "merchant": "Target",
+            "notes": "Kitchen item",
+            "source": "manual",
+        },
+    )
+
+    assert create_non_matching_response.status_code == 201
+
+    search_response = client.get("/api/v1/products?search=headphones")
+
+    assert search_response.status_code == 200
+
+    names = [product["name"] for product in search_response.json()]
+
+    assert "Searchable Headphones" in names
+    assert "Reusable Water Bottle" not in names
+
+
+def test_list_products_searches_merchant_and_notes(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Generic Product",
+            "merchant": "Unique Merchant Search Store",
+            "notes": "Special warranty note",
+            "source": "manual",
+        },
+    )
+
+    assert response.status_code == 201
+
+    merchant_search_response = client.get("/api/v1/products?search=unique merchant")
+    notes_search_response = client.get("/api/v1/products?search=special warranty")
+
+    assert merchant_search_response.status_code == 200
+    assert notes_search_response.status_code == 200
+
+    assert any(
+        product["name"] == "Generic Product"
+        for product in merchant_search_response.json()
+    )
+    assert any(
+        product["name"] == "Generic Product"
+        for product in notes_search_response.json()
+    )
