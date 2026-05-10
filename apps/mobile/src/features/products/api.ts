@@ -6,8 +6,16 @@ import type {
     UpdateProductInput,
 } from "./types";
 
-export function listProducts(): Promise<Product[]> {
-    return apiFetch<Product[]>("/products");
+type ListProductsParams = {
+    limit?: number;
+    offset?: number;
+};
+
+export function listProducts(params: ListProductsParams = {}): Promise<Product[]> {
+    const limit = params.limit ?? 50;
+    const offset = params.offset ?? 0;
+
+    return apiFetch<Product[]>(`/products?limit=${limit}&offset=${offset}`);
 }
 
 export function getProduct(productId: number): Promise<Product> {
