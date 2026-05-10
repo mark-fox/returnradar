@@ -1,3 +1,5 @@
+export type ProductSource = "manual" | "receipt_ai";
+
 export type Product = {
     id: number;
     name: string;
@@ -8,7 +10,7 @@ export type Product = {
     price_cents: number | null;
     currency: string;
     notes: string | null;
-    source: string;
+    source: ProductSource;
     created_at: string;
     updated_at: string;
 };
@@ -22,7 +24,7 @@ export type CreateProductInput = {
     price_cents?: number | null;
     currency?: string;
     notes?: string | null;
-    source?: string;
+    source?: ProductSource;
 };
 
 export type UpdateProductInput = Partial<CreateProductInput>;

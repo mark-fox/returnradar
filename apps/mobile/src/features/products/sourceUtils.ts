@@ -1,11 +1,9 @@
-export function getProductSourceLabel(source: string): string {
-    if (source === "receipt_ai") {
-        return "AI receipt extraction";
-    }
+import type { ProductSource } from "./types";
 
-    if (source === "manual") {
-        return "Manual entry";
-    }
+export function getProductSourceLabel(source: ProductSource): string {
+  if (source === "receipt_ai") {
+    return "AI receipt extraction";
+  }
 
-    return "Unknown source";
+  return "Manual entry";
 }
