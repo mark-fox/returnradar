@@ -17,6 +17,7 @@ import {
     getWarrantyDeadlineStatus,
 } from "@/src/features/products/deadlineUtils";
 import { DeadlineStatusPill } from "@/src/features/products/DeadlineStatusPill";
+import { getProductSourceLabel } from "@/src/features/products/sourceUtils";
 
 function formatDate(value: string | null): string {
     if (!value) {
@@ -153,6 +154,7 @@ export default function ProductDetailScreen() {
 
             <View style={styles.card}>
                 <DetailRow label="Merchant" value={product.merchant ?? "Not set"} />
+                <DetailRow label="Source" value={getProductSourceLabel(product.source)} />
                 <DetailRow label="Price" value={formatPrice(product)} />
                 <DetailRow label="Purchase date" value={formatDate(product.purchase_date)} />
                 <DetailRow label="Return deadline" value={formatDate(product.return_deadline)} />

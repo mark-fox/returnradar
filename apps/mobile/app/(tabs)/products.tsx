@@ -15,6 +15,7 @@ import type { Product } from "@/src/features/products/types";
 import { router, useFocusEffect } from "expo-router";
 import { getReturnDeadlineStatus } from "@/src/features/products/deadlineUtils";
 import { DeadlineStatusPill } from "@/src/features/products/DeadlineStatusPill";
+import { getProductSourceLabel } from "@/src/features/products/sourceUtils";
 
 type ProductSortOption = "newest" | "returnDeadline" | "warrantyDeadline" | "name";
 
@@ -248,6 +249,10 @@ export default function ProductsScreen() {
 
                     <Text style={styles.productMeta}>
                         {item.merchant ?? "Merchant not set"} · {formatPrice(item)}
+                    </Text>
+
+                    <Text style={styles.productSource}>
+                        {getProductSourceLabel(item.source)}
                     </Text>
 
                     <DeadlineStatusPill status={getReturnDeadlineStatus(item.return_deadline)} />
@@ -500,5 +505,11 @@ const styles = StyleSheet.create({
     },
     sortButtonTextActive: {
         color: "#FFFFFF",
+    },
+    productSource: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#2563EB",
+        marginBottom: 12,
     },
 });
