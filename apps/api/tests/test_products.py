@@ -97,3 +97,38 @@ def test_delete_product(client: TestClient) -> None:
     get_response = client.get(f"/api/v1/products/{product_id}")
 
     assert get_response.status_code == 404
+
+
+def test_create_product_rejects_invalid_source(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Invalid Source Product",
+            "source": "banana",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_product_rejects_invalid_source(client: TestClient) -> None:
+    create_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Source Update Product",
+            "source": "manual",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+
+    update_response = client.patch(
+        f"/api/v1/products/{product_id}",
+        json={
+            "source": "banana",
+        },
+    )
+
+    assert update_response.status_code == 422
