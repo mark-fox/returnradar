@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -64,7 +65,7 @@ export default function HomeScreen() {
   }, [products]);
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.eyebrow}>ReturnRadar</Text>
 
       <Text style={styles.title}>
@@ -116,6 +117,13 @@ export default function HomeScreen() {
 
       <Pressable
         style={styles.primaryButton}
+        onPress={() => router.push("/deadlines")}
+      >
+        <Text style={styles.primaryButtonText}>View Deadlines</Text>
+      </Pressable>
+
+      <Pressable
+        style={styles.primaryButton}
         onPress={() => router.push("/receipt-scan")}
       >
         <Text style={styles.primaryButtonText}>Scan Receipt</Text>
@@ -134,7 +142,7 @@ export default function HomeScreen() {
       >
         <Text style={styles.secondaryButtonText}>View Products</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -149,9 +157,9 @@ function StatCard({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 24,
-    justifyContent: "center",
+    paddingBottom: 120,
     backgroundColor: "#F8FAFC",
   },
   eyebrow: {
