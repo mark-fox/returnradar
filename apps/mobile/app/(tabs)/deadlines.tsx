@@ -101,6 +101,27 @@ export default function DeadlinesScreen() {
             <Text style={styles.description}>
                 Review returns and warranties that need attention soon.
             </Text>
+            <View style={styles.summaryGrid}>
+                <SummaryCard
+                    value={deadlineGroups.upcomingReturns.length}
+                    label="Returns due soon"
+                />
+
+                <SummaryCard
+                    value={deadlineGroups.expiredReturns.length}
+                    label="Expired returns"
+                />
+
+                <SummaryCard
+                    value={deadlineGroups.upcomingWarranties.length}
+                    label="Warranties ending"
+                />
+
+                <SummaryCard
+                    value={deadlineGroups.expiredWarranties.length}
+                    label="Expired warranties"
+                />
+            </View>
 
             {!hasAnyDeadlines ? (
                 <View style={styles.emptyState}>
@@ -142,6 +163,21 @@ export default function DeadlinesScreen() {
                 </>
             )}
         </ScrollView>
+    );
+}
+
+function SummaryCard({
+    value,
+    label,
+}: {
+    value: number;
+    label: string;
+}) {
+    return (
+        <View style={styles.summaryCard}>
+            <Text style={styles.summaryValue}>{value}</Text>
+            <Text style={styles.summaryLabel}>{label}</Text>
+        </View>
     );
 }
 
@@ -317,5 +353,31 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "700",
+    },
+    summaryGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 12,
+        marginBottom: 28,
+    },
+    summaryCard: {
+        flexBasis: "48%",
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
+    },
+    summaryValue: {
+        fontSize: 36,
+        fontWeight: "800",
+        color: "#0F172A",
+        marginBottom: 6,
+    },
+    summaryLabel: {
+        fontSize: 15,
+        lineHeight: 22,
+        fontWeight: "700",
+        color: "#64748B",
     },
 });
