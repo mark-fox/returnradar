@@ -226,3 +226,45 @@ def test_list_products_searches_merchant_and_notes(client: TestClient) -> None:
         product["name"] == "Generic Product"
         for product in notes_search_response.json()
     )
+
+
+def test_list_products_supports_sort_by_name(client: TestClient) -> None:
+    first_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Alpha Sort Product",
+            "source": "manual",
+        },
+    )
+    second_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Zulu Sort Product",
+            "source": "manual",
+        },
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 201
+
+    response = client.get("/api/v1/products?search=Sort Product&sort_by=name&sort_direction=asc")
+
+    assert response.status_code == 200
+
+    names = [product["name"] for product in response.json()]
+
+    assert names.index("Alpha Sort Product") < names.index("Zulu Sort Product")
+
+
+def test_list_products_rejects_invalid_sort_by(client: TestClient) -> None:
+    response = client.get("/api/v1/products?sort_by=banana")
+
+    assert response.status_code == 422
+
+
+def test_list_products_rejects_invalid_sort_direction(client: TestClient) -> None:
+    response = client.get("/api/v1/products?sort_direction=sideways")
+
+    assert response.status_code == 422
+
+

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import or_, select
+from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -24,6 +24,11 @@ def list_products(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     search: str | None = Query(default=None, max_length=255),
+    sort_by: str = Query(
+        default="created_at",
+        pattern="^(created_at|name|return_deadline|warranty_deadline)$",
+    ),
+    sort_direction: str = Query(default="desc", pattern="^(asc|desc)$"),
 ) -> list[Product]:
     statement = select(Product)
 
@@ -38,12 +43,17 @@ def list_products(
             )
         )
 
-    statement = (
-        statement
-        .order_by(Product.created_at.desc())
-        .limit(limit)
-        .offset(offset)
-    )
+    sort_columns = {
+        "created_at": Product.created_at,
+        "name": Product.name,
+        "return_deadline": Product.return_deadline,
+        "warranty_deadline": Product.warranty_deadline,
+    }
+
+    sort_column = sort_columns[sort_by]
+    order_expression = asc(sort_column) if sort_direction == "asc" else desc(sort_column)
+
+    statement = statement.order_by(order_expression).limit(limit).offset(offset)
 
     return list(db.scalars(statement).all())
 
