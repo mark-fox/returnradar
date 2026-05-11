@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -64,11 +64,22 @@ export default function ProductsScreen() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortOption, setSortOption] = useState<ProductSortOption>("newest");
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery]);
 
     const loadProducts = useCallback(async () => {
         try {
             setErrorMessage(null);
-            const data = await listProducts();
+            const data = await listProducts({
+                search: debouncedSearchQuery,
+            });
             setProducts(data);
         } catch (error) {
             console.error(error);
@@ -79,11 +90,10 @@ export default function ProductsScreen() {
             setIsLoading(false);
             setIsRefreshing(false);
         }
-    }, []);
+    }, [debouncedSearchQuery]);
 
     useFocusEffect(
         useCallback(() => {
-            setIsLoading(true);
             void loadProducts();
         }, [loadProducts])
     );
@@ -94,24 +104,7 @@ export default function ProductsScreen() {
     };
 
     const visibleProducts = useMemo(() => {
-        const normalizedQuery = searchQuery.trim().toLowerCase();
-
-        const filteredProducts = normalizedQuery
-            ? products.filter((product) => {
-                const searchableText = [
-                    product.name,
-                    product.merchant,
-                    product.notes,
-                ]
-                    .filter(Boolean)
-                    .join(" ")
-                    .toLowerCase();
-
-                return searchableText.includes(normalizedQuery);
-            })
-            : products;
-
-        return [...filteredProducts].sort((firstProduct, secondProduct) => {
+        return [...products].sort((firstProduct, secondProduct) => {
             if (sortOption === "name") {
                 return firstProduct.name.localeCompare(secondProduct.name);
             }
@@ -135,7 +128,7 @@ export default function ProductsScreen() {
                 new Date(firstProduct.created_at).getTime()
             );
         });
-    }, [products, searchQuery, sortOption]);
+    }, [products, sortOption]);
 
     if (isLoading) {
         return (
@@ -233,12 +226,11 @@ export default function ProductsScreen() {
             ListEmptyComponent={
                 <View style={styles.emptyState}>
                     <Text style={styles.emptyTitle}>
-                        {products.length === 0 ? "No products yet" : "No matching products"}
-                    </Text>
+                        {debouncedSearchQuery.trim() ? "No matching products" : "No products yet"}                    </Text>
                     <Text style={styles.emptyText}>
-                        {products.length === 0
-                            ? "Add your first product manually or save one from the receipt extraction flow."
-                            : "Try a different search term or clear the search box."}
+                        {debouncedSearchQuery.trim()
+                            ? "Try a different search term or clear the search box."
+                            : "Add your first product manually or save one from the receipt extraction flow."}
                     </Text>
                 </View>
             }
