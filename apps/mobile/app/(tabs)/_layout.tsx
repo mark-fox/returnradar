@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Package, Radar } from "lucide-react-native";
+import { CalendarClock, Package, Radar } from "lucide-react-native";
 
 export default function TabLayout() {
   return (
@@ -18,6 +18,13 @@ export default function TabLayout() {
         }}
       />
 
+      <Tabs.Screen
+        name="deadlines"
+        options={{
+          title: "Deadlines",
+          tabBarIcon: ({ color }) => <CalendarClock size={22} color={color} />,
+        }}
+      />
       <Tabs.Screen
         name="products"
         options={{

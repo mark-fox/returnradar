@@ -117,7 +117,7 @@ export default function HomeScreen() {
 
       <Pressable
         style={styles.primaryButton}
-        onPress={() => router.push("/deadlines")}
+        onPress={() => router.push("/(tabs)/deadlines")}
       >
         <Text style={styles.primaryButtonText}>View Deadlines</Text>
       </Pressable>
