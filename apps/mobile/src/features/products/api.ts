@@ -9,13 +9,24 @@ import type {
 type ListProductsParams = {
     limit?: number;
     offset?: number;
+    search?: string;
 };
 
 export function listProducts(params: ListProductsParams = {}): Promise<Product[]> {
     const limit = params.limit ?? 50;
     const offset = params.offset ?? 0;
+    const search = params.search?.trim();
 
-    return apiFetch<Product[]>(`/products?limit=${limit}&offset=${offset}`);
+    const queryParams = new URLSearchParams({
+        limit: limit.toString(),
+        offset: offset.toString(),
+    });
+
+    if (search) {
+        queryParams.set("search", search);
+    }
+
+    return apiFetch<Product[]>(`/products?${queryParams.toString()}`);
 }
 
 export function getProduct(productId: number): Promise<Product> {
