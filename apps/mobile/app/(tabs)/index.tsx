@@ -18,12 +18,18 @@ export default function HomeScreen() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
 
   const loadProducts = useCallback(async () => {
     try {
       setErrorMessage(null);
-      const data = await listProducts();
+      const data = await listProducts({
+        limit: 50,
+        offset: 0,
+      });
+
       setProducts(data);
+      setRecentProducts(data.slice(0, 5));
     } catch (error) {
       console.error(error);
       setErrorMessage("Could not load dashboard data.");
@@ -114,6 +120,34 @@ export default function HomeScreen() {
           />
         </View>
       )}
+
+      {!isLoading && !errorMessage ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recently added</Text>
+
+          {recentProducts.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyCardText}>
+                Your recently added products will appear here.
+              </Text>
+            </View>
+          ) : (
+            recentProducts.map((product) => (
+              <Pressable
+                key={product.id}
+                style={styles.recentProductCard}
+                onPress={() => router.push(`/products/${product.id}`)}
+              >
+                <Text style={styles.recentProductName}>{product.name}</Text>
+
+                <Text style={styles.recentProductMeta}>
+                  {product.merchant ?? "Merchant not set"}
+                </Text>
+              </Pressable>
+            ))
+          )}
+        </View>
+      ) : null}
 
       <Pressable
         style={styles.primaryButton}
@@ -267,5 +301,44 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     fontSize: 16,
     fontWeight: "800",
+  },
+  section: {
+    marginBottom: 28,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 14,
+  },
+  recentProductCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  recentProductName: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 4,
+  },
+  recentProductMeta: {
+    fontSize: 14,
+    color: "#64748B",
+  },
+  emptyCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  emptyCardText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#64748B",
   },
 });
