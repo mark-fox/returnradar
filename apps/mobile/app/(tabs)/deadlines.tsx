@@ -47,11 +47,23 @@ function formatRemainingTime(daysRemaining: number | null): string {
     return `Expired ${expiredDays} day${expiredDays === 1 ? "" : "s"} ago`;
 }
 
+function formatLastUpdated(date: Date | null): string {
+    if (!date) {
+        return "Never";
+    }
+
+    return date.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+    });
+}
+
 export default function DeadlinesScreen() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
 
     const loadProducts = useCallback(async () => {
         try {
@@ -63,6 +75,7 @@ export default function DeadlinesScreen() {
             });
 
             setProducts(data);
+            setLastUpdatedAt(new Date());
         } catch (error) {
             console.error(error);
             setErrorMessage("Could not load deadline data.");
@@ -137,6 +150,11 @@ export default function DeadlinesScreen() {
             <Text style={styles.description}>
                 Review returns and warranties that need attention soon.
             </Text>
+
+            <Text style={styles.lastUpdatedText}>
+                Last updated: {formatLastUpdated(lastUpdatedAt)}
+            </Text>
+
             <View style={styles.summaryGrid}>
                 <SummaryCard
                     value={deadlineGroups.upcomingReturns.length}
@@ -450,5 +468,11 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "800",
         color: "#1D4ED8",
+    },
+    lastUpdatedText: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#64748B",
+        marginBottom: 20,
     },
 });
