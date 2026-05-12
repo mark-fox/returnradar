@@ -18,6 +18,7 @@ import {
 } from "@/src/features/products/deadlineUtils";
 import { getDeadlineGroups } from "@/src/features/products/deadlineFilters";
 import type { Product } from "@/src/features/products/types";
+import { getProductSourceLabel } from "@/src/features/products/sourceUtils";
 
 function formatDate(value: string | null): string {
     if (!value) {
@@ -244,7 +245,15 @@ function DeadlineSection({
                                 {formatRemainingTime(daysRemaining)}
                             </Text>
 
-                            <DeadlineStatusPill status={status} />
+                            <View style={styles.cardFooter}>
+                                <View style={styles.sourceBadge}>
+                                    <Text style={styles.sourceBadgeText}>
+                                        {getProductSourceLabel(product.source)}
+                                    </Text>
+                                </View>
+
+                                <DeadlineStatusPill status={status} />
+                            </View>
                         </Pressable>
                     );
                 })
@@ -408,5 +417,22 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#0F172A",
         marginBottom: 10,
+    },
+    cardFooter: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 12,
+    },
+    sourceBadge: {
+        backgroundColor: "#DBEAFE",
+        borderRadius: 999,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+    },
+    sourceBadgeText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#1D4ED8",
     },
 });

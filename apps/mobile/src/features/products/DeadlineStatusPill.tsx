@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
         borderRadius: 999,
         paddingVertical: 6,
         paddingHorizontal: 10,
-        marginBottom: 14,
+        marginBottom: 0,
     },
     statusPillText: {
         fontSize: 13,
