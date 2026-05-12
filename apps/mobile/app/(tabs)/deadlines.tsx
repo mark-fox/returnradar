@@ -12,6 +12,7 @@ import {
 import { listProducts } from "@/src/features/products/api";
 import { DeadlineStatusPill } from "@/src/features/products/DeadlineStatusPill";
 import {
+    getDaysUntilDate,
     getReturnDeadlineStatus,
     getWarrantyDeadlineStatus,
 } from "@/src/features/products/deadlineUtils";
@@ -24,6 +25,24 @@ function formatDate(value: string | null): string {
     }
 
     return new Date(`${value}T00:00:00`).toLocaleDateString();
+}
+
+function formatRemainingTime(daysRemaining: number | null): string {
+    if (daysRemaining === null) {
+        return "No deadline";
+    }
+
+    if (daysRemaining === 0) {
+        return "Ends today";
+    }
+
+    if (daysRemaining > 0) {
+        return `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining`;
+    }
+
+    const expiredDays = Math.abs(daysRemaining);
+
+    return `Expired ${expiredDays} day${expiredDays === 1 ? "" : "s"} ago`;
 }
 
 export default function DeadlinesScreen() {
@@ -209,6 +228,7 @@ function DeadlineSection({
                         deadlineType === "return"
                             ? product.return_deadline
                             : product.warranty_deadline;
+                    const daysRemaining = getDaysUntilDate(dateValue);
 
                     return (
                         <Pressable
@@ -219,6 +239,9 @@ function DeadlineSection({
                             <Text style={styles.productName}>{product.name}</Text>
                             <Text style={styles.productMeta}>
                                 {product.merchant ?? "Merchant not set"} · {formatDate(dateValue)}
+                            </Text>
+                            <Text style={styles.remainingTimeText}>
+                                {formatRemainingTime(daysRemaining)}
                             </Text>
 
                             <DeadlineStatusPill status={status} />
@@ -379,5 +402,11 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         fontWeight: "700",
         color: "#64748B",
+    },
+    remainingTimeText: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#0F172A",
+        marginBottom: 10,
     },
 });
