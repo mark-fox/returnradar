@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     Pressable,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
@@ -50,6 +51,7 @@ export default function DeadlinesScreen() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const loadProducts = useCallback(async () => {
         try {
@@ -66,8 +68,14 @@ export default function DeadlinesScreen() {
             setErrorMessage("Could not load deadline data.");
         } finally {
             setIsLoading(false);
+            setIsRefreshing(false);
         }
     }, []);
+
+    const handleRefresh = useCallback(async () => {
+        setIsRefreshing(true);
+        await loadProducts();
+    }, [loadProducts]);
 
     useFocusEffect(
         useCallback(() => {
@@ -113,7 +121,15 @@ export default function DeadlinesScreen() {
     }
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+            contentContainerStyle={styles.container}
+            refreshControl={
+                <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                />
+            }
+        >
             <Stack.Screen options={{ title: "Deadlines" }} />
 
             <Text style={styles.eyebrow}>Deadline Radar</Text>
