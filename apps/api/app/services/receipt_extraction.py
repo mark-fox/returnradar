@@ -1,6 +1,9 @@
+import json
 import re
 from datetime import date, timedelta
 from typing import Protocol
+
+from openai import OpenAI
 
 from app.schemas.receipt_extraction import (
     ReceiptExtractionResponse,
@@ -81,9 +84,79 @@ class MockReceiptExtractor:
         )
 
 
+class OpenAIReceiptExtractor:
+    def __init__(self) -> None:
+        if not settings.openai_api_key:
+            raise ValueError("OPENAI_API_KEY is not configured")
+
+        self.client = OpenAI(api_key=settings.openai_api_key)
+
+    def extract(self, raw_text: str) -> ReceiptExtractionResponse:
+        completion = self.client.chat.completions.create(
+            model="gpt-4.1-mini",
+            temperature=0,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You extract structured receipt information. "
+                        "Return only valid JSON."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"""
+Extract receipt information from this text.
+
+Return JSON with these fields:
+- name
+- merchant
+- price_cents
+- currency
+- notes
+
+Receipt text:
+{raw_text}
+""",
+                },
+            ],
+        )
+
+        response_text = completion.choices[0].message.content
+
+        if not response_text:
+            raise ValueError("OpenAI returned an empty response")
+
+        parsed = json.loads(response_text)
+
+        today = date.today()
+
+        return ReceiptExtractionResponse(
+            source="openai",
+            confidence=0.85,
+            suggestion=ReceiptProductSuggestion(
+                name=parsed.get("name") or "Unknown product",
+                merchant=parsed.get("merchant"),
+                purchase_date=today,
+                return_deadline=today + timedelta(days=30),
+                warranty_deadline=today + timedelta(days=365),
+                price_cents=parsed.get("price_cents"),
+                currency=parsed.get("currency") or "USD",
+                notes=parsed.get("notes"),
+            ),
+            warnings=[
+                "This is AI-generated data. Verify all extracted details before saving.",
+                "Return and warranty dates are estimates, not guarantees.",
+            ],
+        )
+    
+
 def build_receipt_extractor() -> ReceiptExtractor:
     if settings.receipt_extractor_provider == "mock":
         return MockReceiptExtractor()
+    
+    if settings.receipt_extractor_provider == "openai":
+        return OpenAIReceiptExtractor()
 
     raise ValueError(
         f"Unsupported receipt extractor provider: {settings.receipt_extractor_provider}"
