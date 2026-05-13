@@ -22,6 +22,9 @@ import {
 
 import { createProduct } from "@/src/features/products/api";
 import { extractReceipt } from "@/src/features/receiptExtraction/api";
+import {
+    uploadReceiptImage,
+} from "@/src/features/ai/api";
 import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction/types";
 
 const SAMPLE_RECEIPT_TEXT =
@@ -46,6 +49,7 @@ export default function ReceiptScanScreen() {
     const [isSaving, setIsSaving] = useState(false);
 
     const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+    const [uploadedImageInfo, setUploadedImageInfo] = useState<string | null>(null);
 
     const handleSelectReceiptImage = async () => {
         const permissionResult =
@@ -75,6 +79,20 @@ export default function ReceiptScanScreen() {
 
         setSelectedImageUri(imageUri);
         setValidationMessage(null);
+
+        try {
+            const uploadResult = await uploadReceiptImage(imageUri);
+
+            setUploadedImageInfo(
+                `${uploadResult.filename} (${uploadResult.size_bytes} bytes)`
+            );
+        } catch (error) {
+            console.error(error);
+
+            setValidationMessage(
+                "Receipt image upload failed."
+            );
+        }
     };
 
     const handleExtract = async () => {
@@ -207,11 +225,19 @@ export default function ReceiptScanScreen() {
                     </Pressable>
 
                     {selectedImageUri ? (
-                        <Image
-                            source={{ uri: selectedImageUri }}
-                            style={styles.receiptImagePreview}
-                            resizeMode="cover"
-                        />
+                        <>
+                            <Image
+                                source={{ uri: selectedImageUri }}
+                                style={styles.receiptImagePreview}
+                                resizeMode="cover"
+                            />
+
+                            {uploadedImageInfo ? (
+                                <Text style={styles.uploadSuccessText}>
+                                    Uploaded: {uploadedImageInfo}
+                                </Text>
+                            ) : null}
+                        </>
                     ) : (
                         <Text style={styles.helperText}>
                             Image selection is ready. OCR/vision extraction will be connected next.
@@ -535,6 +561,12 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 20,
         color: "#64748B",
+        marginBottom: 18,
+    },
+    uploadSuccessText: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#166534",
         marginBottom: 18,
     },
 });
