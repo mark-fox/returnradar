@@ -3,6 +3,7 @@ import pytest
 from app.core.config import settings
 from app.services.receipt_extraction import (
     MockReceiptExtractor,
+    OpenAIReceiptExtractor,
     build_receipt_extractor,
     extract_merchant,
     extract_price_cents,
@@ -89,3 +90,21 @@ def test_build_receipt_extractor_rejects_unsupported_provider(
 
     with pytest.raises(ValueError, match="Unsupported receipt extractor provider"):
         build_receipt_extractor()
+
+
+def test_openai_receipt_extractor_requires_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "openai_api_key", None)
+
+    with pytest.raises(ValueError, match="OPENAI_API_KEY is not configured"):
+        OpenAIReceiptExtractor()
+
+
+def test_build_receipt_extractor_returns_openai_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "receipt_extractor_provider", "openai")
+    monkeypatch.setattr(settings, "openai_api_key", "test-key")
+
+    extractor = build_receipt_extractor()
+
+    assert isinstance(extractor, OpenAIReceiptExtractor)
