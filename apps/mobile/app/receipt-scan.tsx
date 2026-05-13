@@ -1,7 +1,9 @@
 import { Stack, router } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import {
     ActivityIndicator,
+    Image,
     KeyboardAvoidingView,
     Platform,
     Pressable,
@@ -42,6 +44,38 @@ export default function ReceiptScanScreen() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isExtracting, setIsExtracting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+
+    const handleSelectReceiptImage = async () => {
+        const permissionResult =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permissionResult.granted) {
+            setValidationMessage("Photo library access is needed to select a receipt image.");
+            return;
+        }
+
+        const pickerResult = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images"],
+            allowsEditing: false,
+            quality: 0.8,
+        });
+
+        if (pickerResult.canceled) {
+            return;
+        }
+
+        const imageUri = pickerResult.assets[0]?.uri;
+
+        if (!imageUri) {
+            setValidationMessage("Could not read the selected image.");
+            return;
+        }
+
+        setSelectedImageUri(imageUri);
+        setValidationMessage(null);
+    };
 
     const handleExtract = async () => {
         const trimmedText = rawText.trim();
@@ -161,6 +195,29 @@ export default function ReceiptScanScreen() {
                 </Text>
 
                 <View style={styles.formCard}>
+                    <Text style={styles.label}>Receipt image</Text>
+
+                    <Pressable
+                        style={styles.secondaryButton}
+                        onPress={() => void handleSelectReceiptImage()}
+                    >
+                        <Text style={styles.secondaryButtonText}>
+                            Select Receipt Image
+                        </Text>
+                    </Pressable>
+
+                    {selectedImageUri ? (
+                        <Image
+                            source={{ uri: selectedImageUri }}
+                            style={styles.receiptImagePreview}
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <Text style={styles.helperText}>
+                            Image selection is ready. OCR/vision extraction will be connected next.
+                        </Text>
+                    )}
+
                     <Text style={styles.label}>Receipt text</Text>
                     <TextInput
                         value={rawText}
@@ -451,5 +508,33 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 16,
         fontWeight: "800",
+    },
+    secondaryButton: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        marginBottom: 14,
+    },
+    secondaryButtonText: {
+        color: "#0F172A",
+        fontSize: 16,
+        fontWeight: "800",
+    },
+    receiptImagePreview: {
+        width: "100%",
+        height: 220,
+        borderRadius: 16,
+        marginBottom: 18,
+        backgroundColor: "#E2E8F0",
+    },
+    helperText: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: "#64748B",
+        marginBottom: 18,
     },
 });
