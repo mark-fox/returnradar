@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { CalendarClock, Package, Radar } from "lucide-react-native";
+import { Bot, CalendarClock, Package, Radar } from "lucide-react-native";
 
 export default function TabLayout() {
   return (
@@ -25,6 +25,17 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <CalendarClock size={22} color={color} />,
         }}
       />
+
+      <Tabs.Screen
+        name="ai-status"
+        options={{
+          title: "AI",
+          tabBarIcon: ({ color }) => (
+            <Bot size={22} color={color} />
+          ),
+        }}
+      />
+
       <Tabs.Screen
         name="products"
         options={{
