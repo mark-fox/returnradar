@@ -12,6 +12,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env")
 
+    openai_api_key: str | None = None
+
     @property
     def cors_origins(self) -> list[str]:
         return [
