@@ -1,10 +1,23 @@
 from fastapi import APIRouter
 
-from app.schemas.receipt_extraction import ReceiptExtractionRequest, ReceiptExtractionResponse
+from app.core.config import settings
+from app.schemas.receipt_extraction import (
+    ReceiptExtractionRequest,
+    ReceiptExtractionResponse,
+    ReceiptProductSuggestion,
+)
 from app.services.receipt_extraction import extract_receipt_suggestion
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
+@router.get("/status")
+def get_ai_status() -> dict[str, object]:
+    provider = settings.receipt_extractor_provider
+
+    return {
+        "receipt_extractor_provider": provider,
+        "openai_configured": bool(settings.openai_api_key),
+    }
 
 @router.post("/receipt-extract", response_model=ReceiptExtractionResponse)
 def extract_receipt(
