@@ -100,25 +100,39 @@ class OpenAIReceiptExtractor:
                 {
                     "role": "system",
                     "content": (
-                        "You extract structured receipt information from receipts. "
-                        "You must return only valid JSON with no markdown or explanations."
+                        "You extract structured product purchase information from retail receipts. "
+                        "You must return only valid JSON with no markdown or explanations. "
+                        "Do not invent products that are not present in the receipt text. "
+                        "Prefer actual product names over generic labels like 'item' or 'purchase'. "
+                        "Use the merchant/store name when available. "
+                        "price_cents must be an integer in cents. "
+                        "currency should usually be USD unless another currency is clearly shown. "
+                        "notes should briefly summarize useful receipt context if applicable."
                     ),
                 },
                 {
                     "role": "user",
                     "content": f"""
-Extract receipt information from this text.
+                Extract structured receipt information.
 
-Return JSON with these fields:
-- name
-- merchant
-- price_cents
-- currency
-- notes
+                Return ONLY JSON with these fields:
+                {{
+                "name": string,
+                "merchant": string | null,
+                "price_cents": integer | null,
+                "currency": string,
+                "notes": string | null
+                }}
 
-Receipt text:
-{raw_text}
-""",
+                Guidelines:
+                - Focus on the primary purchased product.
+                - Ignore subtotal/tax/visa/mastercard lines unless useful.
+                - Use null when information is unclear.
+                - Do not hallucinate missing details.
+
+                Receipt text:
+                {raw_text}
+                """,
                 },
             ],
         )
