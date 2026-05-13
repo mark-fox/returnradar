@@ -17,8 +17,14 @@ export function getAIStatus(): Promise<AIStatusResponse> {
 }
 
 export async function uploadReceiptImage(
-    imageUri: string,
+    imageUri: string
 ): Promise<ReceiptImageUploadResponse> {
+    const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+
+    if (!apiBaseUrl) {
+        throw new Error("Missing EXPO_PUBLIC_API_BASE_URL environment variable");
+    }
+
     const formData = new FormData();
 
     formData.append("image", {
@@ -27,17 +33,15 @@ export async function uploadReceiptImage(
         type: "image/jpeg",
     } as unknown as Blob);
 
-    const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/ai/receipt-image`,
-        {
-            method: "POST",
-            body: formData,
-        },
-    );
+    const response = await fetch(`${apiBaseUrl}/ai/receipt-image`, {
+        method: "POST",
+        body: formData,
+    });
 
     if (!response.ok) {
-        throw new Error("Image upload failed");
+        const errorText = await response.text();
+        throw new Error(`Image upload failed: ${response.status} ${errorText}`);
     }
 
-    return response.json();
+    return response.json() as Promise<ReceiptImageUploadResponse>;
 }

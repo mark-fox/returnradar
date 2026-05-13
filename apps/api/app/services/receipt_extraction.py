@@ -1,3 +1,4 @@
+import base64
 import json
 import re
 from datetime import date, timedelta
@@ -165,6 +166,96 @@ class OpenAIReceiptExtractor:
             warnings=[
                 "This is AI-generated data. Verify all extracted details before saving.",
                 "Return and warranty dates are estimates, not guarantees.",
+            ],
+        )
+
+
+    def extract_from_image(
+        self,
+        image_bytes: bytes,
+    ) -> ReceiptExtractionResponse:
+        encoded_image = base64.b64encode(image_bytes).decode("utf-8")
+
+        completion = self.client.chat.completions.create(
+            model="gpt-4.1-mini",
+            temperature=0,
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You extract structured product purchase information "
+                        "from retail receipt images. "
+                        "Return only valid JSON."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": """
+Extract structured receipt information.
+
+Return ONLY JSON with:
+{
+  "name": string,
+  "merchant": string | null,
+  "price_cents": integer | null,
+  "currency": string,
+  "notes": string | null
+}
+""",
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{encoded_image}"
+                            },
+                        },
+                    ],
+                },
+            ],
+        )
+
+        response_text = completion.choices[0].message.content
+
+        if not response_text:
+            raise ValueError("OpenAI returned an empty response")
+
+        try:
+            parsed = json.loads(response_text)
+        except json.JSONDecodeError as error:
+            raise ValueError(
+                "OpenAI returned invalid JSON"
+            ) from error
+
+        today = date.today()
+
+        return ReceiptExtractionResponse(
+            source="openai-vision",
+            confidence=0.88,
+            suggestion=ReceiptProductSuggestion(
+                name=str(parsed.get("name") or "Unknown product"),
+                merchant=(
+                    str(parsed["merchant"])
+                    if parsed.get("merchant")
+                    else None
+                ),
+                purchase_date=today,
+                return_deadline=today + timedelta(days=30),
+                warranty_deadline=today + timedelta(days=365),
+                price_cents=parsed.get("price_cents"),
+                currency=str(parsed.get("currency") or "USD"),
+                notes=(
+                    str(parsed["notes"])
+                    if parsed.get("notes")
+                    else None
+                ),
+            ),
+            warnings=[
+                "This is AI-generated data from a receipt image.",
+                "Verify all extracted information before saving.",
             ],
         )
     

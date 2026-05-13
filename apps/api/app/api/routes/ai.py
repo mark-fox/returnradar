@@ -33,10 +33,13 @@ def test_openai_receipt_extraction(
 
     return extractor.extract(request.raw_text)
 
-@router.post("/receipt-image")
+@router.post(
+    "/receipt-image",
+    response_model=ReceiptExtractionResponse,
+)
 async def upload_receipt_image(
     image: UploadFile = File(...),
-) -> dict[str, object]:
+) -> ReceiptExtractionResponse:
     allowed_content_types = {
         "image/jpeg",
         "image/png",
@@ -51,12 +54,9 @@ async def upload_receipt_image(
 
     contents = await image.read()
 
-    return {
-        "filename": image.filename,
-        "content_type": image.content_type,
-        "size_bytes": len(contents),
-        "ready_for_ocr": True,
-    }
+    extractor = OpenAIReceiptExtractor()
+
+    return extractor.extract_from_image(contents)
 
 @router.post("/receipt-extract", response_model=ReceiptExtractionResponse)
 def extract_receipt(
