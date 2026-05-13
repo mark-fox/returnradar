@@ -95,12 +95,13 @@ class OpenAIReceiptExtractor:
         completion = self.client.chat.completions.create(
             model="gpt-4.1-mini",
             temperature=0,
+            response_format={"type": "json_object"},
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        "You extract structured receipt information. "
-                        "Return only valid JSON."
+                        "You extract structured receipt information from receipts. "
+                        "You must return only valid JSON with no markdown or explanations."
                     ),
                 },
                 {
@@ -127,7 +128,10 @@ Receipt text:
         if not response_text:
             raise ValueError("OpenAI returned an empty response")
 
-        parsed = json.loads(response_text)
+        try:
+            parsed = json.loads(response_text)
+        except json.JSONDecodeError as error:
+            raise ValueError("OpenAI returned invalid JSON") from error
 
         today = date.today()
 
@@ -135,14 +139,14 @@ Receipt text:
             source="openai",
             confidence=0.85,
             suggestion=ReceiptProductSuggestion(
-                name=parsed.get("name") or "Unknown product",
-                merchant=parsed.get("merchant"),
+                name=str(parsed.get("name") or "Unknown product"),
+                merchant=str(parsed["merchant"]) if parsed.get("merchant") else None,
                 purchase_date=today,
                 return_deadline=today + timedelta(days=30),
                 warranty_deadline=today + timedelta(days=365),
                 price_cents=parsed.get("price_cents"),
-                currency=parsed.get("currency") or "USD",
-                notes=parsed.get("notes"),
+                currency=str(parsed.get("currency") or "USD"),
+                notes=str(parsed["notes"]) if parsed.get("notes") else None,
             ),
             warnings=[
                 "This is AI-generated data. Verify all extracted details before saving.",
