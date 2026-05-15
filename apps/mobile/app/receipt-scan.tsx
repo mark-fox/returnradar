@@ -32,7 +32,7 @@ const SAMPLE_RECEIPT_TEXT =
 
 
 export default function ReceiptScanScreen() {
-    const [rawText, setRawText] = useState(SAMPLE_RECEIPT_TEXT);
+    const [rawText, setRawText] = useState("");
     const [result, setResult] = useState<ReceiptExtractionResponse | null>(null);
 
     const [suggestedName, setSuggestedName] = useState("");
@@ -294,14 +294,14 @@ export default function ReceiptScanScreen() {
                 keyboardShouldPersistTaps="handled"
             >
                 <Text style={styles.eyebrow}>AI Receipt Extraction</Text>
-                <Text style={styles.title}>Paste receipt text</Text>
+                <Text style={styles.title}>Scan a receipt</Text>
                 <Text style={styles.description}>
-                    Extract suggested product details, review them, then save only after
-                    confirming the information looks right.
+                    Take a photo or select a receipt image. ReturnRadar will use AI to suggest
+                    product details for you to review before saving.
                 </Text>
 
                 <View style={styles.formCard}>
-                    <Text style={styles.label}>Receipt image</Text>
+                    <Text style={styles.label}>Receipt photo</Text>
 
                     <Pressable
                         style={styles.primaryButton}
@@ -347,11 +347,11 @@ export default function ReceiptScanScreen() {
                         </Text>
                     )}
 
-                    <Text style={styles.label}>Receipt text</Text>
+                    <Text style={styles.fallbackLabel}>Fallback: paste receipt text</Text>
                     <TextInput
                         value={rawText}
                         onChangeText={setRawText}
-                        placeholder="Paste receipt text here..."
+                        placeholder="Optional fallback for testing or copied receipt text..."
                         multiline
                         textAlignVertical="top"
                         style={[styles.input, styles.receiptInput]}
@@ -365,7 +365,7 @@ export default function ReceiptScanScreen() {
                         {isExtracting ? (
                             <ActivityIndicator color="#FFFFFF" />
                         ) : (
-                            <Text style={styles.primaryButtonText}>Extract Details</Text>
+                            <Text style={styles.primaryButtonText}>Extract From Text</Text>
                         )}
                     </Pressable>
                 </View>
@@ -677,5 +677,13 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#1D4ED8",
         marginBottom: 12,
+    },
+    fallbackLabel: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#64748B",
+        marginTop: 18,
+        marginBottom: 8,
+        textTransform: "uppercase",
     },
 });
