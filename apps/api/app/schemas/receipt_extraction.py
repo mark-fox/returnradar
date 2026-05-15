@@ -19,8 +19,14 @@ class ReceiptProductSuggestion(BaseModel):
     notes: Optional[str] = None
 
 
+class ReceiptLineItem(BaseModel):
+    name: str
+    price_cents: int | None = None
+
+
 class ReceiptExtractionResponse(BaseModel):
     source: str
     confidence: float = Field(..., ge=0, le=1)
     suggestion: ReceiptProductSuggestion
     warnings: list[str] = []
+    line_items: list[ReceiptLineItem] = Field(default_factory=list)

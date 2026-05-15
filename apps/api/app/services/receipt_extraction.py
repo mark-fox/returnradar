@@ -8,6 +8,7 @@ from openai import OpenAI
 
 from app.schemas.receipt_extraction import (
     ReceiptExtractionResponse,
+    ReceiptLineItem,
     ReceiptProductSuggestion,
 )
 from app.core.config import settings
@@ -63,6 +64,14 @@ class MockReceiptExtractor:
 
         today = date.today()
 
+        line_items=[
+            ReceiptLineItem(
+                name=str(item.get("name", "Unknown item")),
+                price_cents=item.get("price_cents"),
+            )
+            for item in parsed.get("line_items", [])
+            if isinstance(item, dict)
+        ],
         warnings = [
             "This is a mock extraction. User confirmation is required before saving.",
             "Return and warranty dates are estimates, not guarantees.",
@@ -82,6 +91,12 @@ class MockReceiptExtractor:
                 notes="AI-suggested details. Verify against the receipt and retailer policy.",
             ),
             warnings=warnings,
+            line_items=[
+                ReceiptLineItem(
+                    name=product_name,
+                    price_cents=price_cents,
+                )
+            ],
         )
 
 
@@ -120,6 +135,7 @@ class OpenAIReceiptExtractor:
                 {{
                 "name": string,
                 "merchant": string | null,
+                "line_items": array,
                 "price_cents": integer | null,
                 "currency": string,
                 "notes": string | null
@@ -163,6 +179,14 @@ class OpenAIReceiptExtractor:
                 currency=str(parsed.get("currency") or "USD"),
                 notes=str(parsed["notes"]) if parsed.get("notes") else None,
             ),
+            line_items=[
+                ReceiptLineItem(
+                    name=str(item.get("name", "Unknown item")),
+                    price_cents=item.get("price_cents"),
+                )
+                for item in parsed.get("line_items", [])
+                if isinstance(item, dict)
+            ],
             warnings=[
                 "This is AI-generated data. Verify all extracted details before saving.",
                 "Return and warranty dates are estimates, not guarantees.",
@@ -201,6 +225,7 @@ Return ONLY JSON with:
 {
   "name": string,
   "merchant": string | null,
+  "line_items": array,
   "price_cents": integer | null,
   "currency": string,
   "notes": string | null
