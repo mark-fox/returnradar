@@ -371,107 +371,133 @@ export default function ReceiptScanScreen() {
                 </View>
 
                 {result ? (
-                    <View style={styles.resultCard}>
-                        <Text style={styles.resultEyebrow}>
-                            Source: {result.source} · Confidence:{" "}
-                            {Math.round(result.confidence * 100)}%
-                        </Text>
+                    <>
+                        <View style={styles.summaryCard}>
+                            <Text style={styles.summaryEyebrow}>
+                                AI Extraction Complete
+                            </Text>
 
-                        <Text style={styles.resultTitle}>Review suggested details</Text>
+                            <Text style={styles.summaryTitle}>
+                                {result.suggestion.name}
+                            </Text>
 
-                        <FieldLabel label="Product name" required />
-                        <TextInput
-                            value={suggestedName}
-                            onChangeText={setSuggestedName}
-                            placeholder="Product name"
-                            autoCapitalize="words"
-                            style={styles.input}
-                        />
+                            <Text style={styles.summaryText}>
+                                Merchant: {result.suggestion.merchant ?? "Unknown"}
+                            </Text>
 
-                        <FieldLabel label="Merchant" />
-                        <TextInput
-                            value={suggestedMerchant}
-                            onChangeText={setSuggestedMerchant}
-                            placeholder="Merchant"
-                            autoCapitalize="words"
-                            style={styles.input}
-                        />
+                            <Text style={styles.summaryText}>
+                                Estimated Price:{" "}
+                                {result.suggestion.price_cents
+                                    ? `$${(result.suggestion.price_cents / 100).toFixed(2)}`
+                                    : "Unknown"}
+                            </Text>
 
-                        <FieldLabel label="Price" />
-                        <TextInput
-                            value={suggestedPrice}
-                            onChangeText={setSuggestedPrice}
-                            placeholder="399.99"
-                            keyboardType="decimal-pad"
-                            style={styles.input}
-                        />
-
-                        <FieldLabel label="Purchase date" />
-                        <TextInput
-                            value={suggestedPurchaseDate}
-                            onChangeText={setSuggestedPurchaseDate}
-                            placeholder="2026-04-28"
-                            keyboardType="numbers-and-punctuation"
-                            style={styles.input}
-                        />
-
-                        <FieldLabel label="Return deadline" />
-                        <TextInput
-                            value={suggestedReturnDeadline}
-                            onChangeText={setSuggestedReturnDeadline}
-                            placeholder="2026-05-28"
-                            keyboardType="numbers-and-punctuation"
-                            style={styles.input}
-                        />
-
-                        <FieldLabel label="Warranty deadline" />
-                        <TextInput
-                            value={suggestedWarrantyDeadline}
-                            onChangeText={setSuggestedWarrantyDeadline}
-                            placeholder="2027-04-28"
-                            keyboardType="numbers-and-punctuation"
-                            style={styles.input}
-                        />
-
-                        <FieldLabel label="Notes" />
-                        <TextInput
-                            value={suggestedNotes}
-                            onChangeText={setSuggestedNotes}
-                            placeholder="Notes"
-                            multiline
-                            textAlignVertical="top"
-                            style={[styles.input, styles.notesInput]}
-                        />
-
-                        {validationMessage ? (
-                            <Text style={styles.validationText}>{validationMessage}</Text>
-                        ) : null}
-
-                        {errorMessage ? (
-                            <Text style={styles.errorText}>{errorMessage}</Text>
-                        ) : null}
-
-                        <View style={styles.warningBox}>
-                            <Text style={styles.warningTitle}>Before saving</Text>
-                            {result.warnings.map((warning) => (
-                                <Text key={warning} style={styles.warningText}>
-                                    • {warning}
-                                </Text>
-                            ))}
+                            <Text style={styles.summaryText}>
+                                Confidence: {(result.confidence * 100).toFixed(0)}%
+                            </Text>
                         </View>
+                        <View style={styles.resultCard}>
+                            <Text style={styles.resultEyebrow}>
+                                Source: {result.source} · Confidence:{" "}
+                                {Math.round(result.confidence * 100)}%
+                            </Text>
 
-                        <Pressable
-                            style={[styles.saveButton, isSaving && styles.disabledButton]}
-                            onPress={() => void handleSaveSuggestion()}
-                            disabled={isSaving}
-                        >
-                            {isSaving ? (
-                                <ActivityIndicator color="#FFFFFF" />
-                            ) : (
-                                <Text style={styles.saveButtonText}>Save Confirmed Product</Text>
-                            )}
-                        </Pressable>
-                    </View>
+                            <Text style={styles.resultTitle}>Review suggested details</Text>
+
+                            <FieldLabel label="Product name" required />
+                            <TextInput
+                                value={suggestedName}
+                                onChangeText={setSuggestedName}
+                                placeholder="Product name"
+                                autoCapitalize="words"
+                                style={styles.input}
+                            />
+
+                            <FieldLabel label="Merchant" />
+                            <TextInput
+                                value={suggestedMerchant}
+                                onChangeText={setSuggestedMerchant}
+                                placeholder="Merchant"
+                                autoCapitalize="words"
+                                style={styles.input}
+                            />
+
+                            <FieldLabel label="Price" />
+                            <TextInput
+                                value={suggestedPrice}
+                                onChangeText={setSuggestedPrice}
+                                placeholder="399.99"
+                                keyboardType="decimal-pad"
+                                style={styles.input}
+                            />
+
+                            <FieldLabel label="Purchase date" />
+                            <TextInput
+                                value={suggestedPurchaseDate}
+                                onChangeText={setSuggestedPurchaseDate}
+                                placeholder="2026-04-28"
+                                keyboardType="numbers-and-punctuation"
+                                style={styles.input}
+                            />
+
+                            <FieldLabel label="Return deadline" />
+                            <TextInput
+                                value={suggestedReturnDeadline}
+                                onChangeText={setSuggestedReturnDeadline}
+                                placeholder="2026-05-28"
+                                keyboardType="numbers-and-punctuation"
+                                style={styles.input}
+                            />
+
+                            <FieldLabel label="Warranty deadline" />
+                            <TextInput
+                                value={suggestedWarrantyDeadline}
+                                onChangeText={setSuggestedWarrantyDeadline}
+                                placeholder="2027-04-28"
+                                keyboardType="numbers-and-punctuation"
+                                style={styles.input}
+                            />
+
+                            <FieldLabel label="Notes" />
+                            <TextInput
+                                value={suggestedNotes}
+                                onChangeText={setSuggestedNotes}
+                                placeholder="Notes"
+                                multiline
+                                textAlignVertical="top"
+                                style={[styles.input, styles.notesInput]}
+                            />
+
+                            {validationMessage ? (
+                                <Text style={styles.validationText}>{validationMessage}</Text>
+                            ) : null}
+
+                            {errorMessage ? (
+                                <Text style={styles.errorText}>{errorMessage}</Text>
+                            ) : null}
+
+                            <View style={styles.warningBox}>
+                                <Text style={styles.warningTitle}>Before saving</Text>
+                                {result.warnings.map((warning) => (
+                                    <Text key={warning} style={styles.warningText}>
+                                        • {warning}
+                                    </Text>
+                                ))}
+                            </View>
+
+                            <Pressable
+                                style={[styles.saveButton, isSaving && styles.disabledButton]}
+                                onPress={() => void handleSaveSuggestion()}
+                                disabled={isSaving}
+                            >
+                                {isSaving ? (
+                                    <ActivityIndicator color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.saveButtonText}>Save Confirmed Product</Text>
+                                )}
+                            </Pressable>
+                        </View>
+                    </>
                 ) : null}
 
                 {!result && validationMessage ? (
@@ -685,5 +711,33 @@ const styles = StyleSheet.create({
         marginTop: 18,
         marginBottom: 8,
         textTransform: "uppercase",
+    },
+    summaryCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: "#BFDBFE",
+    },
+    summaryEyebrow: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#2563EB",
+        marginBottom: 8,
+        textTransform: "uppercase",
+    },
+    summaryTitle: {
+        fontSize: 24,
+        lineHeight: 30,
+        fontWeight: "800",
+        color: "#0F172A",
+        marginBottom: 12,
+    },
+    summaryText: {
+        fontSize: 15,
+        lineHeight: 22,
+        color: "#475569",
+        marginBottom: 6,
     },
 });
