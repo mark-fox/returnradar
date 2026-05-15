@@ -50,6 +50,7 @@ export default function ReceiptScanScreen() {
 
     const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
     const [uploadedImageInfo, setUploadedImageInfo] = useState<string | null>(null);
+    const [imageUploadStatus, setImageUploadStatus] = useState<string | null>(null);
 
     const handleSelectReceiptImage = async () => {
         const permissionResult =
@@ -81,7 +82,11 @@ export default function ReceiptScanScreen() {
         setValidationMessage(null);
 
         try {
+            setImageUploadStatus("Uploading receipt image...");
+
             const uploadResult = await uploadReceiptImage(imageUri);
+
+            setImageUploadStatus("Analyzing receipt with AI...");
 
             setResult(uploadResult);
 
@@ -97,12 +102,14 @@ export default function ReceiptScanScreen() {
             setSuggestedWarrantyDeadline(uploadResult.suggestion.warranty_deadline ?? "");
             setSuggestedNotes(uploadResult.suggestion.notes ?? "");
 
+            setImageUploadStatus(null);
             setUploadedImageInfo(
                 `${uploadResult.suggestion.name} extracted successfully`
             );
         } catch (error) {
             console.error(error);
 
+            setImageUploadStatus(null);
             setValidationMessage(
                 "Receipt image upload failed."
             );
@@ -142,7 +149,11 @@ export default function ReceiptScanScreen() {
         setValidationMessage(null);
 
         try {
+            setImageUploadStatus("Uploading receipt image...");
+
             const uploadResult = await uploadReceiptImage(imageUri);
+
+            setImageUploadStatus("Analyzing receipt with AI...");
 
             setResult(uploadResult);
 
@@ -158,12 +169,14 @@ export default function ReceiptScanScreen() {
             setSuggestedWarrantyDeadline(uploadResult.suggestion.warranty_deadline ?? "");
             setSuggestedNotes(uploadResult.suggestion.notes ?? "");
 
+            setImageUploadStatus(null);
             setUploadedImageInfo(
                 `${uploadResult.suggestion.name} extracted successfully`
             );
         } catch (error) {
             console.error(error);
 
+            setImageUploadStatus(null);
             setValidationMessage(
                 "Receipt image upload failed."
             );
@@ -315,6 +328,12 @@ export default function ReceiptScanScreen() {
                                 style={styles.receiptImagePreview}
                                 resizeMode="cover"
                             />
+
+                            {imageUploadStatus ? (
+                                <Text style={styles.uploadStatusText}>
+                                    {imageUploadStatus}
+                                </Text>
+                            ) : null}
 
                             {uploadedImageInfo ? (
                                 <Text style={styles.uploadSuccessText}>
@@ -652,5 +671,11 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#166534",
         marginBottom: 18,
+    },
+    uploadStatusText: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#1D4ED8",
+        marginBottom: 12,
     },
 });
