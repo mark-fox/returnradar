@@ -83,6 +83,20 @@ export default function ReceiptScanScreen() {
         try {
             const uploadResult = await uploadReceiptImage(imageUri);
 
+            setResult(uploadResult);
+
+            setSuggestedName(uploadResult.suggestion.name);
+            setSuggestedMerchant(uploadResult.suggestion.merchant ?? "");
+            setSuggestedPrice(
+                uploadResult.suggestion.price_cents === null
+                    ? ""
+                    : (uploadResult.suggestion.price_cents / 100).toFixed(2)
+            );
+            setSuggestedPurchaseDate(uploadResult.suggestion.purchase_date ?? "");
+            setSuggestedReturnDeadline(uploadResult.suggestion.return_deadline ?? "");
+            setSuggestedWarrantyDeadline(uploadResult.suggestion.warranty_deadline ?? "");
+            setSuggestedNotes(uploadResult.suggestion.notes ?? "");
+
             setUploadedImageInfo(
                 `${uploadResult.suggestion.name} extracted successfully`
             );
@@ -129,6 +143,20 @@ export default function ReceiptScanScreen() {
 
         try {
             const uploadResult = await uploadReceiptImage(imageUri);
+
+            setResult(uploadResult);
+
+            setSuggestedName(uploadResult.suggestion.name);
+            setSuggestedMerchant(uploadResult.suggestion.merchant ?? "");
+            setSuggestedPrice(
+                uploadResult.suggestion.price_cents === null
+                    ? ""
+                    : (uploadResult.suggestion.price_cents / 100).toFixed(2)
+            );
+            setSuggestedPurchaseDate(uploadResult.suggestion.purchase_date ?? "");
+            setSuggestedReturnDeadline(uploadResult.suggestion.return_deadline ?? "");
+            setSuggestedWarrantyDeadline(uploadResult.suggestion.warranty_deadline ?? "");
+            setSuggestedNotes(uploadResult.suggestion.notes ?? "");
 
             setUploadedImageInfo(
                 `${uploadResult.suggestion.name} extracted successfully`
