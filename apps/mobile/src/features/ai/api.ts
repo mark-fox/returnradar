@@ -1,15 +1,9 @@
 import { apiFetch } from "@/src/lib/api";
+import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction/types";
 
 export type AIStatusResponse = {
     receipt_extractor_provider: string;
     openai_configured: boolean;
-};
-
-export type ReceiptImageUploadResponse = {
-    filename: string;
-    content_type: string;
-    size_bytes: number;
-    ready_for_ocr: boolean;
 };
 
 export function getAIStatus(): Promise<AIStatusResponse> {
@@ -18,7 +12,7 @@ export function getAIStatus(): Promise<AIStatusResponse> {
 
 export async function uploadReceiptImage(
     imageUri: string
-): Promise<ReceiptImageUploadResponse> {
+): Promise<ReceiptExtractionResponse> {
     const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 
     if (!apiBaseUrl) {
@@ -43,5 +37,5 @@ export async function uploadReceiptImage(
         throw new Error(`Image upload failed: ${response.status} ${errorText}`);
     }
 
-    return response.json() as Promise<ReceiptImageUploadResponse>;
+    return response.json() as Promise<ReceiptExtractionResponse>;
 }

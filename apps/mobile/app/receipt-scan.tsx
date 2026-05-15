@@ -84,7 +84,54 @@ export default function ReceiptScanScreen() {
             const uploadResult = await uploadReceiptImage(imageUri);
 
             setUploadedImageInfo(
-                `${uploadResult.filename} (${uploadResult.size_bytes} bytes)`
+                `${uploadResult.suggestion.name} extracted successfully`
+            );
+        } catch (error) {
+            console.error(error);
+
+            setValidationMessage(
+                "Receipt image upload failed."
+            );
+        }
+    };
+
+    const handleCaptureReceiptImage = async () => {
+        const permissionResult =
+            await ImagePicker.requestCameraPermissionsAsync();
+
+        if (!permissionResult.granted) {
+            setValidationMessage(
+                "Camera access is needed to capture receipt images."
+            );
+
+            return;
+        }
+
+        const cameraResult = await ImagePicker.launchCameraAsync({
+            mediaTypes: ["images"],
+            quality: 0.8,
+        });
+
+        if (cameraResult.canceled) {
+            return;
+        }
+
+        const imageUri = cameraResult.assets[0]?.uri;
+
+        if (!imageUri) {
+            setValidationMessage("Could not read the captured image.");
+
+            return;
+        }
+
+        setSelectedImageUri(imageUri);
+        setValidationMessage(null);
+
+        try {
+            const uploadResult = await uploadReceiptImage(imageUri);
+
+            setUploadedImageInfo(
+                `${uploadResult.suggestion.name} extracted successfully`
             );
         } catch (error) {
             console.error(error);
@@ -214,6 +261,15 @@ export default function ReceiptScanScreen() {
 
                 <View style={styles.formCard}>
                     <Text style={styles.label}>Receipt image</Text>
+
+                    <Pressable
+                        style={styles.primaryButton}
+                        onPress={() => void handleCaptureReceiptImage()}
+                    >
+                        <Text style={styles.primaryButtonText}>
+                            Capture Receipt Photo
+                        </Text>
+                    </Pressable>
 
                     <Pressable
                         style={styles.secondaryButton}
