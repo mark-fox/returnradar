@@ -11,6 +11,20 @@ router = APIRouter(prefix="/products", tags=["products"])
 
 @router.post("", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
 def create_product(product_in: ProductCreate, db: Session = Depends(get_db)) -> Product:
+    existing_product = db.scalar(
+        select(Product).where(
+            Product.name == product_in.name,
+            Product.merchant == product_in.merchant,
+            Product.purchase_date == product_in.purchase_date,
+        )
+    )
+
+    if existing_product is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A matching product already exists.",
+        )
+
     product = Product(**product_in.model_dump())
     db.add(product)
     db.commit()
