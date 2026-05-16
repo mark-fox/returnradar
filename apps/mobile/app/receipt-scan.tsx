@@ -183,6 +183,19 @@ export default function ReceiptScanScreen() {
         }
     };
 
+    const handleSelectLineItem = (
+        itemName: string,
+        itemPriceCents: number | null,
+    ) => {
+        setSuggestedName(itemName);
+
+        setSuggestedPrice(
+            itemPriceCents === null
+                ? ""
+                : (itemPriceCents / 100).toFixed(2)
+        );
+    };
+
     const handleExtract = async () => {
         const trimmedText = rawText.trim();
 
@@ -400,11 +413,20 @@ export default function ReceiptScanScreen() {
                                     <Text style={styles.lineItemsTitle}>
                                         Detected receipt items
                                     </Text>
+                                    <Text style={styles.lineItemsHint}>
+                                        Tap an item to load it into the editable review form.
+                                    </Text>
 
                                     {result.line_items.map((item, index) => (
-                                        <View
+                                        <Pressable
                                             key={`${item.name}-${index}`}
                                             style={styles.lineItemRow}
+                                            onPress={() =>
+                                                handleSelectLineItem(
+                                                    item.name,
+                                                    item.price_cents,
+                                                )
+                                            }
                                         >
                                             <Text style={styles.lineItemName}>
                                                 {item.name}
@@ -415,7 +437,7 @@ export default function ReceiptScanScreen() {
                                                     ? `$${(item.price_cents / 100).toFixed(2)}`
                                                     : "--"}
                                             </Text>
-                                        </View>
+                                        </Pressable>
                                     ))}
                                 </View>
                             ) : null}
@@ -781,6 +803,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        borderRadius: 12,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
         marginBottom: 10,
     },
     lineItemName: {
@@ -793,5 +818,11 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "700",
         color: "#1D4ED8",
+    },
+    lineItemsHint: {
+        fontSize: 13,
+        lineHeight: 18,
+        color: "#64748B",
+        marginBottom: 12,
     },
 });
