@@ -64,14 +64,6 @@ class MockReceiptExtractor:
 
         today = date.today()
 
-        line_items=[
-            ReceiptLineItem(
-                name=str(item.get("name", "Unknown item")),
-                price_cents=item.get("price_cents"),
-            )
-            for item in parsed.get("line_items", [])
-            if isinstance(item, dict)
-        ],
         warnings = [
             "This is a mock extraction. User confirmation is required before saving.",
             "Return and warranty dates are estimates, not guarantees.",
@@ -135,7 +127,12 @@ class OpenAIReceiptExtractor:
                 {{
                 "name": string,
                 "merchant": string | null,
-                "line_items": array,
+                  "line_items": [
+    {
+      "name": string,
+      "price_cents": integer | null
+    }
+  ],
                 "price_cents": integer | null,
                 "currency": string,
                 "notes": string | null
@@ -219,18 +216,34 @@ class OpenAIReceiptExtractor:
                         {
                             "type": "text",
                             "text": """
-Extract structured receipt information.
+Extract structured receipt information from this receipt image.
 
-Return ONLY JSON with:
+Return ONLY valid JSON with this exact shape:
 {
   "name": string,
   "merchant": string | null,
-  "line_items": array,
   "price_cents": integer | null,
   "currency": string,
-  "notes": string | null
+  "notes": string | null,
+  "line_items": [
+    {
+      "name": string,
+      "price_cents": integer | null
+    }
+  ]
 }
-""",
+
+Rules:
+- merchant should be the store name, such as Target or Best Buy.
+- name should be the primary purchased product, not the store name, address, phone number, barcode, receipt number, or slogan.
+- line_items must include all purchased products visible on the receipt.
+- Do not include subtotal, tax, total, payment method, barcode, store address, or receipt numbers as line_items.
+- price_cents must be an integer in cents, so $59.99 becomes 5999.
+- If multiple products are visible, choose the most important or highest-priced product as name.
+- Use null when a field is unclear.
+- You must always include the line_items key. If no purchased products are detected, use an empty array.
+- For this receipt, line_items should contain every purchased product row.
+"""
                         },
                         {
                             "type": "image_url",
@@ -256,6 +269,7 @@ Return ONLY JSON with:
             ) from error
 
         today = date.today()
+        line_items_source = parsed.get("line_items") or parsed.get("items") or []
 
         return ReceiptExtractionResponse(
             source="openai-vision",
@@ -281,6 +295,14 @@ Return ONLY JSON with:
             warnings=[
                 "This is AI-generated data from a receipt image.",
                 "Verify all extracted information before saving.",
+            ],
+            line_items=[
+                ReceiptLineItem(
+                    name=str(item.get("name") or "Unknown item"),
+                    price_cents=item.get("price_cents"),
+                )
+                for item in line_items_source
+                if isinstance(item, dict)
             ],
         )
     

@@ -395,6 +395,30 @@ export default function ReceiptScanScreen() {
                             <Text style={styles.summaryText}>
                                 Confidence: {(result.confidence * 100).toFixed(0)}%
                             </Text>
+                            {result.line_items.length > 0 ? (
+                                <View style={styles.lineItemsSection}>
+                                    <Text style={styles.lineItemsTitle}>
+                                        Detected receipt items
+                                    </Text>
+
+                                    {result.line_items.map((item, index) => (
+                                        <View
+                                            key={`${item.name}-${index}`}
+                                            style={styles.lineItemRow}
+                                        >
+                                            <Text style={styles.lineItemName}>
+                                                {item.name}
+                                            </Text>
+
+                                            <Text style={styles.lineItemPrice}>
+                                                {item.price_cents !== null
+                                                    ? `$${(item.price_cents / 100).toFixed(2)}`
+                                                    : "--"}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            ) : null}
                         </View>
                         <View style={styles.resultCard}>
                             <Text style={styles.resultEyebrow}>
@@ -739,5 +763,35 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         color: "#475569",
         marginBottom: 6,
+    },
+    lineItemsSection: {
+        marginTop: 18,
+        paddingTop: 18,
+        borderTopWidth: 1,
+        borderTopColor: "#DBEAFE",
+    },
+    lineItemsTitle: {
+        fontSize: 14,
+        fontWeight: "800",
+        color: "#1E3A8A",
+        marginBottom: 12,
+        textTransform: "uppercase",
+    },
+    lineItemRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+    lineItemName: {
+        flex: 1,
+        fontSize: 15,
+        color: "#0F172A",
+        marginRight: 12,
+    },
+    lineItemPrice: {
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#1D4ED8",
     },
 });

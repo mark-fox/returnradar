@@ -18,4 +18,8 @@ export type ReceiptExtractionResponse = {
     confidence: number;
     suggestion: ReceiptProductSuggestion;
     warnings: string[];
+    line_items: {
+        name: string;
+        price_cents: number | null;
+    }[];
 };
