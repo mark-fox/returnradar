@@ -65,6 +65,8 @@ export default function ReceiptScanScreen() {
             mediaTypes: ["images"],
             allowsEditing: false,
             quality: 0.8,
+            exif: false,
+            base64: false,
         });
 
         if (pickerResult.canceled) {
@@ -79,7 +81,10 @@ export default function ReceiptScanScreen() {
         }
 
         setSelectedImageUri(imageUri);
+        setUploadedImageInfo(null);
+        setImageUploadStatus(null);
         setValidationMessage(null);
+        setErrorMessage(null);
 
         try {
             setImageUploadStatus("Uploading receipt image...");
@@ -107,11 +112,11 @@ export default function ReceiptScanScreen() {
                 `${uploadResult.suggestion.name} extracted successfully`
             );
         } catch (error) {
-            console.error(error);
+            console.warn(error);
 
             setImageUploadStatus(null);
             setValidationMessage(
-                "Receipt image upload failed."
+                "Receipt image upload failed. Try selecting the image again or choose a different photo."
             );
         }
     };
@@ -131,6 +136,8 @@ export default function ReceiptScanScreen() {
         const cameraResult = await ImagePicker.launchCameraAsync({
             mediaTypes: ["images"],
             quality: 0.8,
+            exif: false,
+            base64: false,
         });
 
         if (cameraResult.canceled) {
@@ -146,7 +153,10 @@ export default function ReceiptScanScreen() {
         }
 
         setSelectedImageUri(imageUri);
+        setUploadedImageInfo(null);
+        setImageUploadStatus(null);
         setValidationMessage(null);
+        setErrorMessage(null);
 
         try {
             setImageUploadStatus("Uploading receipt image...");
@@ -174,11 +184,11 @@ export default function ReceiptScanScreen() {
                 `${uploadResult.suggestion.name} extracted successfully`
             );
         } catch (error) {
-            console.error(error);
+            console.warn(error);
 
             setImageUploadStatus(null);
             setValidationMessage(
-                "Receipt image upload failed."
+                "Receipt image upload failed. Try selecting the image again or choose a different photo."
             );
         }
     };
@@ -226,7 +236,7 @@ export default function ReceiptScanScreen() {
             );
             setSuggestedNotes(extractionResult.suggestion.notes ?? "");
         } catch (error) {
-            console.error(error);
+            console.warn(error);
             setErrorMessage(
                 "Could not extract receipt details. Make sure the API is running and try again."
             );
@@ -286,10 +296,19 @@ export default function ReceiptScanScreen() {
 
             router.replace(`/products/${savedProduct.id}`);
         } catch (error) {
-            console.error(error);
-            setErrorMessage(
-                "Could not save the suggested product. Please review the details and try again."
-            );
+            console.warn(error);
+
+            const message = error instanceof Error ? error.message : "";
+
+            if (message.includes("409")) {
+                setErrorMessage(
+                    "This product already exists. Try selecting a different receipt item or editing the product details before saving."
+                );
+            } else {
+                setErrorMessage(
+                    "Could not save the suggested product. Please review the details and try again."
+                );
+            }
         } finally {
             setIsSaving(false);
         }
