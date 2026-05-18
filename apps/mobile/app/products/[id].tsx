@@ -9,7 +9,9 @@ import {
     Text,
     View,
     Image,
+    Modal,
 } from "react-native";
+import ImageViewing from "react-native-image-viewing";
 
 import { deleteProduct, getProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
@@ -47,6 +49,7 @@ export default function ProductDetailScreen() {
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isReceiptViewerVisible, setIsReceiptViewerVisible] = useState(false);
 
     const loadProduct = useCallback(async () => {
         try {
@@ -175,14 +178,17 @@ export default function ProductDetailScreen() {
             {product.receipt_image_path ? (
                 <View style={styles.card}>
                     <Text style={styles.sectionTitle}>Receipt Image</Text>
-
-                    <Image
-                        source={{
-                            uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace("/api/v1", "")}/${product.receipt_image_path}`,
-                        }}
-                        style={styles.receiptImage}
-                        resizeMode="cover"
-                    />
+                    <Pressable
+                        onPress={() => setIsReceiptViewerVisible(true)}
+                    >
+                        <Image
+                            source={{
+                                uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace("/api/v1", "")}/${product.receipt_image_path}`,
+                            }}
+                            style={styles.receiptImage}
+                            resizeMode="cover"
+                        />
+                    </Pressable>
                 </View>
             ) : null}
 
@@ -201,6 +207,21 @@ export default function ProductDetailScreen() {
                     <Text style={styles.deleteButtonText}>Delete Product</Text>
                 )}
             </Pressable>
+            <ImageViewing
+                images={[
+                    {
+                        uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace(
+                            "/api/v1",
+                            "",
+                        )}/${product.receipt_image_path}`,
+                    },
+                ]}
+                imageIndex={0}
+                visible={isReceiptViewerVisible}
+                onRequestClose={() =>
+                    setIsReceiptViewerVisible(false)
+                }
+            />
         </ScrollView>
     );
 }
