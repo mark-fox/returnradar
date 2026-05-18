@@ -8,6 +8,7 @@ import {
     Text,
     TextInput,
     View,
+    Image,
 } from "react-native";
 
 import { listProducts } from "@/src/features/products/api";
@@ -237,9 +238,28 @@ export default function ProductsScreen() {
             renderItem={({ item }) => (
                 <Pressable style={styles.productCard}
                     onPress={() => router.push(`/products/${item.id}`)}>
+                    {item.receipt_image_path ? (
+                        <Image
+                            source={{
+                                uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace(
+                                    "/api/v1",
+                                    "",
+                                )}/${item.receipt_image_path}`,
+                            }}
+                            style={styles.receiptThumbnail}
+                            resizeMode="cover"
+                        />
+                    ) : null}
                     <Text style={styles.productName}>{item.name}</Text>
 
                     <Text style={styles.productMeta}>
+                        {item.receipt_image_path ? (
+                            <View style={styles.receiptBadge}>
+                                <Text style={styles.receiptBadgeText}>
+                                    Receipt Saved
+                                </Text>
+                            </View>
+                        ) : null}
                         {item.merchant ?? "Merchant not set"} · {formatPrice(item)}
                     </Text>
 
@@ -503,5 +523,25 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#2563EB",
         marginBottom: 12,
+    },
+    receiptThumbnail: {
+        width: "100%",
+        height: 140,
+        borderRadius: 16,
+        backgroundColor: "#E2E8F0",
+        marginBottom: 14,
+    },
+    receiptBadge: {
+        alignSelf: "flex-start",
+        backgroundColor: "#DBEAFE",
+        borderRadius: 999,
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        marginBottom: 12,
+    },
+    receiptBadgeText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#1D4ED8",
     },
 });
