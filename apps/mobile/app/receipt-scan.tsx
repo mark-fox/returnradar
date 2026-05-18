@@ -228,6 +228,28 @@ export default function ReceiptScanScreen() {
         );
     };
 
+    const resetReceiptSession = () => {
+        setRawText("");
+
+        setResult(null);
+
+        setSuggestedName("");
+        setSuggestedMerchant("");
+        setSuggestedPrice("");
+        setSuggestedPurchaseDate("");
+        setSuggestedReturnDeadline("");
+        setSuggestedWarrantyDeadline("");
+        setSuggestedNotes("");
+
+        setSelectedImageUri(null);
+        setUploadedImageInfo(null);
+        setImageUploadStatus(null);
+        setReceiptImagePath("");
+
+        setValidationMessage(null);
+        setErrorMessage(null);
+    };
+
     const handleExtract = async () => {
         const trimmedText = rawText.trim();
 
@@ -317,6 +339,7 @@ export default function ReceiptScanScreen() {
                 receipt_image_path: receiptImagePath,
             });
 
+            resetReceiptSession();
             router.replace(`/products/${savedProduct.id}`);
         } catch (error) {
             console.warn(error);
@@ -583,6 +606,14 @@ export default function ReceiptScanScreen() {
                                 ) : (
                                     <Text style={styles.saveButtonText}>Save Confirmed Product</Text>
                                 )}
+                            </Pressable>
+                            <Pressable
+                                style={styles.secondaryButton}
+                                onPress={resetReceiptSession}
+                            >
+                                <Text style={styles.secondaryButtonText}>
+                                    Start New Receipt
+                                </Text>
                             </Pressable>
                         </View>
                     </>
