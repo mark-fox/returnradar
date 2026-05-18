@@ -10,6 +10,7 @@ export type Product = {
     price_cents: number | null;
     currency: string;
     notes: string | null;
+    receipt_image_path: string | null;
     source: ProductSource;
     created_at: string;
     updated_at: string;
@@ -24,6 +25,7 @@ export type CreateProductInput = {
     price_cents?: number | null;
     currency?: string;
     notes?: string | null;
+    receipt_image_path?: string | null;
     source?: ProductSource;
 };
 

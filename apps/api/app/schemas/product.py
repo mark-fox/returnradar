@@ -16,6 +16,7 @@ class ProductBase(BaseModel):
     currency: str = Field(default="USD", min_length=3, max_length=3)
 
     notes: Optional[str] = None
+    receipt_image_path: Optional[str] = Field(default=None, max_length=500)
     source: Literal["manual", "receipt_ai"] = "manual"
 
 
@@ -35,6 +36,7 @@ class ProductUpdate(BaseModel):
     currency: Optional[str] = Field(default=None, min_length=3, max_length=3)
 
     notes: Optional[str] = None
+    receipt_image_path: Optional[str] = Field(default=None, max_length=500)
     source: Optional[Literal["manual", "receipt_ai"]] = None
 
 

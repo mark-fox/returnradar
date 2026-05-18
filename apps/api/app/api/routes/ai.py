@@ -1,3 +1,5 @@
+from pathlib import Path
+from uuid import uuid4
 from fastapi import APIRouter, File, UploadFile, HTTPException
 
 from app.core.config import settings
@@ -53,10 +55,23 @@ async def upload_receipt_image(
         )
 
     contents = await image.read()
+    uploads_dir = Path("uploads")
+    uploads_dir.mkdir(exist_ok=True)
+
+    filename = f"{uuid4()}-{image.filename}"
+    file_path = uploads_dir / filename
+
+    file_path.write_bytes(contents)
 
     extractor = OpenAIReceiptExtractor()
+    extraction_response = extractor.extract_from_image(contents)
 
-    return extractor.extract_from_image(contents)
+    extraction_response.warnings.insert(
+        0,
+        f"receipt_image_path:{file_path.as_posix()}",
+    )
+
+    return extraction_response
 
 @router.post("/receipt-extract", response_model=ReceiptExtractionResponse)
 def extract_receipt(

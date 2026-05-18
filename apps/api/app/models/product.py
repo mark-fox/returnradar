@@ -23,6 +23,7 @@ class Product(Base):
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="USD")
 
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    receipt_image_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     source: Mapped[str] = mapped_column(String(50), nullable=False, default="manual")
 

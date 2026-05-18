@@ -52,6 +52,8 @@ export default function ReceiptScanScreen() {
     const [uploadedImageInfo, setUploadedImageInfo] = useState<string | null>(null);
     const [imageUploadStatus, setImageUploadStatus] = useState<string | null>(null);
 
+    const [receiptImagePath, setReceiptImagePath] = useState("");
+
     const handleSelectReceiptImage = async () => {
         const permissionResult =
             await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -94,6 +96,16 @@ export default function ReceiptScanScreen() {
             setImageUploadStatus("Analyzing receipt with AI...");
 
             setResult(uploadResult);
+
+            const imagePathWarning = uploadResult.warnings.find(
+                (warning) => warning.startsWith("receipt_image_path:")
+            );
+
+            if (imagePathWarning) {
+                setReceiptImagePath(
+                    imagePathWarning.replace("receipt_image_path:", "")
+                );
+            }
 
             setSuggestedName(uploadResult.suggestion.name);
             setSuggestedMerchant(uploadResult.suggestion.merchant ?? "");
@@ -166,6 +178,16 @@ export default function ReceiptScanScreen() {
             setImageUploadStatus("Analyzing receipt with AI...");
 
             setResult(uploadResult);
+
+            const imagePathWarning = uploadResult.warnings.find(
+                (warning) => warning.startsWith("receipt_image_path:")
+            );
+
+            if (imagePathWarning) {
+                setReceiptImagePath(
+                    imagePathWarning.replace("receipt_image_path:", "")
+                );
+            }
 
             setSuggestedName(uploadResult.suggestion.name);
             setSuggestedMerchant(uploadResult.suggestion.merchant ?? "");
@@ -292,6 +314,7 @@ export default function ReceiptScanScreen() {
                 currency: result?.suggestion.currency ?? "USD",
                 notes: suggestedNotes.trim() || null,
                 source: "receipt_ai",
+                receipt_image_path: receiptImagePath,
             });
 
             router.replace(`/products/${savedProduct.id}`);

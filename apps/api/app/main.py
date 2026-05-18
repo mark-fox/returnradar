@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from app.api.routes.health import router as health_router
 from app.api.routes.products import router as products_router
@@ -11,6 +13,11 @@ app = FastAPI(
     version=settings.app_version,
     description="Backend API for ReturnRadar, a mobile AI app for receipt, return, and warranty tracking.",
 )
+
+uploads_dir = Path("uploads")
+uploads_dir.mkdir(exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,

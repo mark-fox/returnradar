@@ -8,6 +8,7 @@ import {
     StyleSheet,
     Text,
     View,
+    Image,
 } from "react-native";
 
 import { deleteProduct, getProduct } from "@/src/features/products/api";
@@ -171,6 +172,20 @@ export default function ProductDetailScreen() {
                 <DetailRow label="Currency" value={product.currency} />
             </View>
 
+            {product.receipt_image_path ? (
+                <View style={styles.card}>
+                    <Text style={styles.sectionTitle}>Receipt Image</Text>
+
+                    <Image
+                        source={{
+                            uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace("/api/v1", "")}/${product.receipt_image_path}`,
+                        }}
+                        style={styles.receiptImage}
+                        resizeMode="cover"
+                    />
+                </View>
+            ) : null}
+
             <View style={styles.card}>
                 <Text style={styles.sectionTitle}>Notes</Text>
                 <Text style={styles.notes}>{product.notes ?? "No notes added."}</Text>
@@ -325,5 +340,11 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "800",
+    },
+    receiptImage: {
+        width: "100%",
+        height: 260,
+        borderRadius: 18,
+        backgroundColor: "#E2E8F0",
     },
 });
