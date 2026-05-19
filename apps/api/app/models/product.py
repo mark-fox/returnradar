@@ -26,6 +26,8 @@ class Product(Base):
     receipt_image_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     source: Mapped[str] = mapped_column(String(50), nullable=False, default="manual")
+    ai_provider: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    ai_confidence: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

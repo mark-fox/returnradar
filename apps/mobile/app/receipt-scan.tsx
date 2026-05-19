@@ -336,6 +336,10 @@ export default function ReceiptScanScreen() {
                 currency: result?.suggestion.currency ?? "USD",
                 notes: suggestedNotes.trim() || null,
                 source: "receipt_ai",
+                ai_provider: result?.source ?? null,
+                ai_confidence: result
+                    ? Math.round(result.confidence * 100)
+                    : null,
                 receipt_image_path: receiptImagePath,
             });
 

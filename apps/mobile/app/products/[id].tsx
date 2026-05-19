@@ -159,6 +159,19 @@ export default function ProductDetailScreen() {
             <View style={styles.card}>
                 <DetailRow label="Merchant" value={product.merchant ?? "Not set"} />
                 <DetailRow label="Source" value={getProductSourceLabel(product.source)} />
+                <DetailRow
+                    label="AI Provider"
+                    value={product.ai_provider ?? "Manual entry"}
+                />
+
+                <DetailRow
+                    label="AI Confidence"
+                    value={
+                        product.ai_confidence !== null
+                            ? `${product.ai_confidence}%`
+                            : "N/A"
+                    }
+                />
                 <DetailRow label="Price" value={formatPrice(product)} />
                 <DetailRow label="Purchase date" value={formatDate(product.purchase_date)} />
                 <DetailRow label="Return deadline" value={formatDate(product.return_deadline)} />

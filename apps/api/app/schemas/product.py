@@ -18,6 +18,8 @@ class ProductBase(BaseModel):
     notes: Optional[str] = None
     receipt_image_path: Optional[str] = Field(default=None, max_length=500)
     source: Literal["manual", "receipt_ai"] = "manual"
+    ai_provider: Optional[str] = Field(default=None, max_length=100)
+    ai_confidence: Optional[int] = Field(default=None, ge=0, le=100)
 
 
 class ProductCreate(ProductBase):

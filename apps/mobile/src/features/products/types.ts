@@ -12,6 +12,8 @@ export type Product = {
     notes: string | null;
     receipt_image_path: string | null;
     source: ProductSource;
+    ai_provider: string | null;
+    ai_confidence: number | null;
     created_at: string;
     updated_at: string;
 };
@@ -27,6 +29,8 @@ export type CreateProductInput = {
     notes?: string | null;
     receipt_image_path?: string | null;
     source?: ProductSource;
+    ai_provider?: string | null;
+    ai_confidence?: number | null;
 };
 
 export type UpdateProductInput = Partial<CreateProductInput>;
