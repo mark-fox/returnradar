@@ -55,6 +55,7 @@ export default function ReceiptScanScreen() {
     const [receiptImagePath, setReceiptImagePath] = useState("");
     const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
     const [savedReceiptItems, setSavedReceiptItems] = useState<string[]>([]);
+    const savedReceiptItemCount = savedReceiptItems.length;
 
     const handleSelectReceiptImage = async () => {
         const permissionResult =
@@ -615,6 +616,32 @@ export default function ReceiptScanScreen() {
                                 <Text style={styles.errorText}>{errorMessage}</Text>
                             ) : null}
 
+                            {savedReceiptItemCount > 0 ? (
+                                <View style={styles.sessionSummaryCard}>
+                                    <Text style={styles.sessionSummaryTitle}>
+                                        Receipt Session Progress
+                                    </Text>
+
+                                    <Text style={styles.sessionSummaryText}>
+                                        Saved {savedReceiptItemCount} item
+                                        {savedReceiptItemCount === 1 ? "" : "s"} from this receipt.
+                                    </Text>
+
+                                    <View style={styles.savedItemsList}>
+                                        {savedReceiptItems.map((itemName) => (
+                                            <View
+                                                key={itemName}
+                                                style={styles.savedItemChip}
+                                            >
+                                                <Text style={styles.savedItemChipText}>
+                                                    {itemName}
+                                                </Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+                            ) : null}
+
                             {saveSuccessMessage ? (
                                 <Text style={styles.successText}>{saveSuccessMessage}</Text>
                             ) : null}
@@ -945,5 +972,42 @@ const styles = StyleSheet.create({
         fontWeight: "800",
         color: "#166534",
         marginRight: 10,
+    },
+    sessionSummaryCard: {
+        backgroundColor: "#F8FAFC",
+        borderRadius: 18,
+        padding: 18,
+        marginBottom: 18,
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+    },
+    sessionSummaryTitle: {
+        fontSize: 15,
+        fontWeight: "800",
+        color: "#0F172A",
+        marginBottom: 8,
+    },
+    sessionSummaryText: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: "#475569",
+        marginBottom: 12,
+    },
+    savedItemsList: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+    },
+    savedItemChip: {
+        backgroundColor: "#DBEAFE",
+        borderRadius: 999,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        marginRight: 8,
+        marginBottom: 8,
+    },
+    savedItemChipText: {
+        fontSize: 12,
+        fontWeight: "700",
+        color: "#1D4ED8",
     },
 });
