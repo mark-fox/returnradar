@@ -54,6 +54,7 @@ export default function ReceiptScanScreen() {
 
     const [receiptImagePath, setReceiptImagePath] = useState("");
     const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
+    const [savedReceiptItems, setSavedReceiptItems] = useState<string[]>([]);
 
     const handleSelectReceiptImage = async () => {
         const permissionResult =
@@ -253,6 +254,7 @@ export default function ReceiptScanScreen() {
         setValidationMessage(null);
         setErrorMessage(null);
         setSaveSuccessMessage(null);
+        setSavedReceiptItems([]);
     };
 
     const handleExtract = async () => {
@@ -348,6 +350,10 @@ export default function ReceiptScanScreen() {
                 receipt_image_path: receiptImagePath,
             });
 
+            setSavedReceiptItems((current) => [
+                ...current,
+                trimmedName,
+            ]);
             setSaveSuccessMessage(`${trimmedName} was saved. You can select another receipt item or start a new receipt.`);
             setErrorMessage(null);
         } catch (error) {
@@ -491,28 +497,41 @@ export default function ReceiptScanScreen() {
                                         Tap an item to load it into the editable review form.
                                     </Text>
 
-                                    {result.line_items.map((item, index) => (
-                                        <Pressable
-                                            key={`${item.name}-${index}`}
-                                            style={styles.lineItemRow}
-                                            onPress={() =>
-                                                handleSelectLineItem(
-                                                    item.name,
-                                                    item.price_cents,
-                                                )
-                                            }
-                                        >
-                                            <Text style={styles.lineItemName}>
-                                                {item.name}
-                                            </Text>
+                                    {result.line_items.map((item, index) => {
+                                        const isAlreadySaved =
+                                            savedReceiptItems.includes(item.name);
 
-                                            <Text style={styles.lineItemPrice}>
-                                                {item.price_cents !== null
-                                                    ? `$${(item.price_cents / 100).toFixed(2)}`
-                                                    : "--"}
-                                            </Text>
-                                        </Pressable>
-                                    ))}
+                                        return (
+                                            <Pressable
+                                                key={`${item.name}-${index}`}
+                                                style={[
+                                                    styles.lineItemRow,
+                                                    isAlreadySaved && styles.savedLineItemRow,
+                                                ]}
+                                                disabled={isAlreadySaved}
+                                                onPress={() =>
+                                                    handleSelectLineItem(
+                                                        item.name,
+                                                        item.price_cents,
+                                                    )
+                                                }
+                                            >
+                                                <Text style={styles.lineItemName}>
+                                                    {item.name}
+                                                </Text>
+                                                {isAlreadySaved ? (
+                                                    <Text style={styles.savedLineItemText}>
+                                                        Saved
+                                                    </Text>
+                                                ) : null}
+                                                <Text style={styles.lineItemPrice}>
+                                                    {item.price_cents !== null
+                                                        ? `$${(item.price_cents / 100).toFixed(2)}`
+                                                        : "--"}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })}
                                 </View>
                             ) : null}
                         </View>
@@ -917,5 +936,14 @@ const styles = StyleSheet.create({
         lineHeight: 20,
         fontWeight: "700",
         marginBottom: 12,
+    },
+    savedLineItemRow: {
+        opacity: 0.45,
+    },
+    savedLineItemText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#166534",
+        marginRight: 10,
     },
 });
