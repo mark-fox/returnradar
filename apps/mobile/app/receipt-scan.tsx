@@ -53,6 +53,7 @@ export default function ReceiptScanScreen() {
     const [imageUploadStatus, setImageUploadStatus] = useState<string | null>(null);
 
     const [receiptImagePath, setReceiptImagePath] = useState("");
+    const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
 
     const handleSelectReceiptImage = async () => {
         const permissionResult =
@@ -226,6 +227,9 @@ export default function ReceiptScanScreen() {
                 ? ""
                 : (itemPriceCents / 100).toFixed(2)
         );
+
+        setSaveSuccessMessage(null);
+        setErrorMessage(null);
     };
 
     const resetReceiptSession = () => {
@@ -248,6 +252,7 @@ export default function ReceiptScanScreen() {
 
         setValidationMessage(null);
         setErrorMessage(null);
+        setSaveSuccessMessage(null);
     };
 
     const handleExtract = async () => {
@@ -343,8 +348,8 @@ export default function ReceiptScanScreen() {
                 receipt_image_path: receiptImagePath,
             });
 
-            resetReceiptSession();
-            router.replace(`/products/${savedProduct.id}`);
+            setSaveSuccessMessage(`${trimmedName} was saved. You can select another receipt item or start a new receipt.`);
+            setErrorMessage(null);
         } catch (error) {
             console.warn(error);
 
@@ -589,6 +594,10 @@ export default function ReceiptScanScreen() {
 
                             {errorMessage ? (
                                 <Text style={styles.errorText}>{errorMessage}</Text>
+                            ) : null}
+
+                            {saveSuccessMessage ? (
+                                <Text style={styles.successText}>{saveSuccessMessage}</Text>
                             ) : null}
 
                             <View style={styles.warningBox}>
@@ -900,6 +909,13 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 18,
         color: "#64748B",
+        marginBottom: 12,
+    },
+    successText: {
+        color: "#166534",
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: "700",
         marginBottom: 12,
     },
 });
