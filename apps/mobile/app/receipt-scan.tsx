@@ -1,6 +1,6 @@
 import { Stack, router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     ActivityIndicator,
     Image,
@@ -13,6 +13,8 @@ import {
     TextInput,
     View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
     centsToPriceInput,
     isValidDateString,
@@ -30,6 +32,8 @@ import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction
 const SAMPLE_RECEIPT_TEXT =
     "BEST BUY\nSony WH-1000XM5 Headphones\nSubtotal 399.99\nTax 31.20\nTotal 431.19\nVISA";
 
+const RECEIPT_SESSION_STORAGE_KEY =
+    "returnradar-active-receipt-session";
 
 export default function ReceiptScanScreen() {
     const [rawText, setRawText] = useState("");
@@ -56,6 +60,62 @@ export default function ReceiptScanScreen() {
     const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
     const [savedReceiptItems, setSavedReceiptItems] = useState<string[]>([]);
     const savedReceiptItemCount = savedReceiptItems.length;
+
+    useEffect(() => {
+        const restoreReceiptSession = async () => {
+            try {
+                const storedSession =
+                    await AsyncStorage.getItem(
+                        RECEIPT_SESSION_STORAGE_KEY,
+                    );
+
+                if (!storedSession) {
+                    return;
+                }
+
+                const parsed = JSON.parse(storedSession);
+
+                setResult(parsed.result ?? null);
+
+                setSuggestedName(parsed.suggestedName ?? "");
+                setSuggestedMerchant(parsed.suggestedMerchant ?? "");
+                setSuggestedPrice(parsed.suggestedPrice ?? "");
+                setSuggestedPurchaseDate(
+                    parsed.suggestedPurchaseDate ?? "",
+                );
+                setSuggestedReturnDeadline(
+                    parsed.suggestedReturnDeadline ?? "",
+                );
+                setSuggestedWarrantyDeadline(
+                    parsed.suggestedWarrantyDeadline ?? "",
+                );
+                setSuggestedNotes(parsed.suggestedNotes ?? "");
+
+                setSelectedImageUri(
+                    parsed.selectedImageUri ?? null,
+                );
+
+                setUploadedImageInfo(
+                    parsed.uploadedImageInfo ?? null,
+                );
+
+                setReceiptImagePath(
+                    parsed.receiptImagePath ?? "",
+                );
+
+                setSavedReceiptItems(
+                    parsed.savedReceiptItems ?? [],
+                );
+            } catch (error) {
+                console.warn(
+                    "Failed to restore receipt session",
+                    error,
+                );
+            }
+        };
+
+        void restoreReceiptSession();
+    }, []);
 
     const handleSelectReceiptImage = async () => {
         const permissionResult =
@@ -126,6 +186,7 @@ export default function ReceiptScanScreen() {
             setUploadedImageInfo(
                 `${uploadResult.suggestion.name} extracted successfully`
             );
+            await persistReceiptSession();
         } catch (error) {
             console.warn(error);
 
@@ -208,6 +269,7 @@ export default function ReceiptScanScreen() {
             setUploadedImageInfo(
                 `${uploadResult.suggestion.name} extracted successfully`
             );
+            await persistReceiptSession();
         } catch (error) {
             console.warn(error);
 
@@ -234,6 +296,34 @@ export default function ReceiptScanScreen() {
         setErrorMessage(null);
     };
 
+    const persistReceiptSession = async () => {
+        if (!result) {
+            return;
+        }
+
+        try {
+            await AsyncStorage.setItem(
+                RECEIPT_SESSION_STORAGE_KEY,
+                JSON.stringify({
+                    result,
+                    suggestedName,
+                    suggestedMerchant,
+                    suggestedPrice,
+                    suggestedPurchaseDate,
+                    suggestedReturnDeadline,
+                    suggestedWarrantyDeadline,
+                    suggestedNotes,
+                    selectedImageUri,
+                    uploadedImageInfo,
+                    receiptImagePath,
+                    savedReceiptItems,
+                }),
+            );
+        } catch (error) {
+            console.warn("Failed to persist receipt session", error);
+        }
+    };
+
     const resetReceiptSession = () => {
         setSaveSuccessMessage(
             "Receipt session completed. Ready for a new receipt."
@@ -255,6 +345,10 @@ export default function ReceiptScanScreen() {
         setUploadedImageInfo(null);
         setImageUploadStatus(null);
         setReceiptImagePath("");
+
+        void AsyncStorage.removeItem(
+            RECEIPT_SESSION_STORAGE_KEY,
+        );
 
         setValidationMessage(null);
         setErrorMessage(null);
