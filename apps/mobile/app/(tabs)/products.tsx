@@ -76,6 +76,38 @@ function isExpiringSoon(deadline: string | null): boolean {
     return differenceDays >= 0 && differenceDays <= 14;
 }
 
+function getDeadlineUrgency(
+    deadline: string | null,
+): "safe" | "soon" | "urgent" | "expired" {
+    if (!deadline) {
+        return "safe";
+    }
+
+    const deadlineDate = new Date(deadline);
+
+    const now = new Date();
+
+    const differenceMs =
+        deadlineDate.getTime() - now.getTime();
+
+    const differenceDays =
+        differenceMs / (1000 * 60 * 60 * 24);
+
+    if (differenceDays < 0) {
+        return "expired";
+    }
+
+    if (differenceDays <= 3) {
+        return "urgent";
+    }
+
+    if (differenceDays <= 14) {
+        return "soon";
+    }
+
+    return "safe";
+}
+
 export default function ProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -287,56 +319,110 @@ export default function ProductsScreen() {
                     </Text>
                 </View>
             }
-            renderItem={({ item }) => (
-                <Pressable style={styles.productCard}
-                    onPress={() => router.push(`/products/${item.id}`)}>
-                    {item.receipt_image_path ? (
-                        <Image
-                            source={{
-                                uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace(
-                                    "/api/v1",
-                                    "",
-                                )}/${item.receipt_image_path}`,
-                            }}
-                            style={styles.receiptThumbnail}
-                            resizeMode="cover"
-                        />
-                    ) : null}
-                    <Text style={styles.productName}>{item.name}</Text>
+            renderItem={({ item }) => {
+                const returnUrgency = getDeadlineUrgency(
+                    item.return_deadline
+                );
 
-                    {item.receipt_image_path ? (
-                        <View style={styles.receiptBadge}>
-                            <Text style={styles.receiptBadgeText}>
-                                Receipt Saved
+                const warrantyUrgency = getDeadlineUrgency(
+                    item.warranty_deadline
+                );
+
+                const overallUrgency =
+                    returnUrgency === "expired" ||
+                        warrantyUrgency === "expired"
+                        ? "expired"
+                        : returnUrgency === "urgent" ||
+                            warrantyUrgency === "urgent"
+                            ? "urgent"
+                            : returnUrgency === "soon" ||
+                                warrantyUrgency === "soon"
+                                ? "soon"
+                                : "safe";
+
+                return (
+                    <Pressable
+                        style={[
+                            styles.productCard,
+                            overallUrgency === "soon" &&
+                            styles.productCardSoon,
+                            overallUrgency === "urgent" &&
+                            styles.productCardUrgent,
+                            overallUrgency === "expired" &&
+                            styles.productCardExpired,
+                        ]}
+                        onPress={() => router.push(`/products/${item.id}`)}>
+                        {item.receipt_image_path ? (
+                            <Image
+                                source={{
+                                    uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace(
+                                        "/api/v1",
+                                        "",
+                                    )}/${item.receipt_image_path}`,
+                                }}
+                                style={styles.receiptThumbnail}
+                                resizeMode="cover"
+                            />
+                        ) : null}
+                        <View
+                            style={[
+                                styles.urgencyBadge,
+                                overallUrgency === "safe" &&
+                                styles.urgencyBadgeSafe,
+                                overallUrgency === "soon" &&
+                                styles.urgencyBadgeSoon,
+                                overallUrgency === "urgent" &&
+                                styles.urgencyBadgeUrgent,
+                                overallUrgency === "expired" &&
+                                styles.urgencyBadgeExpired,
+                            ]}
+                        >
+                            <Text style={styles.urgencyBadgeText}>
+                                {overallUrgency === "safe"
+                                    ? "Protected"
+                                    : overallUrgency === "soon"
+                                        ? "Expiring Soon"
+                                        : overallUrgency === "urgent"
+                                            ? "Urgent"
+                                            : "Expired"}
                             </Text>
                         </View>
-                    ) : null}
+                        <Text style={styles.productName}>{item.name}</Text>
 
-                    <Text style={styles.productMeta}>
-                        {item.merchant ?? "Merchant not set"} · {formatPrice(item)}
-                    </Text>
+                        {item.receipt_image_path ? (
+                            <View style={styles.receiptBadge}>
+                                <Text style={styles.receiptBadgeText}>
+                                    Receipt Saved
+                                </Text>
+                            </View>
+                        ) : null}
 
-                    <Text style={styles.productSource}>
-                        {getProductSourceLabel(item.source)}
-                    </Text>
-
-                    <DeadlineStatusPill status={getReturnDeadlineStatus(item.return_deadline)} />
-
-                    <View style={styles.deadlineRow}>
-                        <Text style={styles.deadlineLabel}>Return</Text>
-                        <Text style={styles.deadlineValue}>
-                            {formatDeadline(item.return_deadline)}
+                        <Text style={styles.productMeta}>
+                            {item.merchant ?? "Merchant not set"} · {formatPrice(item)}
                         </Text>
-                    </View>
 
-                    <View style={styles.deadlineRow}>
-                        <Text style={styles.deadlineLabel}>Warranty</Text>
-                        <Text style={styles.deadlineValue}>
-                            {formatDeadline(item.warranty_deadline)}
+                        <Text style={styles.productSource}>
+                            {getProductSourceLabel(item.source)}
                         </Text>
-                    </View>
-                </Pressable>
-            )}
+
+                        <DeadlineStatusPill status={getReturnDeadlineStatus(item.return_deadline)} />
+
+                        <View style={styles.deadlineRow}>
+                            <Text style={styles.deadlineLabel}>Return</Text>
+                            <Text style={styles.deadlineValue}>
+                                {formatDeadline(item.return_deadline)}
+                            </Text>
+                        </View>
+
+                        <View style={styles.deadlineRow}>
+                            <Text style={styles.deadlineLabel}>Warranty</Text>
+                            <Text style={styles.deadlineValue}>
+                                {formatDeadline(item.warranty_deadline)}
+                            </Text>
+                        </View>
+                    </Pressable>
+                );
+            }}
         />
     );
 }
@@ -624,5 +710,42 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 20,
         color: "#991B1B",
+    },
+    productCardSoon: {
+        borderColor: "#F59E0B",
+        borderWidth: 2,
+    },
+    productCardUrgent: {
+        borderColor: "#DC2626",
+        borderWidth: 2,
+    },
+    productCardExpired: {
+        borderColor: "#7F1D1D",
+        borderWidth: 2,
+        opacity: 0.82,
+    },
+    urgencyBadge: {
+        alignSelf: "flex-start",
+        borderRadius: 999,
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        marginBottom: 12,
+    },
+    urgencyBadgeSafe: {
+        backgroundColor: "#DCFCE7",
+    },
+    urgencyBadgeSoon: {
+        backgroundColor: "#FEF3C7",
+    },
+    urgencyBadgeUrgent: {
+        backgroundColor: "#FEE2E2",
+    },
+    urgencyBadgeExpired: {
+        backgroundColor: "#7F1D1D",
+    },
+    urgencyBadgeText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#111827",
     },
 });
