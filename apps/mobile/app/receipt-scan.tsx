@@ -61,6 +61,9 @@ export default function ReceiptScanScreen() {
     const [savedReceiptItems, setSavedReceiptItems] = useState<string[]>([]);
     const savedReceiptItemCount = savedReceiptItems.length;
 
+    const [restoredSessionNoticeVisible, setRestoredSessionNoticeVisible] =
+        useState(false);
+
     useEffect(() => {
         const restoreReceiptSession = async () => {
             try {
@@ -106,6 +109,8 @@ export default function ReceiptScanScreen() {
                 setSavedReceiptItems(
                     parsed.savedReceiptItems ?? [],
                 );
+
+                setRestoredSessionNoticeVisible(true);
             } catch (error) {
                 console.warn(
                     "Failed to restore receipt session",
@@ -353,6 +358,7 @@ export default function ReceiptScanScreen() {
         setValidationMessage(null);
         setErrorMessage(null);
         setSavedReceiptItems([]);
+        setRestoredSessionNoticeVisible(false);
     };
 
     const handleExtract = async () => {
@@ -711,6 +717,28 @@ export default function ReceiptScanScreen() {
 
                             {errorMessage ? (
                                 <Text style={styles.errorText}>{errorMessage}</Text>
+                            ) : null}
+
+                            {restoredSessionNoticeVisible ? (
+                                <View style={styles.restoredSessionBanner}>
+                                    <Text style={styles.restoredSessionTitle}>
+                                        Recovered unfinished receipt session
+                                    </Text>
+
+                                    <Text style={styles.restoredSessionText}>
+                                        Your previous receipt scan was restored so you can continue saving items.
+                                    </Text>
+
+                                    <Pressable
+                                        onPress={() =>
+                                            setRestoredSessionNoticeVisible(false)
+                                        }
+                                    >
+                                        <Text style={styles.dismissBannerText}>
+                                            Dismiss
+                                        </Text>
+                                    </Pressable>
+                                </View>
                             ) : null}
 
                             {savedReceiptItemCount > 0 ? (
@@ -1118,5 +1146,30 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "800",
+    },
+    restoredSessionBanner: {
+        backgroundColor: "#FEF3C7",
+        borderRadius: 18,
+        padding: 18,
+        marginBottom: 18,
+        borderWidth: 1,
+        borderColor: "#FCD34D",
+    },
+    restoredSessionTitle: {
+        fontSize: 15,
+        fontWeight: "800",
+        color: "#92400E",
+        marginBottom: 8,
+    },
+    restoredSessionText: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: "#78350F",
+        marginBottom: 10,
+    },
+    dismissBannerText: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#B45309",
     },
 });
