@@ -65,6 +65,10 @@ export default function DeadlinesScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
 
+    const [deadlineFilter, setDeadlineFilter] = useState<
+        "all" | "returns" | "warranties"
+    >("all");
+
     const loadProducts = useCallback(async () => {
         try {
             setErrorMessage(null);
@@ -155,6 +159,38 @@ export default function DeadlinesScreen() {
                 Last updated: {formatLastUpdated(lastUpdatedAt)}
             </Text>
 
+            <View style={styles.filterRow}>
+                <Pressable
+                    style={[
+                        styles.filterChip,
+                        deadlineFilter === "all" && styles.filterChipActive,
+                    ]}
+                    onPress={() => setDeadlineFilter("all")}
+                >
+                    <Text style={styles.filterChipText}>All</Text>
+                </Pressable>
+
+                <Pressable
+                    style={[
+                        styles.filterChip,
+                        deadlineFilter === "returns" && styles.filterChipReturns,
+                    ]}
+                    onPress={() => setDeadlineFilter("returns")}
+                >
+                    <Text style={styles.filterChipText}>Returns</Text>
+                </Pressable>
+
+                <Pressable
+                    style={[
+                        styles.filterChip,
+                        deadlineFilter === "warranties" && styles.filterChipWarranty,
+                    ]}
+                    onPress={() => setDeadlineFilter("warranties")}
+                >
+                    <Text style={styles.filterChipText}>Warranties</Text>
+                </Pressable>
+            </View>
+
             <View style={styles.summaryGrid}>
                 <SummaryCard
                     value={deadlineGroups.upcomingReturns.length}
@@ -187,33 +223,41 @@ export default function DeadlinesScreen() {
                 </View>
             ) : (
                 <>
-                    <DeadlineSection
-                        title="Returns due soon"
-                        emptyText="No return deadlines due in the next 7 days."
-                        products={deadlineGroups.upcomingReturns}
-                        deadlineType="return"
-                    />
+                    {deadlineFilter !== "warranties" ? (
+                        <>
+                            <DeadlineSection
+                                title="Returns due soon"
+                                emptyText="No return deadlines due in the next 7 days."
+                                products={deadlineGroups.upcomingReturns}
+                                deadlineType="return"
+                            />
 
-                    <DeadlineSection
-                        title="Expired returns"
-                        emptyText="No expired return windows."
-                        products={deadlineGroups.expiredReturns}
-                        deadlineType="return"
-                    />
+                            <DeadlineSection
+                                title="Expired returns"
+                                emptyText="No expired return windows."
+                                products={deadlineGroups.expiredReturns}
+                                deadlineType="return"
+                            />
+                        </>
+                    ) : null}
 
-                    <DeadlineSection
-                        title="Warranties ending soon"
-                        emptyText="No warranties ending in the next 30 days."
-                        products={deadlineGroups.upcomingWarranties}
-                        deadlineType="warranty"
-                    />
+                    {deadlineFilter !== "returns" ? (
+                        <>
+                            <DeadlineSection
+                                title="Warranties ending soon"
+                                emptyText="No warranties ending in the next 30 days."
+                                products={deadlineGroups.upcomingWarranties}
+                                deadlineType="warranty"
+                            />
 
-                    <DeadlineSection
-                        title="Expired warranties"
-                        emptyText="No expired warranties."
-                        products={deadlineGroups.expiredWarranties}
-                        deadlineType="warranty"
-                    />
+                            <DeadlineSection
+                                title="Expired warranties"
+                                emptyText="No expired warranties."
+                                products={deadlineGroups.expiredWarranties}
+                                deadlineType="warranty"
+                            />
+                        </>
+                    ) : null}
                 </>
             )}
         </ScrollView>
@@ -474,5 +518,32 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#64748B",
         marginBottom: 20,
+    },
+    filterRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        marginBottom: 24,
+    },
+    filterChip: {
+        backgroundColor: "#E2E8F0",
+        borderRadius: 999,
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+        marginRight: 10,
+        marginBottom: 10,
+    },
+    filterChipActive: {
+        backgroundColor: "#CBD5E1",
+    },
+    filterChipReturns: {
+        backgroundColor: "#DBEAFE",
+    },
+    filterChipWarranty: {
+        backgroundColor: "#DCFCE7",
+    },
+    filterChipText: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#0F172A",
     },
 });
