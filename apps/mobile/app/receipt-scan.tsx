@@ -235,6 +235,10 @@ export default function ReceiptScanScreen() {
     };
 
     const resetReceiptSession = () => {
+        setSaveSuccessMessage(
+            "Receipt session completed. Ready for a new receipt."
+        );
+
         setRawText("");
 
         setResult(null);
@@ -254,7 +258,6 @@ export default function ReceiptScanScreen() {
 
         setValidationMessage(null);
         setErrorMessage(null);
-        setSaveSuccessMessage(null);
         setSavedReceiptItems([]);
     };
 
@@ -667,11 +670,11 @@ export default function ReceiptScanScreen() {
                                 )}
                             </Pressable>
                             <Pressable
-                                style={styles.secondaryButton}
+                                style={styles.finishSessionButton}
                                 onPress={resetReceiptSession}
                             >
-                                <Text style={styles.secondaryButtonText}>
-                                    Start New Receipt
+                                <Text style={styles.finishSessionButtonText}>
+                                    Finish Receipt Session
                                 </Text>
                             </Pressable>
                         </View>
@@ -1009,5 +1012,17 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "700",
         color: "#1D4ED8",
+    },
+    finishSessionButton: {
+        backgroundColor: "#0F172A",
+        borderRadius: 16,
+        paddingVertical: 14,
+        alignItems: "center",
+        marginTop: 10,
+    },
+    finishSessionButtonText: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "800",
     },
 });
