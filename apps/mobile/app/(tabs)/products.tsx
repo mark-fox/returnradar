@@ -58,6 +58,24 @@ function compareOptionalDates(firstDate: string | null, secondDate: string | nul
     );
 }
 
+function isExpiringSoon(deadline: string | null): boolean {
+    if (!deadline) {
+        return false;
+    }
+
+    const deadlineDate = new Date(deadline);
+
+    const now = new Date();
+
+    const differenceMs =
+        deadlineDate.getTime() - now.getTime();
+
+    const differenceDays =
+        differenceMs / (1000 * 60 * 60 * 24);
+
+    return differenceDays >= 0 && differenceDays <= 14;
+}
+
 export default function ProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -131,6 +149,14 @@ export default function ProductsScreen() {
         });
     }, [products, sortOption]);
 
+    const expiringSoonProducts = useMemo(() => {
+        return products.filter(
+            (product) =>
+                isExpiringSoon(product.return_deadline) ||
+                isExpiringSoon(product.warranty_deadline)
+        );
+    }, [products]);
+
     if (isLoading) {
         return (
             <View style={styles.centeredState}>
@@ -179,6 +205,32 @@ export default function ProductsScreen() {
                     >
                         <Text style={styles.addButtonText}>Add Product</Text>
                     </Pressable>
+                    {expiringSoonProducts.length > 0 ? (
+                        <View style={styles.expiringSection}>
+                            <Text style={styles.expiringSectionTitle}>
+                                Expiring Soon
+                            </Text>
+
+                            {expiringSoonProducts.slice(0, 3).map((product) => (
+                                <View
+                                    key={`expiring-${product.id}`}
+                                    style={styles.expiringCard}
+                                >
+                                    <Text style={styles.expiringProductName}>
+                                        {product.name}
+                                    </Text>
+
+                                    <Text style={styles.expiringProductText}>
+                                        Return: {formatDeadline(product.return_deadline)}
+                                    </Text>
+
+                                    <Text style={styles.expiringProductText}>
+                                        Warranty: {formatDeadline(product.warranty_deadline)}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    ) : null}
                     <TextInput
                         value={searchQuery}
                         onChangeText={setSearchQuery}
@@ -252,14 +304,15 @@ export default function ProductsScreen() {
                     ) : null}
                     <Text style={styles.productName}>{item.name}</Text>
 
+                    {item.receipt_image_path ? (
+                        <View style={styles.receiptBadge}>
+                            <Text style={styles.receiptBadgeText}>
+                                Receipt Saved
+                            </Text>
+                        </View>
+                    ) : null}
+
                     <Text style={styles.productMeta}>
-                        {item.receipt_image_path ? (
-                            <View style={styles.receiptBadge}>
-                                <Text style={styles.receiptBadgeText}>
-                                    Receipt Saved
-                                </Text>
-                            </View>
-                        ) : null}
                         {item.merchant ?? "Merchant not set"} · {formatPrice(item)}
                     </Text>
 
@@ -543,5 +596,33 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "800",
         color: "#1D4ED8",
+    },
+    expiringSection: {
+        marginBottom: 24,
+    },
+    expiringSectionTitle: {
+        fontSize: 18,
+        fontWeight: "800",
+        color: "#991B1B",
+        marginBottom: 14,
+    },
+    expiringCard: {
+        backgroundColor: "#FEF2F2",
+        borderRadius: 18,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: "#FECACA",
+    },
+    expiringProductName: {
+        fontSize: 16,
+        fontWeight: "800",
+        color: "#7F1D1D",
+        marginBottom: 8,
+    },
+    expiringProductText: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: "#991B1B",
     },
 });
