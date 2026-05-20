@@ -108,6 +108,24 @@ function getDeadlineUrgency(
     return "safe";
 }
 
+function getUrgencyRank(
+    urgency: "safe" | "soon" | "urgent" | "expired",
+): number {
+    switch (urgency) {
+        case "expired":
+            return 0;
+
+        case "urgent":
+            return 1;
+
+        case "soon":
+            return 2;
+
+        default:
+            return 3;
+    }
+}
+
 export default function ProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -172,6 +190,50 @@ export default function ProductsScreen() {
                     firstProduct.warranty_deadline,
                     secondProduct.warranty_deadline
                 );
+            }
+
+            const firstUrgency =
+                getUrgencyRank(
+                    getDeadlineUrgency(
+                        firstProduct.return_deadline
+                    )
+                ) <
+                    getUrgencyRank(
+                        getDeadlineUrgency(
+                            firstProduct.warranty_deadline
+                        )
+                    )
+                    ? getDeadlineUrgency(
+                        firstProduct.return_deadline
+                    )
+                    : getDeadlineUrgency(
+                        firstProduct.warranty_deadline
+                    );
+
+            const secondUrgency =
+                getUrgencyRank(
+                    getDeadlineUrgency(
+                        secondProduct.return_deadline
+                    )
+                ) <
+                    getUrgencyRank(
+                        getDeadlineUrgency(
+                            secondProduct.warranty_deadline
+                        )
+                    )
+                    ? getDeadlineUrgency(
+                        secondProduct.return_deadline
+                    )
+                    : getDeadlineUrgency(
+                        secondProduct.warranty_deadline
+                    );
+
+            const urgencyDifference =
+                getUrgencyRank(firstUrgency) -
+                getUrgencyRank(secondUrgency);
+
+            if (urgencyDifference !== 0) {
+                return urgencyDifference;
             }
 
             return (
