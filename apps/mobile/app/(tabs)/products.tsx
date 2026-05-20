@@ -126,6 +126,39 @@ function getUrgencyRank(
     }
 }
 
+function getProductUrgency(product: Product) {
+    const returnUrgency = getDeadlineUrgency(
+        product.return_deadline
+    );
+
+    const warrantyUrgency = getDeadlineUrgency(
+        product.warranty_deadline
+    );
+
+    if (
+        returnUrgency === "expired" ||
+        warrantyUrgency === "expired"
+    ) {
+        return "expired";
+    }
+
+    if (
+        returnUrgency === "urgent" ||
+        warrantyUrgency === "urgent"
+    ) {
+        return "urgent";
+    }
+
+    if (
+        returnUrgency === "soon" ||
+        warrantyUrgency === "soon"
+    ) {
+        return "soon";
+    }
+
+    return "safe";
+}
+
 export default function ProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -134,6 +167,10 @@ export default function ProductsScreen() {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortOption, setSortOption] = useState<ProductSortOption>("newest");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+    const [urgencyFilter, setUrgencyFilter] = useState<
+        "all" | "expired" | "urgent" | "protected"
+    >("all");
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -173,7 +210,28 @@ export default function ProductsScreen() {
     };
 
     const visibleProducts = useMemo(() => {
-        return [...products].sort((firstProduct, secondProduct) => {
+        const filteredProducts = products.filter((product) => {
+            const urgency = getProductUrgency(product);
+
+            if (urgencyFilter === "expired") {
+                return urgency === "expired";
+            }
+
+            if (urgencyFilter === "urgent") {
+                return (
+                    urgency === "urgent" ||
+                    urgency === "soon"
+                );
+            }
+
+            if (urgencyFilter === "protected") {
+                return urgency === "safe";
+            }
+
+            return true;
+        });
+
+        return [...filteredProducts].sort((firstProduct, secondProduct) => {
             if (sortOption === "name") {
                 return firstProduct.name.localeCompare(secondProduct.name);
             }
@@ -241,7 +299,7 @@ export default function ProductsScreen() {
                 new Date(firstProduct.created_at).getTime()
             );
         });
-    }, [products, sortOption]);
+    }, [products, sortOption, urgencyFilter]);
 
     const expiringSoonProducts = useMemo(() => {
         return products.filter(
@@ -302,7 +360,7 @@ export default function ProductsScreen() {
                     {expiringSoonProducts.length > 0 ? (
                         <View style={styles.expiringSection}>
                             <Text style={styles.expiringSectionTitle}>
-                                Expiring Soon
+                                Expiring Soon Preview
                             </Text>
 
                             {expiringSoonProducts.slice(0, 3).map((product) => (
@@ -367,6 +425,62 @@ export default function ProductsScreen() {
                                 onPress={() => setSortOption("name")}
                             />
                         </View>
+                    </View>
+                    <Text style={styles.filterLabel}>Filter by Deadline Status</Text>
+                    <View style={styles.filterRow}>
+                        <Pressable
+                            style={[
+                                styles.filterChip,
+                                urgencyFilter === "all" &&
+                                styles.filterChipActive,
+                            ]}
+                            onPress={() => setUrgencyFilter("all")}
+                        >
+                            <Text style={styles.filterChipText}>
+                                All
+                            </Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={[
+                                styles.filterChip,
+                                urgencyFilter === "expired" &&
+                                styles.filterChipExpired,
+                            ]}
+                            onPress={() => setUrgencyFilter("expired")}
+                        >
+                            <Text style={styles.filterChipText}>
+                                Expired
+                            </Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={[
+                                styles.filterChip,
+                                urgencyFilter === "urgent" &&
+                                styles.filterChipUrgent,
+                            ]}
+                            onPress={() => setUrgencyFilter("urgent")}
+                        >
+                            <Text style={styles.filterChipText}>
+                                Attention Needed
+                            </Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={[
+                                styles.filterChip,
+                                urgencyFilter === "protected" &&
+                                styles.filterChipProtected,
+                            ]}
+                            onPress={() =>
+                                setUrgencyFilter("protected")
+                            }
+                        >
+                            <Text style={styles.filterChipText}>
+                                Protected
+                            </Text>
+                        </Pressable>
                     </View>
                 </View>
             }
@@ -809,5 +923,44 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "800",
         color: "#111827",
+    },
+    filterRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        marginBottom: 18,
+    },
+    filterChip: {
+        backgroundColor: "#E2E8F0",
+        borderRadius: 999,
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+        marginRight: 10,
+        marginBottom: 10,
+    },
+    filterChipActive: {
+        backgroundColor: "#CBD5E1",
+    },
+    filterChipExpired: {
+        backgroundColor: "#FECACA",
+    },
+    filterChipUrgent: {
+        backgroundColor: "#FEF3C7",
+    },
+    filterChipProtected: {
+        backgroundColor: "#DCFCE7",
+    },
+    filterChipText: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#0F172A",
+    },
+    filterLabel: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#64748B",
+        marginTop: 6,
+        marginBottom: 10,
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
     },
 });
