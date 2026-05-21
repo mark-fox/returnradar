@@ -69,6 +69,14 @@ export default function DeadlinesScreen() {
         "all" | "returns" | "warranties"
     >("all");
 
+    const [focusedSection, setFocusedSection] = useState<
+        | "all"
+        | "upcomingReturns"
+        | "expiredReturns"
+        | "upcomingWarranties"
+        | "expiredWarranties"
+    >("all");
+
     const loadProducts = useCallback(async () => {
         try {
             setErrorMessage(null);
@@ -191,25 +199,42 @@ export default function DeadlinesScreen() {
                 </Pressable>
             </View>
 
+            {focusedSection !== "all" ? (
+                <Pressable
+                    style={styles.clearFocusButton}
+                    onPress={() =>
+                        setFocusedSection("all")
+                    }
+                >
+                    <Text style={styles.clearFocusButtonText}>
+                        Show All Deadline Sections
+                    </Text>
+                </Pressable>
+            ) : null}
+
             <View style={styles.summaryGrid}>
                 <SummaryCard
                     value={deadlineGroups.upcomingReturns.length}
                     label="Returns due soon"
+                    onPress={() => setFocusedSection("upcomingReturns")}
                 />
 
                 <SummaryCard
                     value={deadlineGroups.expiredReturns.length}
                     label="Expired returns"
+                    onPress={() => setFocusedSection("expiredReturns")}
                 />
 
                 <SummaryCard
                     value={deadlineGroups.upcomingWarranties.length}
                     label="Warranties ending"
+                    onPress={() => setFocusedSection("upcomingWarranties")}
                 />
 
                 <SummaryCard
                     value={deadlineGroups.expiredWarranties.length}
                     label="Expired warranties"
+                    onPress={() => setFocusedSection("expiredWarranties")}
                 />
             </View>
 
@@ -223,39 +248,61 @@ export default function DeadlinesScreen() {
                 </View>
             ) : (
                 <>
-                    {deadlineFilter !== "warranties" ? (
+                    {deadlineFilter !== "warranties" &&
+                        (
+                            focusedSection === "all" ||
+                            focusedSection === "upcomingReturns" ||
+                            focusedSection === "expiredReturns"
+                        ) ? (
                         <>
-                            <DeadlineSection
-                                title="Returns due soon"
-                                emptyText="No return deadlines due in the next 7 days."
-                                products={deadlineGroups.upcomingReturns}
-                                deadlineType="return"
-                            />
+                            {focusedSection === "all" ||
+                                focusedSection === "upcomingReturns" ? (
+                                <DeadlineSection
+                                    title="Returns due soon"
+                                    emptyText="No return deadlines due in the next 7 days."
+                                    products={deadlineGroups.upcomingReturns}
+                                    deadlineType="return"
+                                />
+                            ) : null}
 
-                            <DeadlineSection
-                                title="Expired returns"
-                                emptyText="No expired return windows."
-                                products={deadlineGroups.expiredReturns}
-                                deadlineType="return"
-                            />
+                            {focusedSection === "all" ||
+                                focusedSection === "expiredReturns" ? (
+                                <DeadlineSection
+                                    title="Expired returns"
+                                    emptyText="No expired return windows."
+                                    products={deadlineGroups.expiredReturns}
+                                    deadlineType="return"
+                                />
+                            ) : null}
                         </>
                     ) : null}
 
-                    {deadlineFilter !== "returns" ? (
+                    {deadlineFilter !== "returns" &&
+                        (
+                            focusedSection === "all" ||
+                            focusedSection === "upcomingWarranties" ||
+                            focusedSection === "expiredWarranties"
+                        ) ? (
                         <>
-                            <DeadlineSection
-                                title="Warranties ending soon"
-                                emptyText="No warranties ending in the next 30 days."
-                                products={deadlineGroups.upcomingWarranties}
-                                deadlineType="warranty"
-                            />
+                            {focusedSection === "all" ||
+                                focusedSection === "upcomingWarranties" ? (
+                                <DeadlineSection
+                                    title="Warranties ending soon"
+                                    emptyText="No warranties ending in the next 30 days."
+                                    products={deadlineGroups.upcomingWarranties}
+                                    deadlineType="warranty"
+                                />
+                            ) : null}
 
-                            <DeadlineSection
-                                title="Expired warranties"
-                                emptyText="No expired warranties."
-                                products={deadlineGroups.expiredWarranties}
-                                deadlineType="warranty"
-                            />
+                            {focusedSection === "all" ||
+                                focusedSection === "expiredWarranties" ? (
+                                <DeadlineSection
+                                    title="Expired warranties"
+                                    emptyText="No expired warranties."
+                                    products={deadlineGroups.expiredWarranties}
+                                    deadlineType="warranty"
+                                />
+                            ) : null}
                         </>
                     ) : null}
                 </>
@@ -267,15 +314,20 @@ export default function DeadlinesScreen() {
 function SummaryCard({
     value,
     label,
+    onPress,
 }: {
     value: number;
     label: string;
+    onPress: () => void;
 }) {
     return (
-        <View style={styles.summaryCard}>
+        <Pressable
+            style={styles.summaryCard}
+            onPress={onPress}
+        >
             <Text style={styles.summaryValue}>{value}</Text>
             <Text style={styles.summaryLabel}>{label}</Text>
-        </View>
+        </Pressable>
     );
 }
 
@@ -545,5 +597,17 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "800",
         color: "#0F172A",
+    },
+    clearFocusButton: {
+        backgroundColor: "#0F172A",
+        borderRadius: 14,
+        paddingVertical: 12,
+        alignItems: "center",
+        marginBottom: 22,
+    },
+    clearFocusButtonText: {
+        color: "#FFFFFF",
+        fontSize: 14,
+        fontWeight: "800",
     },
 });
