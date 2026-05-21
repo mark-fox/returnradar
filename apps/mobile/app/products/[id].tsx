@@ -16,6 +16,7 @@ import ImageViewing from "react-native-image-viewing";
 import { deleteProduct, getProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 import {
+    getDaysUntilDate,
     getReturnDeadlineStatus,
     getWarrantyDeadlineStatus,
 } from "@/src/features/products/deadlineUtils";
@@ -39,6 +40,23 @@ function formatPrice(product: Product): string {
         style: "currency",
         currency: product.currency,
     }).format(product.price_cents / 100);
+}
+
+function formatDaysRemaining(daysRemaining: number | null): string {
+    if (daysRemaining === null) {
+        return "No warranty deadline set";
+    }
+
+    if (daysRemaining < 0) {
+        const expiredDays = Math.abs(daysRemaining);
+        return `Expired ${expiredDays} day${expiredDays === 1 ? "" : "s"} ago`;
+    }
+
+    if (daysRemaining === 0) {
+        return "Warranty ends today";
+    }
+
+    return `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining`;
 }
 
 export default function ProductDetailScreen() {
@@ -141,6 +159,7 @@ export default function ProductDetailScreen() {
 
     const returnStatus = getReturnDeadlineStatus(product.return_deadline);
     const warrantyStatus = getWarrantyDeadlineStatus(product.warranty_deadline);
+    const warrantyDaysRemaining = getDaysUntilDate(product.warranty_deadline);
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -204,6 +223,25 @@ export default function ProductDetailScreen() {
                     </Pressable>
                 </View>
             ) : null}
+
+            <View style={styles.card}>
+                <Text style={styles.sectionTitle}>Warranty Protection</Text>
+
+                <DetailRow
+                    label="Deadline"
+                    value={formatDate(product.warranty_deadline)}
+                />
+
+                <DetailRow
+                    label="Status"
+                    value={warrantyStatus.label}
+                />
+
+                <DetailRow
+                    label="Time remaining"
+                    value={formatDaysRemaining(warrantyDaysRemaining)}
+                />
+            </View>
 
             <View style={styles.card}>
                 <Text style={styles.sectionTitle}>Notes</Text>
