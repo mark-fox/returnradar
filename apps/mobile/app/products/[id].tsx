@@ -160,6 +160,7 @@ export default function ProductDetailScreen() {
     const returnStatus = getReturnDeadlineStatus(product.return_deadline);
     const warrantyStatus = getWarrantyDeadlineStatus(product.warranty_deadline);
     const warrantyDaysRemaining = getDaysUntilDate(product.warranty_deadline);
+    const returnDaysRemaining = getDaysUntilDate(product.return_deadline);
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -193,16 +194,6 @@ export default function ProductDetailScreen() {
                 />
                 <DetailRow label="Price" value={formatPrice(product)} />
                 <DetailRow label="Purchase date" value={formatDate(product.purchase_date)} />
-                <DetailRow label="Return deadline" value={formatDate(product.return_deadline)} />
-
-                <DeadlineStatusPill status={returnStatus} />
-
-                <DetailRow
-                    label="Warranty deadline"
-                    value={formatDate(product.warranty_deadline)}
-                />
-
-                <DeadlineStatusPill status={warrantyStatus} />
 
                 <DetailRow label="Currency" value={product.currency} />
             </View>
@@ -225,6 +216,22 @@ export default function ProductDetailScreen() {
             ) : null}
 
             <View style={styles.card}>
+                <Text style={styles.sectionTitle}>Return Window</Text>
+
+                <DetailRow
+                    label="Deadline"
+                    value={formatDate(product.return_deadline)}
+                />
+
+                <DeadlineStatusPill status={returnStatus} />
+
+                <DetailRow
+                    label="Time remaining"
+                    value={formatDaysRemaining(returnDaysRemaining)}
+                />
+            </View>
+
+            <View style={styles.card}>
                 <Text style={styles.sectionTitle}>Warranty Protection</Text>
 
                 <DetailRow
@@ -232,10 +239,7 @@ export default function ProductDetailScreen() {
                     value={formatDate(product.warranty_deadline)}
                 />
 
-                <DetailRow
-                    label="Status"
-                    value={warrantyStatus.label}
-                />
+                <DeadlineStatusPill status={warrantyStatus} />
 
                 <DetailRow
                     label="Time remaining"
