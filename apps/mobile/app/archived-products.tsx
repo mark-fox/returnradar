@@ -15,6 +15,9 @@ import { Product } from "@/src/features/products/types";
 
 export default function ArchivedProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
+    const [restoreMessage, setRestoreMessage] = useState<
+        string | null
+    >(null);
 
     async function loadProducts() {
         const archivedProducts =
@@ -33,6 +36,7 @@ export default function ArchivedProductsScreen() {
         await restoreProduct(productId);
 
         await loadProducts();
+        setRestoreMessage("Product restored successfully.");
     }
 
     useEffect(() => {
@@ -54,6 +58,14 @@ export default function ArchivedProductsScreen() {
                         Previously archived products can
                         be restored later.
                     </Text>
+
+                    {restoreMessage ? (
+                        <View style={styles.restoreMessageCard}>
+                            <Text style={styles.restoreMessageText}>
+                                {restoreMessage}
+                            </Text>
+                        </View>
+                    ) : null}
                 </View>
             }
             renderItem={({ item }) => (
@@ -61,6 +73,12 @@ export default function ArchivedProductsScreen() {
                     <Text style={styles.name}>
                         {item.name}
                     </Text>
+
+                    <View style={styles.archivedBadge}>
+                        <Text style={styles.archivedBadgeText}>
+                            Archived
+                        </Text>
+                    </View>
 
                     <Text style={styles.meta}>
                         {item.merchant ?? "Unknown merchant"}
@@ -130,5 +148,29 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 14,
         fontWeight: "800",
+    },
+    archivedBadge: {
+        alignSelf: "flex-start",
+        backgroundColor: "#E2E8F0",
+        borderRadius: 999,
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        marginBottom: 10,
+    },
+    archivedBadgeText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#334155",
+    },
+    restoreMessageCard: {
+        backgroundColor: "#DCFCE7",
+        borderRadius: 16,
+        padding: 14,
+        marginBottom: 18,
+    },
+    restoreMessageText: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#166534",
     },
 });
