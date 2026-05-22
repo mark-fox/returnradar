@@ -11,7 +11,7 @@ import {
     Image,
 } from "react-native";
 
-import { listProducts } from "@/src/features/products/api";
+import { listProducts, archiveProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 import { router, useFocusEffect } from "expo-router";
 import { getReturnDeadlineStatus } from "@/src/features/products/deadlineUtils";
@@ -167,6 +167,8 @@ export default function ProductsScreen() {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortOption, setSortOption] = useState<ProductSortOption>("newest");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+    const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+    const [selectionMode, setSelectionMode] = useState(false);
 
     const [urgencyFilter, setUrgencyFilter] = useState<
         "all" | "expired" | "urgent" | "protected"
@@ -309,6 +311,33 @@ export default function ProductsScreen() {
         );
     }, [products]);
 
+    function toggleSelectedProduct(productId: number) {
+        setSelectedProductIds((current) => {
+            if (current.includes(productId)) {
+                return current.filter((id) => id !== productId);
+            }
+
+            return [...current, productId];
+        });
+    }
+
+    async function handleBulkArchive() {
+        try {
+            await Promise.all(
+                selectedProductIds.map((productId) =>
+                    archiveProduct(productId)
+                )
+            );
+
+            setSelectedProductIds([]);
+            setSelectionMode(false);
+
+            await loadProducts();
+        } catch (error) {
+            console.warn(error);
+        }
+    }
+
     if (isLoading) {
         return (
             <View style={styles.centeredState}>
@@ -366,6 +395,35 @@ export default function ProductsScreen() {
                             View Archived Products
                         </Text>
                     </Pressable>
+
+                    <View style={styles.bulkActionsRow}>
+                        <Pressable
+                            style={styles.bulkModeButton}
+                            onPress={() => {
+                                setSelectionMode((current) => !current);
+
+                                setSelectedProductIds([]);
+                            }}
+                        >
+                            <Text style={styles.bulkModeButtonText}>
+                                {selectionMode
+                                    ? "Cancel Selection"
+                                    : "Bulk Archive"}
+                            </Text>
+                        </Pressable>
+
+                        {selectionMode &&
+                            selectedProductIds.length > 0 ? (
+                            <Pressable
+                                style={styles.bulkArchiveButton}
+                                onPress={handleBulkArchive}
+                            >
+                                <Text style={styles.bulkArchiveButtonText}>
+                                    Archive ({selectedProductIds.length})
+                                </Text>
+                            </Pressable>
+                        ) : null}
+                    </View>
 
                     <TextInput
                         value={searchQuery}
@@ -512,8 +570,18 @@ export default function ProductsScreen() {
                             styles.productCardUrgent,
                             overallUrgency === "expired" &&
                             styles.productCardExpired,
+                            selectedProductIds.includes(item.id) &&
+                            styles.selectedProductCard,
                         ]}
-                        onPress={() => router.push(`/products/${item.id}`)}>
+                        onPress={() => {
+                            if (selectionMode) {
+                                toggleSelectedProduct(item.id);
+                                return;
+                            }
+
+                            router.push(`/products/${item.id}`);
+                        }}
+                    >
                         {item.receipt_image_path ? (
                             <Image
                                 source={{
@@ -931,5 +999,37 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "700",
         color: "#2563EB",
+    },
+    bulkActionsRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 18,
+    },
+    bulkModeButton: {
+        backgroundColor: "#E2E8F0",
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        marginRight: 10,
+    },
+    bulkModeButtonText: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#0F172A",
+    },
+    bulkArchiveButton: {
+        backgroundColor: "#DC2626",
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+    },
+    bulkArchiveButtonText: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#FFFFFF",
+    },
+    selectedProductCard: {
+        borderWidth: 2,
+        borderColor: "#2563EB",
     },
 });
