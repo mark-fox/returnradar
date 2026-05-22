@@ -410,7 +410,9 @@ export default function ProductsScreen() {
                             />
                         </View>
                     </View>
-                    <Text style={styles.filterLabel}>Filter by Deadline Status</Text>
+                    <Text style={styles.filterLabel}>
+                        Status Filters
+                    </Text>
                     <View style={styles.filterRow}>
                         <Pressable
                             style={[
@@ -795,7 +797,7 @@ const styles = StyleSheet.create({
     sortButtonRow: {
         flexDirection: "row",
         flexWrap: "wrap",
-        gap: 8,
+        marginBottom: 14,
     },
     sortButton: {
         borderRadius: 999,
@@ -883,15 +885,15 @@ const styles = StyleSheet.create({
     filterRow: {
         flexDirection: "row",
         flexWrap: "wrap",
-        marginBottom: 18,
+        marginBottom: 14,
     },
     filterChip: {
         backgroundColor: "#E2E8F0",
         borderRadius: 999,
-        paddingVertical: 8,
-        paddingHorizontal: 14,
-        marginRight: 10,
-        marginBottom: 10,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        marginRight: 8,
+        marginBottom: 8,
     },
     filterChipActive: {
         backgroundColor: "#CBD5E1",
@@ -920,15 +922,14 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     archivedButton: {
-        backgroundColor: "#E2E8F0",
-        borderRadius: 14,
-        paddingVertical: 12,
-        alignItems: "center",
-        marginBottom: 18,
+        alignSelf: "flex-start",
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        marginBottom: 14,
     },
     archivedButtonText: {
-        fontSize: 14,
-        fontWeight: "800",
-        color: "#0F172A",
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#2563EB",
     },
 });
