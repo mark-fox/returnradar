@@ -66,3 +66,20 @@ export async function archiveProduct(
         },
     );
 }
+
+export async function listArchivedProducts(): Promise<Product[]> {
+    return apiFetch<Product[]>(
+        "/products?include_archived=true"
+    );
+}
+
+export async function restoreProduct(
+    productId: number,
+): Promise<Product> {
+    return apiFetch<Product>(
+        `/products/${productId}/restore`,
+        {
+            method: "POST",
+        },
+    );
+}

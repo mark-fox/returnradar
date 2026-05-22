@@ -105,7 +105,7 @@ export default function ProductDetailScreen() {
             router.replace("/(tabs)/products");
         } catch (error) {
             console.error(error);
-            setErrorMessage("Could not delete this product. Please try again.");
+            setErrorMessage("Could not archive this product. Please try again.");
         } finally {
             setIsDeleting(false);
         }

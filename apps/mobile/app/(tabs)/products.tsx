@@ -357,6 +357,16 @@ export default function ProductsScreen() {
                     >
                         <Text style={styles.addButtonText}>Add Product</Text>
                     </Pressable>
+
+                    <Pressable
+                        style={styles.archivedButton}
+                        onPress={() => router.push("/archived-products")}
+                    >
+                        <Text style={styles.archivedButtonText}>
+                            View Archived Products
+                        </Text>
+                    </Pressable>
+
                     {expiringSoonProducts.length > 0 ? (
                         <View style={styles.expiringSection}>
                             <Text style={styles.expiringSectionTitle}>
@@ -962,5 +972,17 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         textTransform: "uppercase",
         letterSpacing: 0.5,
+    },
+    archivedButton: {
+        backgroundColor: "#E2E8F0",
+        borderRadius: 14,
+        paddingVertical: 12,
+        alignItems: "center",
+        marginBottom: 18,
+    },
+    archivedButtonText: {
+        fontSize: 14,
+        fontWeight: "800",
+        color: "#0F172A",
     },
 });

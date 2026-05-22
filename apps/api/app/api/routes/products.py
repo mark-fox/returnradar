@@ -38,13 +38,17 @@ def list_products(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     search: str | None = Query(default=None, max_length=255),
+    include_archived: bool = Query(default=False),
     sort_by: str = Query(
         default="created_at",
         pattern="^(created_at|name|return_deadline|warranty_deadline)$",
     ),
     sort_direction: str = Query(default="desc", pattern="^(asc|desc)$"),
 ) -> list[Product]:
-    statement = select(Product).where(Product.is_archived == False)
+    statement = select(Product)
+
+    if not include_archived:
+        statement = statement.where(Product.is_archived == False)
 
     if search:
         search_pattern = f"%{search.strip()}%"
@@ -139,6 +143,31 @@ def archive_product(
         )
 
     product.is_archived = True
+
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+
+    return product
+
+
+@router.post(
+    "/{product_id}/restore",
+    response_model=ProductRead,
+)
+def restore_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+) -> Product:
+    product = db.get(Product, product_id)
+
+    if product is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found",
+        )
+
+    product.is_archived = False
 
     db.add(product)
     db.commit()
