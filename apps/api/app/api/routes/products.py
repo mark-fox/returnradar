@@ -44,7 +44,7 @@ def list_products(
     ),
     sort_direction: str = Query(default="desc", pattern="^(asc|desc)$"),
 ) -> list[Product]:
-    statement = select(Product)
+    statement = select(Product).where(Product.is_archived == False)
 
     if search:
         search_pattern = f"%{search.strip()}%"
@@ -123,3 +123,25 @@ def delete_product(product_id: int, db: Session = Depends(get_db)) -> None:
 
     db.delete(product)
     db.commit()
+
+
+@router.post("/{product_id}/archive", response_model=ProductRead)
+def archive_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+) -> Product:
+    product = db.get(Product, product_id)
+
+    if product is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found",
+        )
+
+    product.is_archived = True
+
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+
+    return product

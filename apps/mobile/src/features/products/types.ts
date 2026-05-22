@@ -16,6 +16,7 @@ export type Product = {
     ai_confidence: number | null;
     created_at: string;
     updated_at: string;
+    is_archived: boolean;
 };
 
 export type CreateProductInput = {

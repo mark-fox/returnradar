@@ -29,6 +29,11 @@ class Product(Base):
     ai_provider: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     ai_confidence: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
+    is_archived: Mapped[bool] = mapped_column(
+        default=False,
+        nullable=False,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

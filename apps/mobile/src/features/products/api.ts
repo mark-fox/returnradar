@@ -55,3 +55,14 @@ export async function deleteProduct(productId: number): Promise<void> {
         method: "DELETE",
     });
 }
+
+export async function archiveProduct(
+    productId: number,
+): Promise<Product> {
+    return apiFetch<Product>(
+        `/products/${productId}/archive`,
+        {
+            method: "POST",
+        },
+    );
+}

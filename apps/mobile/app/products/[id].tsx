@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 
-import { deleteProduct, getProduct } from "@/src/features/products/api";
+import { deleteProduct, getProduct, archiveProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 import {
     getDaysUntilDate,
@@ -101,7 +101,7 @@ export default function ProductDetailScreen() {
 
         try {
             setIsDeleting(true);
-            await deleteProduct(productId);
+            await archiveProduct(productId);
             router.replace("/(tabs)/products");
         } catch (error) {
             console.error(error);
@@ -113,15 +113,15 @@ export default function ProductDetailScreen() {
 
     const confirmDelete = () => {
         Alert.alert(
-            "Delete product?",
-            "This will remove the product from ReturnRadar. This action cannot be undone.",
+  "Archive product?",
+  "This will hide the product from active dashboards and product lists. It will not be permanently deleted.",
             [
                 {
                     text: "Cancel",
                     style: "cancel",
                 },
                 {
-                    text: "Delete",
+                    text: "Archive",
                     style: "destructive",
                     onPress: () => void handleDelete(),
                 },
@@ -259,7 +259,7 @@ export default function ProductDetailScreen() {
                 {isDeleting ? (
                     <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                    <Text style={styles.deleteButtonText}>Delete Product</Text>
+                    <Text style={styles.deleteButtonText}>Archive Product</Text>
                 )}
             </Pressable>
             <ImageViewing
