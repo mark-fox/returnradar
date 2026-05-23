@@ -7,6 +7,9 @@ export type Product = {
     purchase_date: string | null;
     return_deadline: string | null;
     warranty_deadline: string | null;
+    warranty_provider: string | null;
+    warranty_claim_url: string | null;
+    warranty_notes: string | null;
     price_cents: number | null;
     currency: string;
     notes: string | null;
@@ -25,6 +28,9 @@ export type CreateProductInput = {
     purchase_date?: string | null;
     return_deadline?: string | null;
     warranty_deadline?: string | null;
+    warranty_provider?: string | null;
+    warranty_claim_url?: string | null;
+    warranty_notes?: string | null;
     price_cents?: number | null;
     currency?: string;
     notes?: string | null;

@@ -33,6 +33,9 @@ export default function NewProductScreen() {
     const [purchaseDate, setPurchaseDate] = useState("");
     const [returnDeadline, setReturnDeadline] = useState("");
     const [warrantyDeadline, setWarrantyDeadline] = useState("");
+    const [warrantyProvider, setWarrantyProvider] = useState("");
+    const [warrantyClaimUrl, setWarrantyClaimUrl] = useState("");
+    const [warrantyNotes, setWarrantyNotes] = useState("");
 
     const handleSubmit = async () => {
         const trimmedName = name.trim();
@@ -77,6 +80,9 @@ export default function NewProductScreen() {
                 purchase_date: normalizeOptionalDate(purchaseDate),
                 return_deadline: normalizeOptionalDate(returnDeadline),
                 warranty_deadline: normalizeOptionalDate(warrantyDeadline),
+                warranty_provider: warrantyProvider.trim() || null,
+                warranty_claim_url: warrantyClaimUrl.trim() || null,
+                warranty_notes: warrantyNotes.trim() || null,
                 price_cents: priceCents,
                 currency: "USD",
                 notes: notes.trim() || null,
@@ -165,6 +171,41 @@ export default function NewProductScreen() {
                         placeholder="2027-04-28"
                         keyboardType="numbers-and-punctuation"
                         style={styles.input}
+                    />
+
+                    <Text style={styles.label}>
+                        Warranty Provider
+                    </Text>
+
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Best Buy Geek Squad"
+                        value={warrantyProvider}
+                        onChangeText={setWarrantyProvider}
+                    />
+
+                    <Text style={styles.label}>
+                        Warranty Claim URL
+                    </Text>
+
+                    <TextInput
+                        style={styles.input}
+                        placeholder="https://..."
+                        autoCapitalize="none"
+                        value={warrantyClaimUrl}
+                        onChangeText={setWarrantyClaimUrl}
+                    />
+
+                    <Text style={styles.label}>
+                        Warranty Notes
+                    </Text>
+
+                    <TextInput
+                        style={[styles.input, styles.notesInput]}
+                        placeholder="Claim instructions, serial number requirements, etc."
+                        multiline
+                        value={warrantyNotes}
+                        onChangeText={setWarrantyNotes}
                     />
 
                     <FieldLabel label="Notes" />
