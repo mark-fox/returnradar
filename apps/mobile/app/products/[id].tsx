@@ -264,6 +264,19 @@ export default function ProductDetailScreen() {
                         </Text>
                     </Pressable>
                 ) : null}
+                {product.warranty_claim_url ? (
+
+                    <Pressable
+                        style={styles.claimWarrantyButton}
+                        onPress={() =>
+                            Linking.openURL(product.warranty_claim_url!)
+                        }
+                    >
+                        <Text style={styles.claimWarrantyButtonText}>
+                            Claim Warranty
+                        </Text>
+                    </Pressable>
+                ) : null}
 
                 {product.warranty_notes ? (
                     <DetailRow
@@ -465,5 +478,17 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "700",
         color: "#2563EB",
+    },
+    claimWarrantyButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: 14,
+        paddingVertical: 14,
+        alignItems: "center",
+        marginTop: 14,
+    },
+    claimWarrantyButtonText: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "800",
     },
 });
