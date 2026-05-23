@@ -113,8 +113,8 @@ export default function ProductDetailScreen() {
 
     const confirmDelete = () => {
         Alert.alert(
-  "Archive product?",
-  "This will hide the product from active dashboards and product lists. It will not be permanently deleted.",
+            "Archive product?",
+            "This will hide the product from active dashboards and product lists. It will not be permanently deleted.",
             [
                 {
                     text: "Cancel",
@@ -245,6 +245,26 @@ export default function ProductDetailScreen() {
                     label="Time remaining"
                     value={formatDaysRemaining(warrantyDaysRemaining)}
                 />
+                {product.warranty_provider ? (
+                    <DetailRow
+                        label="Provider"
+                        value={product.warranty_provider}
+                    />
+                ) : null}
+
+                {product.warranty_claim_url ? (
+                    <DetailRow
+                        label="Claim Website"
+                        value={product.warranty_claim_url}
+                    />
+                ) : null}
+
+                {product.warranty_notes ? (
+                    <DetailRow
+                        label="Warranty Notes"
+                        value={product.warranty_notes}
+                    />
+                ) : null}
             </View>
 
             <View style={styles.card}>
