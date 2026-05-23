@@ -10,6 +10,7 @@ import {
     View,
     Image,
     Modal,
+    Linking,
 } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 
@@ -253,10 +254,15 @@ export default function ProductDetailScreen() {
                 ) : null}
 
                 {product.warranty_claim_url ? (
-                    <DetailRow
-                        label="Claim Website"
-                        value={product.warranty_claim_url}
-                    />
+                    <Pressable
+                        style={styles.claimLinkCard}
+                        onPress={() => Linking.openURL(product.warranty_claim_url!)}
+                    >
+                        <Text style={styles.claimLinkLabel}>Claim Website</Text>
+                        <Text style={styles.claimLinkText}>
+                            Open warranty claim page
+                        </Text>
+                    </Pressable>
                 ) : null}
 
                 {product.warranty_notes ? (
@@ -442,5 +448,22 @@ const styles = StyleSheet.create({
         height: 260,
         borderRadius: 18,
         backgroundColor: "#E2E8F0",
+    },
+    claimLinkCard: {
+        backgroundColor: "#DBEAFE",
+        borderRadius: 14,
+        padding: 14,
+        marginTop: 10,
+    },
+    claimLinkLabel: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#1E3A8A",
+        marginBottom: 4,
+    },
+    claimLinkText: {
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#2563EB",
     },
 });
