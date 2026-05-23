@@ -18,6 +18,9 @@ class Product(Base):
     purchase_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     return_deadline: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     warranty_deadline: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    warranty_provider: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    warranty_claim_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    warranty_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     price_cents: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="USD")

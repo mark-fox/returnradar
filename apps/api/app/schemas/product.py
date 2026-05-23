@@ -11,6 +11,9 @@ class ProductBase(BaseModel):
     purchase_date: Optional[date] = None
     return_deadline: Optional[date] = None
     warranty_deadline: Optional[date] = None
+    warranty_provider: Optional[str] = Field(default=None, max_length=255)
+    warranty_claim_url: Optional[str] = Field(default=None, max_length=500)
+    warranty_notes: Optional[str] = None
 
     price_cents: Optional[int] = Field(default=None, ge=0)
     currency: str = Field(default="USD", min_length=3, max_length=3)

@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
+from unittest.mock import patch
 
 from app.core.config import settings
+from app.schemas.receipt_extraction import ReceiptExtractionResponse, ReceiptProductSuggestion
 
 
 def test_ai_status_returns_provider_info(
@@ -40,24 +42,44 @@ def test_ai_status_detects_openai_configuration(
 def test_receipt_image_upload_accepts_png(
     client: TestClient,
 ) -> None:
-    response = client.post(
-        "/api/v1/ai/receipt-image",
-        files={
-            "image": (
-                "receipt.png",
-                b"fake-image-data",
-                "image/png",
-            )
-        },
+    fake_response = ReceiptExtractionResponse(
+        source="openai-vision",
+        confidence=0.88,
+        suggestion=ReceiptProductSuggestion(
+            name="Mock Receipt Product",
+            merchant="Mock Store",
+            purchase_date=None,
+            return_deadline=None,
+            warranty_deadline=None,
+            price_cents=1299,
+            currency="USD",
+            notes=None,
+        ),
+        warnings=[],
+        line_items=[],
     )
+
+    with patch(
+        "app.services.receipt_extraction.OpenAIReceiptExtractor.extract_from_image",
+        return_value=fake_response,
+    ):
+        response = client.post(
+            "/api/v1/ai/receipt-image",
+            files={
+                "image": (
+                    "receipt.png",
+                    b"fake-image-data",
+                    "image/png",
+                )
+            },
+        )
 
     assert response.status_code == 200
 
     payload = response.json()
 
-    assert payload["filename"] == "receipt.png"
-    assert payload["content_type"] == "image/png"
-    assert payload["ready_for_ocr"] is True
+    assert payload["source"] == "openai-vision"
+    assert payload["suggestion"]["name"] == "Mock Receipt Product"
 
 
 def test_receipt_image_upload_rejects_invalid_types(
