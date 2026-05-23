@@ -35,7 +35,9 @@ export default function EditProductScreen() {
     const [returnDeadline, setReturnDeadline] = useState("");
     const [warrantyDeadline, setWarrantyDeadline] = useState("");
     const [notes, setNotes] = useState("");
-
+    const [warrantyProvider, setWarrantyProvider] = useState("");
+    const [warrantyClaimUrl, setWarrantyClaimUrl] = useState("");
+    const [warrantyNotes, setWarrantyNotes] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationMessage, setValidationMessage] = useState<string | null>(null);
@@ -58,6 +60,9 @@ export default function EditProductScreen() {
             setPurchaseDate(data.purchase_date ?? "");
             setReturnDeadline(data.return_deadline ?? "");
             setWarrantyDeadline(data.warranty_deadline ?? "");
+            setWarrantyProvider(data.warranty_provider ?? "");
+            setWarrantyClaimUrl(data.warranty_claim_url ?? "");
+            setWarrantyNotes(data.warranty_notes ?? "");
             setNotes(data.notes ?? "");
         } catch (error) {
             console.error(error);
@@ -114,6 +119,9 @@ export default function EditProductScreen() {
                 purchase_date: normalizeOptionalDate(purchaseDate),
                 return_deadline: normalizeOptionalDate(returnDeadline),
                 warranty_deadline: normalizeOptionalDate(warrantyDeadline),
+                warranty_provider: warrantyProvider.trim() || null,
+                warranty_claim_url: warrantyClaimUrl.trim() || null,
+                warranty_notes: warrantyNotes.trim() || null,
                 price_cents: priceCents,
                 currency: product?.currency ?? "USD",
                 notes: notes.trim() || null,
@@ -225,6 +233,32 @@ export default function EditProductScreen() {
                         placeholder="2027-04-28"
                         keyboardType="numbers-and-punctuation"
                         style={styles.input}
+                    />
+
+                    <Text style={styles.label}>Warranty Provider</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Best Buy Geek Squad"
+                        value={warrantyProvider}
+                        onChangeText={setWarrantyProvider}
+                    />
+
+                    <Text style={styles.label}>Warranty Claim URL</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="https://..."
+                        autoCapitalize="none"
+                        value={warrantyClaimUrl}
+                        onChangeText={setWarrantyClaimUrl}
+                    />
+
+                    <Text style={styles.label}>Warranty Notes</Text>
+                    <TextInput
+                        style={[styles.input, styles.notesInput]}
+                        placeholder="Claim instructions, serial number requirements, etc."
+                        multiline
+                        value={warrantyNotes}
+                        onChangeText={setWarrantyNotes}
                     />
 
                     <FieldLabel label="Notes" />
