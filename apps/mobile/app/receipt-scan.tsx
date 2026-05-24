@@ -60,6 +60,7 @@ export default function ReceiptScanScreen() {
     const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
     const [savedReceiptItems, setSavedReceiptItems] = useState<string[]>([]);
     const savedReceiptItemCount = savedReceiptItems.length;
+    const [warrantyProvider, setWarrantyProvider] = useState("");
 
     const [restoredSessionNoticeVisible, setRestoredSessionNoticeVisible] =
         useState(false);
@@ -185,6 +186,9 @@ export default function ReceiptScanScreen() {
             setSuggestedPurchaseDate(uploadResult.suggestion.purchase_date ?? "");
             setSuggestedReturnDeadline(uploadResult.suggestion.return_deadline ?? "");
             setSuggestedWarrantyDeadline(uploadResult.suggestion.warranty_deadline ?? "");
+            setWarrantyProvider(
+                uploadResult.suggestion.warranty_provider ?? ""
+            );
             setSuggestedNotes(uploadResult.suggestion.notes ?? "");
 
             setImageUploadStatus(null);
@@ -268,6 +272,9 @@ export default function ReceiptScanScreen() {
             setSuggestedPurchaseDate(uploadResult.suggestion.purchase_date ?? "");
             setSuggestedReturnDeadline(uploadResult.suggestion.return_deadline ?? "");
             setSuggestedWarrantyDeadline(uploadResult.suggestion.warranty_deadline ?? "");
+            setWarrantyProvider(
+                uploadResult.suggestion.warranty_provider ?? ""
+            );
             setSuggestedNotes(uploadResult.suggestion.notes ?? "");
 
             setImageUploadStatus(null);
@@ -443,6 +450,8 @@ export default function ReceiptScanScreen() {
                 purchase_date: normalizeOptionalDate(suggestedPurchaseDate),
                 return_deadline: normalizeOptionalDate(suggestedReturnDeadline),
                 warranty_deadline: normalizeOptionalDate(suggestedWarrantyDeadline),
+                warranty_provider:
+                    warrantyProvider.trim() || null,
                 price_cents: priceCents,
                 currency: result?.suggestion.currency ?? "USD",
                 notes: suggestedNotes.trim() || null,
@@ -698,6 +707,15 @@ export default function ReceiptScanScreen() {
                                 onChangeText={setSuggestedWarrantyDeadline}
                                 placeholder="2027-04-28"
                                 keyboardType="numbers-and-punctuation"
+                                style={styles.input}
+                            />
+
+                            <FieldLabel label="Warranty provider" />
+                            <TextInput
+                                value={warrantyProvider}
+                                onChangeText={setWarrantyProvider}
+                                placeholder="Geek Squad"
+                                autoCapitalize="words"
                                 style={styles.input}
                             />
 
