@@ -17,147 +17,16 @@ import { router, useFocusEffect } from "expo-router";
 import { getReturnDeadlineStatus } from "@/src/features/products/deadlineUtils";
 import { DeadlineStatusPill } from "@/src/features/products/DeadlineStatusPill";
 import { getProductSourceLabel } from "@/src/features/products/sourceUtils";
-
-type ProductSortOption = "newest" | "returnDeadline" | "warrantyDeadline" | "name";
-
-function formatPrice(product: Product): string {
-    if (product.price_cents === null) {
-        return "Price not set";
-    }
-
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: product.currency,
-    }).format(product.price_cents / 100);
-}
-
-function formatDeadline(value: string | null): string {
-    if (!value) {
-        return "No deadline set";
-    }
-
-    return new Date(`${value}T00:00:00`).toLocaleDateString();
-}
-
-function compareOptionalDates(firstDate: string | null, secondDate: string | null): number {
-    if (!firstDate && !secondDate) {
-        return 0;
-    }
-
-    if (!firstDate) {
-        return 1;
-    }
-
-    if (!secondDate) {
-        return -1;
-    }
-
-    return (
-        new Date(`${firstDate}T00:00:00`).getTime() -
-        new Date(`${secondDate}T00:00:00`).getTime()
-    );
-}
-
-function isExpiringSoon(deadline: string | null): boolean {
-    if (!deadline) {
-        return false;
-    }
-
-    const deadlineDate = new Date(deadline);
-
-    const now = new Date();
-
-    const differenceMs =
-        deadlineDate.getTime() - now.getTime();
-
-    const differenceDays =
-        differenceMs / (1000 * 60 * 60 * 24);
-
-    return differenceDays >= 0 && differenceDays <= 14;
-}
-
-function getDeadlineUrgency(
-    deadline: string | null,
-): "safe" | "soon" | "urgent" | "expired" {
-    if (!deadline) {
-        return "safe";
-    }
-
-    const deadlineDate = new Date(deadline);
-
-    const now = new Date();
-
-    const differenceMs =
-        deadlineDate.getTime() - now.getTime();
-
-    const differenceDays =
-        differenceMs / (1000 * 60 * 60 * 24);
-
-    if (differenceDays < 0) {
-        return "expired";
-    }
-
-    if (differenceDays <= 3) {
-        return "urgent";
-    }
-
-    if (differenceDays <= 14) {
-        return "soon";
-    }
-
-    return "safe";
-}
-
-function getUrgencyRank(
-    urgency: "safe" | "soon" | "urgent" | "expired",
-): number {
-    switch (urgency) {
-        case "expired":
-            return 0;
-
-        case "urgent":
-            return 1;
-
-        case "soon":
-            return 2;
-
-        default:
-            return 3;
-    }
-}
-
-function getProductUrgency(product: Product) {
-    const returnUrgency = getDeadlineUrgency(
-        product.return_deadline
-    );
-
-    const warrantyUrgency = getDeadlineUrgency(
-        product.warranty_deadline
-    );
-
-    if (
-        returnUrgency === "expired" ||
-        warrantyUrgency === "expired"
-    ) {
-        return "expired";
-    }
-
-    if (
-        returnUrgency === "urgent" ||
-        warrantyUrgency === "urgent"
-    ) {
-        return "urgent";
-    }
-
-    if (
-        returnUrgency === "soon" ||
-        warrantyUrgency === "soon"
-    ) {
-        return "soon";
-    }
-
-    return "safe";
-}
+import {
+    formatProductDeadline,
+    formatProductPrice,
+    getDeadlineUrgency,
+    getProductUrgency,
+    getProductUrgencyLabel,
+    getVisibleProducts,
+    type ProductSortOption,
+    type ProductUrgencyFilter,
+} from "@/src/features/products/productListUtils";
 
 export default function ProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -170,9 +39,8 @@ export default function ProductsScreen() {
     const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
     const [selectionMode, setSelectionMode] = useState(false);
 
-    const [urgencyFilter, setUrgencyFilter] = useState<
-        "all" | "expired" | "urgent" | "protected"
-    >("all");
+    const [urgencyFilter, setUrgencyFilter] =
+        useState<ProductUrgencyFilter>("all");
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -211,105 +79,11 @@ export default function ProductsScreen() {
         void loadProducts();
     };
 
+
     const visibleProducts = useMemo(() => {
-        const filteredProducts = products.filter((product) => {
-            const urgency = getProductUrgency(product);
-
-            if (urgencyFilter === "expired") {
-                return urgency === "expired";
-            }
-
-            if (urgencyFilter === "urgent") {
-                return (
-                    urgency === "urgent" ||
-                    urgency === "soon"
-                );
-            }
-
-            if (urgencyFilter === "protected") {
-                return urgency === "safe";
-            }
-
-            return true;
-        });
-
-        return [...filteredProducts].sort((firstProduct, secondProduct) => {
-            if (sortOption === "name") {
-                return firstProduct.name.localeCompare(secondProduct.name);
-            }
-
-            if (sortOption === "returnDeadline") {
-                return compareOptionalDates(
-                    firstProduct.return_deadline,
-                    secondProduct.return_deadline
-                );
-            }
-
-            if (sortOption === "warrantyDeadline") {
-                return compareOptionalDates(
-                    firstProduct.warranty_deadline,
-                    secondProduct.warranty_deadline
-                );
-            }
-
-            const firstUrgency =
-                getUrgencyRank(
-                    getDeadlineUrgency(
-                        firstProduct.return_deadline
-                    )
-                ) <
-                    getUrgencyRank(
-                        getDeadlineUrgency(
-                            firstProduct.warranty_deadline
-                        )
-                    )
-                    ? getDeadlineUrgency(
-                        firstProduct.return_deadline
-                    )
-                    : getDeadlineUrgency(
-                        firstProduct.warranty_deadline
-                    );
-
-            const secondUrgency =
-                getUrgencyRank(
-                    getDeadlineUrgency(
-                        secondProduct.return_deadline
-                    )
-                ) <
-                    getUrgencyRank(
-                        getDeadlineUrgency(
-                            secondProduct.warranty_deadline
-                        )
-                    )
-                    ? getDeadlineUrgency(
-                        secondProduct.return_deadline
-                    )
-                    : getDeadlineUrgency(
-                        secondProduct.warranty_deadline
-                    );
-
-            const urgencyDifference =
-                getUrgencyRank(firstUrgency) -
-                getUrgencyRank(secondUrgency);
-
-            if (urgencyDifference !== 0) {
-                return urgencyDifference;
-            }
-
-            return (
-                new Date(secondProduct.created_at).getTime() -
-                new Date(firstProduct.created_at).getTime()
-            );
-        });
+        return getVisibleProducts(products, sortOption, urgencyFilter);
     }, [products, sortOption, urgencyFilter]);
 
-    const expiringSoonProducts = useMemo(() => {
-        return products.filter(
-            (product) =>
-                isExpiringSoon(product.return_deadline) ||
-                isExpiringSoon(product.warranty_deadline)
-        );
-    }, [products]);
 
     function toggleSelectedProduct(productId: number) {
         setSelectedProductIds((current) => {
@@ -608,13 +382,7 @@ export default function ProductsScreen() {
                             ]}
                         >
                             <Text style={styles.urgencyBadgeText}>
-                                {overallUrgency === "safe"
-                                    ? "Protected"
-                                    : overallUrgency === "soon"
-                                        ? "Expiring Soon"
-                                        : overallUrgency === "urgent"
-                                            ? "Urgent"
-                                            : "Expired"}
+                                {getProductUrgencyLabel(overallUrgency)}
                             </Text>
                         </View>
                         <Text style={styles.productName}>{item.name}</Text>
@@ -628,7 +396,7 @@ export default function ProductsScreen() {
                         ) : null}
 
                         <Text style={styles.productMeta}>
-                            {item.merchant ?? "Merchant not set"} · {formatPrice(item)}
+                            {item.merchant ?? "Merchant not set"} · {formatProductPrice(item)}
                         </Text>
 
                         <Text style={styles.productSource}>
@@ -640,14 +408,14 @@ export default function ProductsScreen() {
                         <View style={styles.deadlineRow}>
                             <Text style={styles.deadlineLabel}>Return</Text>
                             <Text style={styles.deadlineValue}>
-                                {formatDeadline(item.return_deadline)}
+                                {formatProductDeadline(item.return_deadline)}
                             </Text>
                         </View>
 
                         <View style={styles.deadlineRow}>
                             <Text style={styles.deadlineLabel}>Warranty</Text>
                             <Text style={styles.deadlineValue}>
-                                {formatDeadline(item.warranty_deadline)}
+                                {formatProductDeadline(item.warranty_deadline)}
                             </Text>
                         </View>
                     </Pressable>
