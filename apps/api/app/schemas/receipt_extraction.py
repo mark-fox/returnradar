@@ -11,6 +11,7 @@ class ReceiptExtractionRequest(BaseModel):
 class ReceiptProductSuggestion(BaseModel):
     name: str
     merchant: Optional[str] = None
+    warranty_provider: str | None = None
     purchase_date: Optional[date] = None
     return_deadline: Optional[date] = None
     warranty_deadline: Optional[date] = None

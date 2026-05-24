@@ -39,6 +39,29 @@ def extract_merchant(raw_text: str) -> str | None:
     return lines[0][:255]
 
 
+def infer_warranty_provider(
+    merchant: str | None,
+) -> str | None:
+    if merchant is None:
+        return None
+
+    normalized = merchant.lower()
+
+    if "best buy" in normalized:
+        return "Geek Squad"
+
+    if "costco" in normalized:
+        return "Costco Concierge"
+
+    if "target" in normalized:
+        return "Manufacturer Warranty"
+
+    if "walmart" in normalized:
+        return "Manufacturer Warranty"
+
+    return None
+
+
 def extract_product_name(raw_text: str) -> str:
     lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
 
@@ -75,6 +98,9 @@ class MockReceiptExtractor:
             suggestion=ReceiptProductSuggestion(
                 name=product_name,
                 merchant=merchant,
+                warranty_provider=infer_warranty_provider(
+    merchant
+),
                 purchase_date=today,
                 return_deadline=today + timedelta(days=30),
                 warranty_deadline=today + timedelta(days=365),
@@ -169,6 +195,9 @@ class OpenAIReceiptExtractor:
             suggestion=ReceiptProductSuggestion(
                 name=str(parsed.get("name") or "Unknown product"),
                 merchant=str(parsed["merchant"]) if parsed.get("merchant") else None,
+                warranty_provider=infer_warranty_provider(
+                    parsed.get("merchant")
+                ),
                 purchase_date=today,
                 return_deadline=today + timedelta(days=30),
                 warranty_deadline=today + timedelta(days=365),
