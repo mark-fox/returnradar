@@ -11,20 +11,14 @@ import {
 } from "react-native";
 
 import { listProducts } from "@/src/features/products/api";
-import { DeadlineStatusPill } from "@/src/features/products/DeadlineStatusPill";
-import {
-    getDaysUntilDate,
-    getReturnDeadlineStatus,
-    getWarrantyDeadlineStatus,
-} from "@/src/features/products/deadlineUtils";
 import { getDeadlineGroups } from "@/src/features/products/deadlineFilters";
 import type { Product } from "@/src/features/products/types";
-import { getProductSourceLabel } from "@/src/features/products/sourceUtils";
 import {
     formatDeadlineDate,
     formatLastUpdated,
     formatRemainingTime,
 } from "@/src/features/products/deadlineDisplayUtils";
+import { DeadlineSection } from "@/src/features/products/DeadlineSection";
 
 
 export default function DeadlinesScreen() {
@@ -300,66 +294,6 @@ function SummaryCard({
     );
 }
 
-function DeadlineSection({
-    title,
-    emptyText,
-    products,
-    deadlineType,
-}: {
-    title: string;
-    emptyText: string;
-    products: Product[];
-    deadlineType: "return" | "warranty";
-}) {
-    return (
-        <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{title}</Text>
-
-            {products.length === 0 ? (
-                <Text style={styles.sectionEmptyText}>{emptyText}</Text>
-            ) : (
-                products.map((product) => {
-                    const status =
-                        deadlineType === "return"
-                            ? getReturnDeadlineStatus(product.return_deadline)
-                            : getWarrantyDeadlineStatus(product.warranty_deadline);
-
-                    const dateValue =
-                        deadlineType === "return"
-                            ? product.return_deadline
-                            : product.warranty_deadline;
-                    const daysRemaining = getDaysUntilDate(dateValue);
-
-                    return (
-                        <Pressable
-                            key={`${deadlineType}-${product.id}`}
-                            style={styles.deadlineCard}
-                            onPress={() => router.push(`/products/${product.id}`)}
-                        >
-                            <Text style={styles.productName}>{product.name}</Text>
-                            <Text style={styles.productMeta}>
-                                {product.merchant ?? "Merchant not set"} · {formatDeadlineDate(dateValue)}
-                            </Text>
-                            <Text style={styles.remainingTimeText}>
-                                {formatRemainingTime(daysRemaining)}
-                            </Text>
-
-                            <View style={styles.cardFooter}>
-                                <View style={styles.sourceBadge}>
-                                    <Text style={styles.sourceBadgeText}>
-                                        {getProductSourceLabel(product.source)}
-                                    </Text>
-                                </View>
-
-                                <DeadlineStatusPill status={status} />
-                            </View>
-                        </Pressable>
-                    );
-                })
-            )}
-        </View>
-    );
-}
 
 const styles = StyleSheet.create({
     centeredState: {
@@ -415,44 +349,6 @@ const styles = StyleSheet.create({
         fontSize: 15,
         lineHeight: 22,
         color: "#64748B",
-    },
-    section: {
-        marginBottom: 24,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 10,
-    },
-    sectionEmptyText: {
-        fontSize: 15,
-        lineHeight: 22,
-        color: "#64748B",
-        backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-    },
-    deadlineCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 18,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-    },
-    productName: {
-        fontSize: 17,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 6,
-    },
-    productMeta: {
-        fontSize: 14,
-        color: "#64748B",
-        marginBottom: 12,
     },
     errorCard: {
         backgroundColor: "#FFFFFF",
@@ -510,29 +406,6 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         fontWeight: "700",
         color: "#64748B",
-    },
-    remainingTimeText: {
-        fontSize: 14,
-        fontWeight: "700",
-        color: "#0F172A",
-        marginBottom: 10,
-    },
-    cardFooter: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: 12,
-    },
-    sourceBadge: {
-        backgroundColor: "#DBEAFE",
-        borderRadius: 999,
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-    },
-    sourceBadgeText: {
-        fontSize: 12,
-        fontWeight: "800",
-        color: "#1D4ED8",
     },
     lastUpdatedText: {
         fontSize: 13,
