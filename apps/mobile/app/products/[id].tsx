@@ -28,6 +28,7 @@ import {
     formatProductPrice,
 } from "@/src/features/products/productListUtils";
 import { DetailRow } from "@/src/features/products/DetailRow";
+import { DetailSection } from "@/src/features/products/DetailSection";
 
 
 function formatDaysRemaining(
@@ -167,7 +168,7 @@ export default function ProductDetailScreen() {
                 <Text style={styles.editButtonText}>Edit Product</Text>
             </Pressable>
 
-            <View style={styles.card}>
+            <DetailSection>
                 <DetailRow label="Merchant" value={product.merchant ?? "Not set"} />
                 <DetailRow label="Source" value={getProductSourceLabel(product.source)} />
                 <DetailRow
@@ -189,28 +190,26 @@ export default function ProductDetailScreen() {
                     value={formatProductDeadline(product.purchase_date)}
                 />
                 <DetailRow label="Currency" value={product.currency} />
-            </View>
+            </DetailSection>
 
             {product.receipt_image_path ? (
-                <View style={styles.card}>
-                    <Text style={styles.sectionTitle}>Receipt Image</Text>
-                    <Pressable
-                        onPress={() => setIsReceiptViewerVisible(true)}
-                    >
+                <DetailSection title="Receipt Image">
+                    <Pressable onPress={() => setIsReceiptViewerVisible(true)}>
                         <Image
                             source={{
-                                uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace("/api/v1", "")}/${product.receipt_image_path}`,
+                                uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace(
+                                    "/api/v1",
+                                    ""
+                                )}/${product.receipt_image_path}`,
                             }}
                             style={styles.receiptImage}
                             resizeMode="cover"
                         />
                     </Pressable>
-                </View>
+                </DetailSection>
             ) : null}
 
-            <View style={styles.card}>
-                <Text style={styles.sectionTitle}>Return Window</Text>
-
+            <DetailSection title="Return Window">
                 <DetailRow
                     label="Deadline"
                     value={formatProductDeadline(product.return_deadline)}
@@ -222,11 +221,9 @@ export default function ProductDetailScreen() {
                     label="Time remaining"
                     value={formatDaysRemaining(returnDaysRemaining, "return")}
                 />
-            </View>
+            </DetailSection>
 
-            <View style={styles.card}>
-                <Text style={styles.sectionTitle}>Warranty Protection</Text>
-
+            <DetailSection title="Warranty Protection">
                 <DetailRow
                     label="Deadline"
                     value={formatProductDeadline(product.warranty_deadline)}
@@ -238,11 +235,9 @@ export default function ProductDetailScreen() {
                     label="Time remaining"
                     value={formatDaysRemaining(warrantyDaysRemaining, "warranty")}
                 />
+
                 {product.warranty_provider ? (
-                    <DetailRow
-                        label="Provider"
-                        value={product.warranty_provider}
-                    />
+                    <DetailRow label="Provider" value={product.warranty_provider} />
                 ) : null}
 
                 {product.warranty_claim_url ? (
@@ -256,13 +251,11 @@ export default function ProductDetailScreen() {
                         </Text>
                     </Pressable>
                 ) : null}
-                {product.warranty_claim_url ? (
 
+                {product.warranty_claim_url ? (
                     <Pressable
                         style={styles.claimWarrantyButton}
-                        onPress={() =>
-                            Linking.openURL(product.warranty_claim_url!)
-                        }
+                        onPress={() => Linking.openURL(product.warranty_claim_url!)}
                     >
                         <Text style={styles.claimWarrantyButtonText}>
                             Claim Warranty
@@ -271,17 +264,13 @@ export default function ProductDetailScreen() {
                 ) : null}
 
                 {product.warranty_notes ? (
-                    <DetailRow
-                        label="Warranty Notes"
-                        value={product.warranty_notes}
-                    />
+                    <DetailRow label="Warranty Notes" value={product.warranty_notes} />
                 ) : null}
-            </View>
+            </DetailSection>
 
-            <View style={styles.card}>
-                <Text style={styles.sectionTitle}>Notes</Text>
+            <DetailSection title="Notes">
                 <Text style={styles.notes}>{product.notes ?? "No notes added."}</Text>
-            </View>
+            </DetailSection>
             <Pressable
                 style={[styles.deleteButton, isDeleting && styles.disabledButton]}
                 onPress={confirmDelete}
@@ -343,20 +332,6 @@ const styles = StyleSheet.create({
         fontWeight: "800",
         color: "#0F172A",
         marginBottom: 24,
-    },
-    card: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 18,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 8,
     },
     notes: {
         fontSize: 16,
