@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import type { DeadlineFilter, DeadlineFocusSection } from "./deadlineFilters";
+import type { DeadlineFocusSection } from "./deadlineFilters";
 
 type DeadlineSummaryGridProps = {
     activeFilter: DeadlineFocusSection;

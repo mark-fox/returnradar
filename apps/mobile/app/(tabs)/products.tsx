@@ -5,8 +5,7 @@ import {
 } from "react-native";
 
 import { archiveProduct } from "@/src/features/products/api";
-import type { Product } from "@/src/features/products/types";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { ProductCard } from "@/src/features/products/ProductCard";
 import { ProductListHeader } from "@/src/features/products/ProductListHeader";
 import { useProductSelection } from "@/src/features/products/useProductSelection";

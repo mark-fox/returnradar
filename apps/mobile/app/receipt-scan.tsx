@@ -55,7 +55,6 @@ export default function ReceiptScanScreen() {
     const [receiptImagePath, setReceiptImagePath] = useState("");
     const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
     const [savedReceiptItems, setSavedReceiptItems] = useState<string[]>([]);
-    const savedReceiptItemCount = savedReceiptItems.length;
     const [warrantyProvider, setWarrantyProvider] = useState("");
 
     const [restoredSessionNoticeVisible, setRestoredSessionNoticeVisible] =

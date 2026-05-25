@@ -8,13 +8,10 @@ import {
 } from "react-native";
 
 import {
-    formatDeadlineDate,
     formatLastUpdated,
-    formatRemainingTime,
 } from "@/src/features/products/deadlineDisplayUtils";
 import { DeadlineSection } from "@/src/features/products/DeadlineSection";
 import { DeadlineSummaryGrid } from "@/src/features/products/DeadlineSummaryGrid";
-import type { DeadlineFocusSection, DeadlineTypeFilter } from "@/src/features/products/deadlineFilters";
 import { DeadlineTypeFilterChips } from "@/src/features/products/DeadlineTypeFilterChips";
 import {
     DeadlineEmptyState,

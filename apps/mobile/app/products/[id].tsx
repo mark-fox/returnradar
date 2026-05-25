@@ -9,7 +9,6 @@ import {
     Text,
     View,
     Image,
-    Modal,
     Linking,
 } from "react-native";
 import ImageViewing from "react-native-image-viewing";
