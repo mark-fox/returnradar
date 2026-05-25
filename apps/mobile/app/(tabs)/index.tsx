@@ -9,8 +9,14 @@ import {
   View,
 } from "react-native";
 
-import { listProducts } from "@/src/features/products/api";
-import type { Product } from "@/src/features/products/types";
+import {
+  listDeadlineReminders,
+  listProducts,
+} from "@/src/features/products/api";
+import type {
+  DeadlineReminder,
+  Product,
+} from "@/src/features/products/types";
 import { getDaysUntilDate } from "@/src/features/products/deadlineUtils";
 
 
@@ -18,16 +24,21 @@ export default function HomeScreen() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deadlineReminders, setDeadlineReminders] = useState<DeadlineReminder[]>([]);
 
   const loadProducts = useCallback(async () => {
     try {
       setErrorMessage(null);
-      const data = await listProducts({
-        limit: 50,
-        offset: 0,
-      });
+      const [productData, reminderData] = await Promise.all([
+        listProducts({
+          limit: 50,
+          offset: 0,
+        }),
+        listDeadlineReminders(),
+      ]);
 
-      setProducts(data);
+      setProducts(productData);
+      setDeadlineReminders(reminderData);
     } catch (error) {
       console.error(error);
       setErrorMessage("Could not load dashboard data.");
@@ -79,6 +90,40 @@ export default function HomeScreen() {
     return products.slice(0, 5);
   }, [products]);
 
+
+  const topDeadlineReminders = useMemo(() => {
+    return deadlineReminders.slice(0, 4);
+  }, [deadlineReminders]);
+
+  function getReminderTitle(reminder: DeadlineReminder): string {
+    const deadlineLabel =
+      reminder.deadline_type === "return" ? "Return" : "Warranty";
+
+    if (reminder.status === "expired") {
+      return `${deadlineLabel} expired`;
+    }
+
+    if (reminder.status === "today") {
+      return `${deadlineLabel} ends today`;
+    }
+
+    return `${deadlineLabel} due soon`;
+  }
+
+  function getReminderMeta(reminder: DeadlineReminder): string {
+    if (reminder.status === "expired") {
+      const expiredDays = Math.abs(reminder.days_remaining);
+
+      return `Expired ${expiredDays} day${expiredDays === 1 ? "" : "s"} ago`;
+    }
+
+    if (reminder.days_remaining === 0) {
+      return "Due today";
+    }
+
+    return `${reminder.days_remaining} day${reminder.days_remaining === 1 ? "" : "s"
+      } remaining`;
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -132,6 +177,40 @@ export default function HomeScreen() {
           />
         </View>
       )}
+
+      {!isLoading && !errorMessage ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Upcoming reminders</Text>
+
+          {topDeadlineReminders.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyCardText}>
+                Return and warranty reminders will appear here when deadlines are close.
+              </Text>
+            </View>
+          ) : (
+            topDeadlineReminders.map((reminder) => (
+              <Pressable
+                key={`${reminder.product_id}-${reminder.deadline_type}`}
+                style={styles.reminderCard}
+                onPress={() => router.push(`/products/${reminder.product_id}`)}
+              >
+                <Text style={styles.reminderTitle}>
+                  {getReminderTitle(reminder)}
+                </Text>
+
+                <Text style={styles.reminderProductName}>
+                  {reminder.product_name}
+                </Text>
+
+                <Text style={styles.reminderMeta}>
+                  {getReminderMeta(reminder)}
+                </Text>
+              </Pressable>
+            ))
+          )}
+        </View>
+      ) : null}
 
       {!isLoading && !errorMessage ? (
         <View style={styles.section}>
@@ -351,6 +430,31 @@ const styles = StyleSheet.create({
   emptyCardText: {
     fontSize: 15,
     lineHeight: 22,
+    color: "#64748B",
+  },
+  reminderCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#FCD34D",
+  },
+  reminderTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#92400E",
+    marginBottom: 6,
+    textTransform: "uppercase",
+  },
+  reminderProductName: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 4,
+  },
+  reminderMeta: {
+    fontSize: 14,
     color: "#64748B",
   },
 });
