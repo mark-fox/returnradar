@@ -18,7 +18,6 @@ export default function HomeScreen() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
 
   const loadProducts = useCallback(async () => {
     try {
@@ -29,7 +28,6 @@ export default function HomeScreen() {
       });
 
       setProducts(data);
-      setRecentProducts(data.slice(0, 5));
     } catch (error) {
       console.error(error);
       setErrorMessage("Could not load dashboard data.");
@@ -69,6 +67,11 @@ export default function HomeScreen() {
       missingReturnDeadlines,
     };
   }, [products]);
+
+  const recentProducts = useMemo(() => {
+    return products.slice(0, 5);
+  }, [products]);
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
