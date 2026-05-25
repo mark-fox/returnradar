@@ -48,7 +48,7 @@ def list_products(
     statement = select(Product)
 
     if not include_archived:
-        statement = statement.where(Product.is_archived == False)
+        statement = statement.where(Product.is_archived.is_(False))
 
     if search:
         search_pattern = f"%{search.strip()}%"
