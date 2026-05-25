@@ -1,17 +1,12 @@
-import { Stack, router, useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { Stack } from "expo-router";
 import {
     Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
-    View,
 } from "react-native";
 
-import { listProducts } from "@/src/features/products/api";
-import { getDeadlineGroups } from "@/src/features/products/deadlineFilters";
-import type { Product } from "@/src/features/products/types";
 import {
     formatDeadlineDate,
     formatLastUpdated,
@@ -26,61 +21,25 @@ import {
     DeadlineErrorState,
     DeadlineLoadingState,
 } from "@/src/features/products/DeadlineScreenStates";
+import { useDeadlinesScreen } from "@/src/features/products/useDeadlinesScreen";
 
 
 export default function DeadlinesScreen() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+    const {
+        isLoading,
+        isRefreshing,
+        errorMessage,
+        deadlineFilter,
+        focusedSection,
+        lastUpdatedAt,
+        deadlineGroups,
+        hasAnyDeadlines,
+        setDeadlineFilter,
+        setFocusedSection,
+        loadProducts,
+        refreshProducts,
+    } = useDeadlinesScreen();
 
-    const [deadlineFilter, setDeadlineFilter] =
-        useState<DeadlineTypeFilter>("all");
-
-    const [focusedSection, setFocusedSection] =
-        useState<DeadlineFocusSection>("all");
-
-    const loadProducts = useCallback(async () => {
-        try {
-            setErrorMessage(null);
-
-            const data = await listProducts({
-                limit: 100,
-                offset: 0,
-            });
-
-            setProducts(data);
-            setLastUpdatedAt(new Date());
-        } catch (error) {
-            console.error(error);
-            setErrorMessage("Could not load deadline data.");
-        } finally {
-            setIsLoading(false);
-            setIsRefreshing(false);
-        }
-    }, []);
-
-    const handleRefresh = useCallback(async () => {
-        setIsRefreshing(true);
-        await loadProducts();
-    }, [loadProducts]);
-
-    useFocusEffect(
-        useCallback(() => {
-            void loadProducts();
-        }, [loadProducts])
-    );
-
-    const deadlineGroups = useMemo(() => {
-        return getDeadlineGroups(products);
-    }, [products]);
-
-    const hasAnyDeadlines =
-        deadlineGroups.upcomingReturns.length > 0 ||
-        deadlineGroups.expiredReturns.length > 0 ||
-        deadlineGroups.upcomingWarranties.length > 0 ||
-        deadlineGroups.expiredWarranties.length > 0;
 
     if (isLoading) {
         return <DeadlineLoadingState />;
@@ -101,7 +60,7 @@ export default function DeadlinesScreen() {
             refreshControl={
                 <RefreshControl
                     refreshing={isRefreshing}
-                    onRefresh={handleRefresh}
+                    onRefresh={() => void refreshProducts()}
                 />
             }
         >
