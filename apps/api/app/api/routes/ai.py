@@ -77,8 +77,14 @@ async def upload_receipt_image(
 
     file_path.write_bytes(contents)
 
-    extractor = OpenAIReceiptExtractor()
-    extraction_response = extractor.extract_from_image(contents)
+    try:
+        extractor = OpenAIReceiptExtractor()
+        extraction_response = extractor.extract_from_image(contents)
+    except ValueError as error:
+        raise HTTPException(
+            status_code=503,
+            detail=str(error),
+        ) from error
 
     extraction_response.warnings.insert(
         0,

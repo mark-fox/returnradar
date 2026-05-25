@@ -126,3 +126,27 @@ def test_receipt_image_upload_rejects_large_images(
     payload = response.json()
 
     assert payload["detail"] == "Receipt image is too large. Maximum size is 8 MB."
+
+
+def test_receipt_image_upload_returns_503_when_openai_is_not_configured(
+    client: TestClient,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(settings, "openai_api_key", None)
+
+    response = client.post(
+        "/api/v1/ai/receipt-image",
+        files={
+            "image": (
+                "receipt.png",
+                b"fake-image-data",
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 503
+
+    payload = response.json()
+
+    assert payload["detail"] == "OPENAI_API_KEY is not configured"
