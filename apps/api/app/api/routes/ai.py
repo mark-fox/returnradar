@@ -75,8 +75,6 @@ async def upload_receipt_image(
     filename = f"{uuid4()}{file_extension}"
     file_path = uploads_dir / filename
 
-    file_path.write_bytes(contents)
-
     try:
         extractor = OpenAIReceiptExtractor()
         extraction_response = extractor.extract_from_image(contents)
@@ -86,6 +84,8 @@ async def upload_receipt_image(
             detail=str(error),
         ) from error
 
+    file_path.write_bytes(contents)
+    
     extraction_response.warnings.insert(
         0,
         f"receipt_image_path:{file_path.as_posix()}",
