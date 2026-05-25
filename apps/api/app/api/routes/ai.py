@@ -15,6 +15,8 @@ from app.services.receipt_extraction import (
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
+MAX_RECEIPT_IMAGE_BYTES = 8 * 1024 * 1024
+
 @router.get("/status")
 def get_ai_status() -> dict[str, object]:
     provider = settings.receipt_extractor_provider
@@ -61,6 +63,11 @@ async def upload_receipt_image(
         )
 
     contents = await image.read()
+    if len(contents) > MAX_RECEIPT_IMAGE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="Receipt image is too large. Maximum size is 8 MB.",
+        )
     uploads_dir = Path("uploads")
     uploads_dir.mkdir(exist_ok=True)
 
