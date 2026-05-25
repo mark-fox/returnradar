@@ -95,7 +95,7 @@ export default function ReceiptScanScreen() {
                     parsed.suggestedWarrantyDeadline ?? "",
                 );
                 setSuggestedNotes(parsed.suggestedNotes ?? "");
-
+                setWarrantyProvider(parsed.warrantyProvider ?? "");
                 setSelectedImageUri(
                     parsed.selectedImageUri ?? null,
                 );
@@ -144,33 +144,56 @@ export default function ReceiptScanScreen() {
                 warning.startsWith("receipt_image_path:")
             );
 
-            if (imagePathWarning) {
-                setReceiptImagePath(
-                    imagePathWarning.replace("receipt_image_path:", "")
-                );
-            }
+            const nextReceiptImagePath = imagePathWarning
+                ? imagePathWarning.replace("receipt_image_path:", "")
+                : "";
 
-            setSuggestedName(uploadResult.suggestion.name);
-            setSuggestedMerchant(uploadResult.suggestion.merchant ?? "");
-            setSuggestedPrice(
+            const nextSuggestedName = uploadResult.suggestion.name;
+            const nextSuggestedMerchant = uploadResult.suggestion.merchant ?? "";
+            const nextSuggestedPrice =
                 uploadResult.suggestion.price_cents === null
                     ? ""
-                    : (uploadResult.suggestion.price_cents / 100).toFixed(2)
-            );
-            setSuggestedPurchaseDate(uploadResult.suggestion.purchase_date ?? "");
-            setSuggestedReturnDeadline(uploadResult.suggestion.return_deadline ?? "");
-            setSuggestedWarrantyDeadline(
-                uploadResult.suggestion.warranty_deadline ?? ""
-            );
-            setWarrantyProvider(uploadResult.suggestion.warranty_provider ?? "");
-            setSuggestedNotes(uploadResult.suggestion.notes ?? "");
+                    : (uploadResult.suggestion.price_cents / 100).toFixed(2);
+            const nextSuggestedPurchaseDate =
+                uploadResult.suggestion.purchase_date ?? "";
+            const nextSuggestedReturnDeadline =
+                uploadResult.suggestion.return_deadline ?? "";
+            const nextSuggestedWarrantyDeadline =
+                uploadResult.suggestion.warranty_deadline ?? "";
+            const nextWarrantyProvider =
+                uploadResult.suggestion.warranty_provider ?? "";
+            const nextSuggestedNotes = uploadResult.suggestion.notes ?? "";
+            const nextUploadedImageInfo =
+                `${nextSuggestedName} extracted successfully`;
+
+            setReceiptImagePath(nextReceiptImagePath);
+            setSuggestedName(nextSuggestedName);
+            setSuggestedMerchant(nextSuggestedMerchant);
+            setSuggestedPrice(nextSuggestedPrice);
+            setSuggestedPurchaseDate(nextSuggestedPurchaseDate);
+            setSuggestedReturnDeadline(nextSuggestedReturnDeadline);
+            setSuggestedWarrantyDeadline(nextSuggestedWarrantyDeadline);
+            setWarrantyProvider(nextWarrantyProvider);
+            setSuggestedNotes(nextSuggestedNotes);
 
             setImageUploadStatus(null);
-            setUploadedImageInfo(
-                `${uploadResult.suggestion.name} extracted successfully`
-            );
+            setUploadedImageInfo(nextUploadedImageInfo);
 
-            await persistReceiptSession();
+            await persistReceiptSession({
+                result: uploadResult,
+                suggestedName: nextSuggestedName,
+                suggestedMerchant: nextSuggestedMerchant,
+                suggestedPrice: nextSuggestedPrice,
+                suggestedPurchaseDate: nextSuggestedPurchaseDate,
+                suggestedReturnDeadline: nextSuggestedReturnDeadline,
+                suggestedWarrantyDeadline: nextSuggestedWarrantyDeadline,
+                warrantyProvider: nextWarrantyProvider,
+                suggestedNotes: nextSuggestedNotes,
+                selectedImageUri: imageUri,
+                uploadedImageInfo: nextUploadedImageInfo,
+                receiptImagePath: nextReceiptImagePath,
+                savedReceiptItems,
+            });
         } catch (error) {
             console.warn(error);
 
@@ -262,28 +285,25 @@ export default function ReceiptScanScreen() {
         setErrorMessage(null);
     };
 
-    const persistReceiptSession = async () => {
-        if (!result) {
-            return;
-        }
-
+    const persistReceiptSession = async (session: {
+        result: ReceiptExtractionResponse;
+        suggestedName: string;
+        suggestedMerchant: string;
+        suggestedPrice: string;
+        suggestedPurchaseDate: string;
+        suggestedReturnDeadline: string;
+        suggestedWarrantyDeadline: string;
+        warrantyProvider: string;
+        suggestedNotes: string;
+        selectedImageUri: string | null;
+        uploadedImageInfo: string | null;
+        receiptImagePath: string;
+        savedReceiptItems: string[];
+    }) => {
         try {
             await AsyncStorage.setItem(
                 RECEIPT_SESSION_STORAGE_KEY,
-                JSON.stringify({
-                    result,
-                    suggestedName,
-                    suggestedMerchant,
-                    suggestedPrice,
-                    suggestedPurchaseDate,
-                    suggestedReturnDeadline,
-                    suggestedWarrantyDeadline,
-                    suggestedNotes,
-                    selectedImageUri,
-                    uploadedImageInfo,
-                    receiptImagePath,
-                    savedReceiptItems,
-                }),
+                JSON.stringify(session),
             );
         } catch (error) {
             console.warn("Failed to persist receipt session", error);
@@ -306,7 +326,7 @@ export default function ReceiptScanScreen() {
         setSuggestedReturnDeadline("");
         setSuggestedWarrantyDeadline("");
         setSuggestedNotes("");
-
+        setWarrantyProvider("");
         setSelectedImageUri(null);
         setUploadedImageInfo(null);
         setImageUploadStatus(null);
