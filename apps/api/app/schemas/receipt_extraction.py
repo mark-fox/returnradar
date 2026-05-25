@@ -1,5 +1,4 @@
 from datetime import date
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -10,14 +9,14 @@ class ReceiptExtractionRequest(BaseModel):
 
 class ReceiptProductSuggestion(BaseModel):
     name: str
-    merchant: Optional[str] = None
+    merchant: str | None = None
     warranty_provider: str | None = None
-    purchase_date: Optional[date] = None
-    return_deadline: Optional[date] = None
-    warranty_deadline: Optional[date] = None
-    price_cents: Optional[int] = None
+    purchase_date: date | None = None
+    return_deadline: date | None = None
+    warranty_deadline: date | None = None
+    price_cents: int | None = None
     currency: str = "USD"
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class ReceiptLineItem(BaseModel):
@@ -29,5 +28,5 @@ class ReceiptExtractionResponse(BaseModel):
     source: str
     confidence: float = Field(..., ge=0, le=1)
     suggestion: ReceiptProductSuggestion
-    warnings: list[str] = []
+    warnings: list[str] = Field(default_factory=list)
     line_items: list[ReceiptLineItem] = Field(default_factory=list)
