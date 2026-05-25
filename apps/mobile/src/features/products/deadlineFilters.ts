@@ -8,6 +8,8 @@ export type DeadlineGroup = {
     expiredWarranties: Product[];
 };
 
+export type DeadlineTypeFilter = "all" | "returns" | "warranties";
+
 export type DeadlineFilter =
     | "all"
     | "upcomingReturns"

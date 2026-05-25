@@ -20,7 +20,8 @@ import {
 } from "@/src/features/products/deadlineDisplayUtils";
 import { DeadlineSection } from "@/src/features/products/DeadlineSection";
 import { DeadlineSummaryGrid } from "@/src/features/products/DeadlineSummaryGrid";
-import type { DeadlineFilter, DeadlineFocusSection } from "@/src/features/products/deadlineFilters";
+import type { DeadlineFocusSection, DeadlineTypeFilter } from "@/src/features/products/deadlineFilters";
+import { DeadlineTypeFilterChips } from "@/src/features/products/DeadlineTypeFilterChips";
 
 
 export default function DeadlinesScreen() {
@@ -30,9 +31,8 @@ export default function DeadlinesScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
 
-    const [deadlineFilter, setDeadlineFilter] = useState<
-        "all" | "returns" | "warranties"
-    >("all");
+    const [deadlineFilter, setDeadlineFilter] =
+        useState<DeadlineTypeFilter>("all");
 
     const [focusedSection, setFocusedSection] =
         useState<DeadlineFocusSection>("all");
@@ -127,37 +127,10 @@ export default function DeadlinesScreen() {
                 Last updated: {formatLastUpdated(lastUpdatedAt)}
             </Text>
 
-            <View style={styles.filterRow}>
-                <Pressable
-                    style={[
-                        styles.filterChip,
-                        deadlineFilter === "all" && styles.filterChipActive,
-                    ]}
-                    onPress={() => setDeadlineFilter("all")}
-                >
-                    <Text style={styles.filterChipText}>All</Text>
-                </Pressable>
-
-                <Pressable
-                    style={[
-                        styles.filterChip,
-                        deadlineFilter === "returns" && styles.filterChipReturns,
-                    ]}
-                    onPress={() => setDeadlineFilter("returns")}
-                >
-                    <Text style={styles.filterChipText}>Returns</Text>
-                </Pressable>
-
-                <Pressable
-                    style={[
-                        styles.filterChip,
-                        deadlineFilter === "warranties" && styles.filterChipWarranty,
-                    ]}
-                    onPress={() => setDeadlineFilter("warranties")}
-                >
-                    <Text style={styles.filterChipText}>Warranties</Text>
-                </Pressable>
-            </View>
+            <DeadlineTypeFilterChips
+                activeFilter={deadlineFilter}
+                onFilterChange={setDeadlineFilter}
+            />
 
             {focusedSection !== "all" ? (
                 <Pressable
@@ -346,33 +319,6 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#64748B",
         marginBottom: 20,
-    },
-    filterRow: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        marginBottom: 24,
-    },
-    filterChip: {
-        backgroundColor: "#E2E8F0",
-        borderRadius: 999,
-        paddingVertical: 8,
-        paddingHorizontal: 14,
-        marginRight: 10,
-        marginBottom: 10,
-    },
-    filterChipActive: {
-        backgroundColor: "#CBD5E1",
-    },
-    filterChipReturns: {
-        backgroundColor: "#DBEAFE",
-    },
-    filterChipWarranty: {
-        backgroundColor: "#DCFCE7",
-    },
-    filterChipText: {
-        fontSize: 13,
-        fontWeight: "800",
-        color: "#0F172A",
     },
     clearFocusButton: {
         backgroundColor: "#0F172A",
