@@ -150,3 +150,29 @@ def test_receipt_image_upload_returns_503_when_openai_is_not_configured(
     payload = response.json()
 
     assert payload["detail"] == "OPENAI_API_KEY is not configured"
+
+
+def test_receipt_image_upload_503_does_not_write_file(
+    client: TestClient,
+    monkeypatch,
+    tmp_path,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(settings, "openai_api_key", None)
+
+    response = client.post(
+        "/api/v1/ai/receipt-image",
+        files={
+            "image": (
+                "receipt.png",
+                b"fake-image-data",
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 503
+
+    uploads_dir = tmp_path / "uploads"
+
+    assert not uploads_dir.exists()

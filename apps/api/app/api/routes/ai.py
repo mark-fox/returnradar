@@ -63,17 +63,12 @@ async def upload_receipt_image(
         )
 
     contents = await image.read()
+
     if len(contents) > MAX_RECEIPT_IMAGE_BYTES:
         raise HTTPException(
             status_code=413,
             detail="Receipt image is too large. Maximum size is 8 MB.",
         )
-    uploads_dir = Path("uploads")
-    uploads_dir.mkdir(exist_ok=True)
-
-    file_extension = content_type_extensions[image.content_type]
-    filename = f"{uuid4()}{file_extension}"
-    file_path = uploads_dir / filename
 
     try:
         extractor = OpenAIReceiptExtractor()
@@ -84,8 +79,15 @@ async def upload_receipt_image(
             detail=str(error),
         ) from error
 
+    uploads_dir = Path("uploads")
+    uploads_dir.mkdir(exist_ok=True)
+
+    file_extension = content_type_extensions[image.content_type]
+    filename = f"{uuid4()}{file_extension}"
+    file_path = uploads_dir / filename
+
     file_path.write_bytes(contents)
-    
+
     extraction_response.warnings.insert(
         0,
         f"receipt_image_path:{file_path.as_posix()}",
