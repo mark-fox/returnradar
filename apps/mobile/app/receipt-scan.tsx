@@ -28,6 +28,7 @@ import {
     uploadReceiptImage,
 } from "@/src/features/ai/api";
 import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction/types";
+import { ProductFormInput } from "@/src/features/products/ProductFormFields";
 
 const SAMPLE_RECEIPT_TEXT =
     "BEST BUY\nSony WH-1000XM5 Headphones\nSubtotal 399.99\nTax 31.20\nTotal 431.19\nVISA";
@@ -656,77 +657,69 @@ export default function ReceiptScanScreen() {
 
                             <Text style={styles.resultTitle}>Review suggested details</Text>
 
-                            <FieldLabel label="Product name" required />
-                            <TextInput
+                            <ProductFormInput
+                                label="Product name"
+                                required
                                 value={suggestedName}
                                 onChangeText={setSuggestedName}
                                 placeholder="Product name"
                                 autoCapitalize="words"
-                                style={styles.input}
                             />
 
-                            <FieldLabel label="Merchant" />
-                            <TextInput
+                            <ProductFormInput
+                                label="Merchant"
                                 value={suggestedMerchant}
                                 onChangeText={setSuggestedMerchant}
                                 placeholder="Merchant"
                                 autoCapitalize="words"
-                                style={styles.input}
                             />
 
-                            <FieldLabel label="Price" />
-                            <TextInput
+                            <ProductFormInput
+                                label="Price"
                                 value={suggestedPrice}
                                 onChangeText={setSuggestedPrice}
                                 placeholder="399.99"
                                 keyboardType="decimal-pad"
-                                style={styles.input}
                             />
 
-                            <FieldLabel label="Purchase date" />
-                            <TextInput
+                            <ProductFormInput
+                                label="Purchase date"
                                 value={suggestedPurchaseDate}
                                 onChangeText={setSuggestedPurchaseDate}
                                 placeholder="2026-04-28"
                                 keyboardType="numbers-and-punctuation"
-                                style={styles.input}
                             />
 
-                            <FieldLabel label="Return deadline" />
-                            <TextInput
+                            <ProductFormInput
+                                label="Return deadline"
                                 value={suggestedReturnDeadline}
                                 onChangeText={setSuggestedReturnDeadline}
                                 placeholder="2026-05-28"
                                 keyboardType="numbers-and-punctuation"
-                                style={styles.input}
                             />
 
-                            <FieldLabel label="Warranty deadline" />
-                            <TextInput
+                            <ProductFormInput
+                                label="Warranty deadline"
                                 value={suggestedWarrantyDeadline}
                                 onChangeText={setSuggestedWarrantyDeadline}
                                 placeholder="2027-04-28"
                                 keyboardType="numbers-and-punctuation"
-                                style={styles.input}
                             />
 
-                            <FieldLabel label="Warranty provider" />
-                            <TextInput
+                            <ProductFormInput
+                                label="Warranty provider"
                                 value={warrantyProvider}
                                 onChangeText={setWarrantyProvider}
                                 placeholder="Geek Squad"
                                 autoCapitalize="words"
-                                style={styles.input}
                             />
 
-                            <FieldLabel label="Notes" />
-                            <TextInput
+                            <ProductFormInput
+                                label="Notes"
                                 value={suggestedNotes}
                                 onChangeText={setSuggestedNotes}
                                 placeholder="Notes"
                                 multiline
-                                textAlignVertical="top"
-                                style={[styles.input, styles.notesInput]}
                             />
 
                             {validationMessage ? (
@@ -833,14 +826,6 @@ export default function ReceiptScanScreen() {
     );
 }
 
-function FieldLabel({ label, required = false }: { label: string; required?: boolean }) {
-    return (
-        <Text style={styles.label}>
-            {label}
-            {required ? <Text style={styles.required}> *</Text> : null}
-        </Text>
-    );
-}
 
 const styles = StyleSheet.create({
     screen: {
@@ -885,9 +870,6 @@ const styles = StyleSheet.create({
         color: "#334155",
         marginBottom: 8,
     },
-    required: {
-        color: "#DC2626",
-    },
     input: {
         borderWidth: 1,
         borderColor: "#CBD5E1",
@@ -901,9 +883,6 @@ const styles = StyleSheet.create({
     },
     receiptInput: {
         minHeight: 180,
-    },
-    notesInput: {
-        minHeight: 110,
     },
     validationText: {
         color: "#B45309",
