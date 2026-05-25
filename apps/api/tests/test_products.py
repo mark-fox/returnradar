@@ -268,3 +268,35 @@ def test_list_products_rejects_invalid_sort_direction(client: TestClient) -> Non
     assert response.status_code == 422
 
 
+def test_update_product_allows_warranty_metadata(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Headphones",
+            "merchant": "Best Buy",
+            "currency": "USD",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+
+    update_response = client.patch(
+        f"/api/v1/products/{product_id}",
+        json={
+            "warranty_provider": "Geek Squad",
+            "warranty_claim_url": "https://example.com/claim",
+            "warranty_notes": "Bring receipt and serial number.",
+        },
+    )
+
+    assert update_response.status_code == 200
+
+    payload = update_response.json()
+
+    assert payload["warranty_provider"] == "Geek Squad"
+    assert payload["warranty_claim_url"] == "https://example.com/claim"
+    assert payload["warranty_notes"] == "Bring receipt and serial number."
