@@ -12,14 +12,21 @@ import {
     restoreProduct,
 } from "@/src/features/products/api";
 import { Product } from "@/src/features/products/types";
+import { useProductSelection } from "@/src/features/products/useProductSelection";
 
 export default function ArchivedProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
-    const [selectionMode, setSelectionMode] = useState(false);
-    const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
     const [restoreMessage, setRestoreMessage] = useState<
         string | null
     >(null);
+
+    const {
+        selectionMode,
+        selectedProductIds,
+        resetSelection,
+        toggleSelectionMode,
+        toggleSelectedProduct,
+    } = useProductSelection();
 
     async function loadProducts() {
         const archivedProducts =
@@ -30,16 +37,6 @@ export default function ArchivedProductsScreen() {
                 (product) => product.is_archived
             )
         );
-    }
-
-    function toggleSelectedProduct(productId: number) {
-        setSelectedProductIds((current) => {
-            if (current.includes(productId)) {
-                return current.filter((id) => id !== productId);
-            }
-
-            return [...current, productId];
-        });
     }
 
     async function handleRestore(
@@ -58,8 +55,7 @@ export default function ArchivedProductsScreen() {
             )
         );
 
-        setSelectedProductIds([]);
-        setSelectionMode(false);
+        resetSelection();
         setRestoreMessage("Products restored successfully.");
 
         await loadProducts();
@@ -89,10 +85,7 @@ export default function ArchivedProductsScreen() {
                     <View style={styles.bulkActionsRow}>
                         <Pressable
                             style={styles.bulkModeButton}
-                            onPress={() => {
-                                setSelectionMode((current) => !current);
-                                setSelectedProductIds([]);
-                            }}
+                            onPress={toggleSelectionMode}
                         >
                             <Text style={styles.bulkModeButtonText}>
                                 {selectionMode ? "Cancel Selection" : "Bulk Restore"}
