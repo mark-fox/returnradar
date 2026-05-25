@@ -14,12 +14,17 @@ import {
 import { Product } from "@/src/features/products/types";
 import { useProductSelection } from "@/src/features/products/useProductSelection";
 import { ArchivedProductCard } from "@/src/features/products/ArchivedProductCard";
+import {
+    ArchivedProductsEmptyState,
+    ArchivedProductsErrorState,
+    ArchivedProductsLoadingState,
+} from "@/src/features/products/ArchivedProductsStates";
 
 export default function ArchivedProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
-    const [restoreMessage, setRestoreMessage] = useState<
-        string | null
-    >(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
 
     const {
         selectionMode,
@@ -30,14 +35,25 @@ export default function ArchivedProductsScreen() {
     } = useProductSelection();
 
     async function loadProducts() {
-        const archivedProducts =
-            await listArchivedProducts();
+        try {
+            setErrorMessage(null);
 
-        setProducts(
-            archivedProducts.filter(
-                (product) => product.is_archived
-            )
-        );
+            const archivedProducts = await listArchivedProducts();
+
+            setProducts(
+                archivedProducts.filter(
+                    (product) => product.is_archived
+                )
+            );
+        } catch (error) {
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Something went wrong while loading archived products."
+            );
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     async function handleRestore(
@@ -66,11 +82,25 @@ export default function ArchivedProductsScreen() {
         void loadProducts();
     }, []);
 
+    if (isLoading) {
+        return <ArchivedProductsLoadingState />;
+    }
+
+    if (errorMessage) {
+        return (
+            <ArchivedProductsErrorState
+                message={errorMessage}
+                onRetry={() => void loadProducts()}
+            />
+        );
+    }
+
     return (
         <FlatList
             contentContainerStyle={styles.container}
             data={products}
             keyExtractor={(item) => item.id.toString()}
+            ListEmptyComponent={<ArchivedProductsEmptyState />}
             ListHeaderComponent={
                 <View>
                     <Stack.Screen options={{ title: "Archived Products" }} />
