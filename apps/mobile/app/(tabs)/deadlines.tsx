@@ -19,6 +19,8 @@ import {
     formatRemainingTime,
 } from "@/src/features/products/deadlineDisplayUtils";
 import { DeadlineSection } from "@/src/features/products/DeadlineSection";
+import { DeadlineSummaryGrid } from "@/src/features/products/DeadlineSummaryGrid";
+import type { DeadlineFilter, DeadlineFocusSection } from "@/src/features/products/deadlineFilters";
 
 
 export default function DeadlinesScreen() {
@@ -32,13 +34,8 @@ export default function DeadlinesScreen() {
         "all" | "returns" | "warranties"
     >("all");
 
-    const [focusedSection, setFocusedSection] = useState<
-        | "all"
-        | "upcomingReturns"
-        | "expiredReturns"
-        | "upcomingWarranties"
-        | "expiredWarranties"
-    >("all");
+    const [focusedSection, setFocusedSection] =
+        useState<DeadlineFocusSection>("all");
 
     const loadProducts = useCallback(async () => {
         try {
@@ -175,31 +172,14 @@ export default function DeadlinesScreen() {
                 </Pressable>
             ) : null}
 
-            <View style={styles.summaryGrid}>
-                <SummaryCard
-                    value={deadlineGroups.upcomingReturns.length}
-                    label="Returns due soon"
-                    onPress={() => setFocusedSection("upcomingReturns")}
-                />
-
-                <SummaryCard
-                    value={deadlineGroups.expiredReturns.length}
-                    label="Expired returns"
-                    onPress={() => setFocusedSection("expiredReturns")}
-                />
-
-                <SummaryCard
-                    value={deadlineGroups.upcomingWarranties.length}
-                    label="Warranties ending"
-                    onPress={() => setFocusedSection("upcomingWarranties")}
-                />
-
-                <SummaryCard
-                    value={deadlineGroups.expiredWarranties.length}
-                    label="Expired warranties"
-                    onPress={() => setFocusedSection("expiredWarranties")}
-                />
-            </View>
+            <DeadlineSummaryGrid
+                activeFilter={focusedSection}
+                upcomingReturnsCount={deadlineGroups.upcomingReturns.length}
+                expiredReturnsCount={deadlineGroups.expiredReturns.length}
+                upcomingWarrantiesCount={deadlineGroups.upcomingWarranties.length}
+                expiredWarrantiesCount={deadlineGroups.expiredWarranties.length}
+                onFilterChange={setFocusedSection}
+            />
 
             {!hasAnyDeadlines ? (
                 <View style={styles.emptyState}>
@@ -271,26 +251,6 @@ export default function DeadlinesScreen() {
                 </>
             )}
         </ScrollView>
-    );
-}
-
-function SummaryCard({
-    value,
-    label,
-    onPress,
-}: {
-    value: number;
-    label: string;
-    onPress: () => void;
-}) {
-    return (
-        <Pressable
-            style={styles.summaryCard}
-            onPress={onPress}
-        >
-            <Text style={styles.summaryValue}>{value}</Text>
-            <Text style={styles.summaryLabel}>{label}</Text>
-        </Pressable>
     );
 }
 
@@ -380,32 +340,6 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "700",
-    },
-    summaryGrid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 12,
-        marginBottom: 28,
-    },
-    summaryCard: {
-        flexBasis: "48%",
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-    },
-    summaryValue: {
-        fontSize: 36,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 6,
-    },
-    summaryLabel: {
-        fontSize: 15,
-        lineHeight: 22,
-        fontWeight: "700",
-        color: "#64748B",
     },
     lastUpdatedText: {
         fontSize: 13,

@@ -8,6 +8,20 @@ export type DeadlineGroup = {
     expiredWarranties: Product[];
 };
 
+export type DeadlineFilter =
+    | "all"
+    | "upcomingReturns"
+    | "expiredReturns"
+    | "upcomingWarranties"
+    | "expiredWarranties";
+
+export type DeadlineFocusSection =
+    | "all"
+    | "upcomingReturns"
+    | "expiredReturns"
+    | "upcomingWarranties"
+    | "expiredWarranties";
+
 function sortBySoonestDeadline(
     products: Product[],
     getDeadline: (product: Product) => string | null
