@@ -70,6 +70,8 @@ def list_products(
                 Product.name.ilike(search_pattern),
                 Product.merchant.ilike(search_pattern),
                 Product.notes.ilike(search_pattern),
+                Product.warranty_provider.ilike(search_pattern),
+                Product.warranty_notes.ilike(search_pattern),
             )
         )
 

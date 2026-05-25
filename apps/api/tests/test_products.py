@@ -382,3 +382,35 @@ def test_restore_product_returns_product_to_default_list(
     ]
 
     assert product_id in default_list_ids
+
+
+def test_list_products_searches_warranty_metadata(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Warranty Search Product",
+            "merchant": "Best Buy",
+            "warranty_provider": "Geek Squad",
+            "warranty_notes": "Bring serial number and receipt.",
+            "source": "manual",
+        },
+    )
+
+    assert response.status_code == 201
+
+    provider_search_response = client.get("/api/v1/products?search=geek squad")
+    notes_search_response = client.get("/api/v1/products?search=serial number")
+
+    assert provider_search_response.status_code == 200
+    assert notes_search_response.status_code == 200
+
+    assert any(
+        product["name"] == "Warranty Search Product"
+        for product in provider_search_response.json()
+    )
+    assert any(
+        product["name"] == "Warranty Search Product"
+        for product in notes_search_response.json()
+    )
