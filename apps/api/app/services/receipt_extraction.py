@@ -187,15 +187,19 @@ class OpenAIReceiptExtractor:
 
         today = date.today()
 
+        merchant = (
+            str(parsed["merchant"])
+            if parsed.get("merchant")
+            else None
+        )
+
         return ReceiptExtractionResponse(
             source="openai",
             confidence=0.85,
             suggestion=ReceiptProductSuggestion(
                 name=str(parsed.get("name") or "Unknown product"),
-                merchant=str(parsed["merchant"]) if parsed.get("merchant") else None,
-                warranty_provider=infer_warranty_provider(
-                    parsed.get("merchant")
-                ),
+                merchant=merchant,
+                warranty_provider=infer_warranty_provider(merchant),
                 purchase_date=today,
                 return_deadline=today + timedelta(days=30),
                 warranty_deadline=today + timedelta(days=365),
