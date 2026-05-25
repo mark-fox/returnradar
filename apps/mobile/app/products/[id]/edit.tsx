@@ -8,7 +8,6 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    TextInput,
     View,
 } from "react-native";
 import {
@@ -20,6 +19,7 @@ import {
 
 import { getProduct, updateProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
+import { ProductFormInput } from "@/src/features/products/ProductFormFields";
 
 
 export default function EditProductScreen() {
@@ -181,94 +181,84 @@ export default function EditProductScreen() {
                 </Text>
 
                 <View style={styles.formCard}>
-                    <FieldLabel label="Product name" required />
-                    <TextInput
+                    <ProductFormInput
+                        label="Product name"
+                        required
                         value={name}
                         onChangeText={setName}
                         placeholder="Sony WH-1000XM5 Headphones"
                         autoCapitalize="words"
-                        style={styles.input}
                     />
 
-                    <FieldLabel label="Merchant" />
-                    <TextInput
+                    <ProductFormInput
+                        label="Merchant"
                         value={merchant}
                         onChangeText={setMerchant}
                         placeholder="Best Buy"
                         autoCapitalize="words"
-                        style={styles.input}
                     />
 
-                    <FieldLabel label="Price" />
-                    <TextInput
+                    <ProductFormInput
+                        label="Price"
                         value={price}
                         onChangeText={setPrice}
                         placeholder="399.99"
                         keyboardType="decimal-pad"
-                        style={styles.input}
                     />
 
-                    <FieldLabel label="Purchase date" />
-                    <TextInput
+                    <ProductFormInput
+                        label="Purchase date"
                         value={purchaseDate}
                         onChangeText={setPurchaseDate}
                         placeholder="2026-04-28"
                         keyboardType="numbers-and-punctuation"
-                        style={styles.input}
                     />
 
-                    <FieldLabel label="Return deadline" />
-                    <TextInput
+                    <ProductFormInput
+                        label="Return deadline"
                         value={returnDeadline}
                         onChangeText={setReturnDeadline}
                         placeholder="2026-05-28"
                         keyboardType="numbers-and-punctuation"
-                        style={styles.input}
                     />
 
-                    <FieldLabel label="Warranty deadline" />
-                    <TextInput
+                    <ProductFormInput
+                        label="Warranty deadline"
                         value={warrantyDeadline}
                         onChangeText={setWarrantyDeadline}
                         placeholder="2027-04-28"
                         keyboardType="numbers-and-punctuation"
-                        style={styles.input}
                     />
 
-                    <Text style={styles.label}>Warranty Provider</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Best Buy Geek Squad"
+                    <ProductFormInput
+                        label="Warranty Provider"
                         value={warrantyProvider}
                         onChangeText={setWarrantyProvider}
+                        placeholder="Best Buy Geek Squad"
                     />
 
-                    <Text style={styles.label}>Warranty Claim URL</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="https://..."
-                        autoCapitalize="none"
+                    <ProductFormInput
+                        label="Warranty Claim URL"
                         value={warrantyClaimUrl}
                         onChangeText={setWarrantyClaimUrl}
+                        placeholder="https://..."
+                        autoCapitalize="none"
                     />
 
-                    <Text style={styles.label}>Warranty Notes</Text>
-                    <TextInput
-                        style={[styles.input, styles.notesInput]}
-                        placeholder="Claim instructions, serial number requirements, etc."
-                        multiline
+                    <ProductFormInput
+                        label="Warranty Notes"
                         value={warrantyNotes}
                         onChangeText={setWarrantyNotes}
+                        placeholder="Claim instructions, serial number requirements, etc."
+                        multiline
                     />
 
-                    <FieldLabel label="Notes" />
-                    <TextInput
+                    <ProductFormInput
+                        label="Notes"
                         value={notes}
                         onChangeText={setNotes}
                         placeholder="Warranty card is in the box."
                         multiline
-                        textAlignVertical="top"
-                        style={[styles.input, styles.notesInput]}
                     />
 
                     {validationMessage ? (
@@ -294,14 +284,6 @@ export default function EditProductScreen() {
     );
 }
 
-function FieldLabel({ label, required = false }: { label: string; required?: boolean }) {
-    return (
-        <Text style={styles.label}>
-            {label}
-            {required ? <Text style={styles.required}> *</Text> : null}
-        </Text>
-    );
-}
 
 const styles = StyleSheet.create({
     screen: {
@@ -350,29 +332,6 @@ const styles = StyleSheet.create({
         padding: 18,
         borderWidth: 1,
         borderColor: "#E2E8F0",
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: "700",
-        color: "#334155",
-        marginBottom: 8,
-    },
-    required: {
-        color: "#DC2626",
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: "#CBD5E1",
-        borderRadius: 14,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        fontSize: 16,
-        color: "#0F172A",
-        backgroundColor: "#FFFFFF",
-        marginBottom: 16,
-    },
-    notesInput: {
-        minHeight: 110,
     },
     validationText: {
         color: "#B45309",
