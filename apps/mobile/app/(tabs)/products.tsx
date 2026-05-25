@@ -1,36 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
 import {
     FlatList,
     RefreshControl,
     StyleSheet,
 } from "react-native";
 
-import { listProducts, archiveProduct } from "@/src/features/products/api";
+import { archiveProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 import { router, useFocusEffect } from "expo-router";
 import { ProductCard } from "@/src/features/products/ProductCard";
 import { ProductListHeader } from "@/src/features/products/ProductListHeader";
 import { useProductSelection } from "@/src/features/products/useProductSelection";
 import {
-    getVisibleProducts,
-    type ProductSortOption,
-    type ProductUrgencyFilter,
-} from "@/src/features/products/productListUtils";
-import {
     ProductEmptyState,
     ProductErrorState,
     ProductLoadingState,
 } from "@/src/features/products/ProductListStates";
+import { useProductsList } from "@/src/features/products/useProductsList";
 
 export default function ProductsScreen() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [sortOption, setSortOption] = useState<ProductSortOption>("newest");
-    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-
     const {
         selectionMode,
         selectedProductIds,
@@ -39,50 +26,21 @@ export default function ProductsScreen() {
         toggleSelectedProduct,
     } = useProductSelection();
 
-    const [urgencyFilter, setUrgencyFilter] =
-        useState<ProductUrgencyFilter>("all");
-
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            setDebouncedSearchQuery(searchQuery);
-        }, 300);
-
-        return () => clearTimeout(timeoutId);
-    }, [searchQuery]);
-
-    const loadProducts = useCallback(async () => {
-        try {
-            setErrorMessage(null);
-            const data = await listProducts({
-                search: debouncedSearchQuery,
-            });
-            setProducts(data);
-        } catch (error) {
-            console.error(error);
-            setErrorMessage(
-                "Could not load products. Make sure the API is running and your mobile API URL is correct."
-            );
-        } finally {
-            setIsLoading(false);
-            setIsRefreshing(false);
-        }
-    }, [debouncedSearchQuery]);
-
-    useFocusEffect(
-        useCallback(() => {
-            void loadProducts();
-        }, [loadProducts])
-    );
-
-    const handleRefresh = () => {
-        setIsRefreshing(true);
-        void loadProducts();
-    };
-
-
-    const visibleProducts = useMemo(() => {
-        return getVisibleProducts(products, sortOption, urgencyFilter);
-    }, [products, sortOption, urgencyFilter]);
+    const {
+        visibleProducts,
+        isLoading,
+        isRefreshing,
+        errorMessage,
+        searchQuery,
+        debouncedSearchQuery,
+        sortOption,
+        urgencyFilter,
+        setSearchQuery,
+        setSortOption,
+        setUrgencyFilter,
+        loadProducts,
+        refreshProducts,
+    } = useProductsList();
 
 
     async function handleBulkArchive() {
@@ -123,7 +81,10 @@ export default function ProductsScreen() {
                 visibleProducts.length === 0 && styles.emptyListContent
             ]}
             refreshControl={
-                <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+                <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={() => void refreshProducts()}
+                />
             }
             ListHeaderComponent={
                 <ProductListHeader
