@@ -10,6 +10,7 @@ import type { Product } from "@/src/features/products/types";
 import { router, useFocusEffect } from "expo-router";
 import { ProductCard } from "@/src/features/products/ProductCard";
 import { ProductListHeader } from "@/src/features/products/ProductListHeader";
+import { useProductSelection } from "@/src/features/products/useProductSelection";
 import {
     getVisibleProducts,
     type ProductSortOption,
@@ -29,8 +30,14 @@ export default function ProductsScreen() {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortOption, setSortOption] = useState<ProductSortOption>("newest");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-    const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
-    const [selectionMode, setSelectionMode] = useState(false);
+
+    const {
+        selectionMode,
+        selectedProductIds,
+        resetSelection,
+        toggleSelectionMode,
+        toggleSelectedProduct,
+    } = useProductSelection();
 
     const [urgencyFilter, setUrgencyFilter] =
         useState<ProductUrgencyFilter>("all");
@@ -78,16 +85,6 @@ export default function ProductsScreen() {
     }, [products, sortOption, urgencyFilter]);
 
 
-    function toggleSelectedProduct(productId: number) {
-        setSelectedProductIds((current) => {
-            if (current.includes(productId)) {
-                return current.filter((id) => id !== productId);
-            }
-
-            return [...current, productId];
-        });
-    }
-
     async function handleBulkArchive() {
         try {
             await Promise.all(
@@ -96,8 +93,7 @@ export default function ProductsScreen() {
                 )
             );
 
-            setSelectedProductIds([]);
-            setSelectionMode(false);
+            resetSelection();
 
             await loadProducts();
         } catch (error) {
@@ -141,10 +137,7 @@ export default function ProductsScreen() {
                     onUrgencyFilterChange={setUrgencyFilter}
                     onAddProductPress={() => router.push("/products/new")}
                     onArchivedProductsPress={() => router.push("/archived-products")}
-                    onToggleSelectionMode={() => {
-                        setSelectionMode((current) => !current);
-                        setSelectedProductIds([]);
-                    }}
+                    onToggleSelectionMode={toggleSelectionMode}
                     onBulkArchive={() => void handleBulkArchive()}
                 />
             }
