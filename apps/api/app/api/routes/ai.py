@@ -31,16 +31,6 @@ def get_ai_status() -> dict[str, object]:
         "openai_configured": bool(settings.openai_api_key),
     }
 
-@router.post(
-    "/test-openai",
-    response_model=ReceiptExtractionResponse,
-)
-def test_openai_receipt_extraction(
-    request: ReceiptExtractionRequest,
-) -> ReceiptExtractionResponse:
-    extractor = OpenAIReceiptExtractor()
-
-    return extractor.extract(request.raw_text)
 
 @router.post(
     "/receipt-image",
