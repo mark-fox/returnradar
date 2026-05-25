@@ -46,17 +46,23 @@ export default function HomeScreen() {
   const dashboardStats = useMemo(() => {
     let upcomingReturns = 0;
     let expiredReturns = 0;
-    let missingReturnDeadlines = 0;
+    let upcomingWarranties = 0;
+    let expiredWarranties = 0;
 
     for (const product of products) {
       const daysUntilReturn = getDaysUntilDate(product.return_deadline);
+      const daysUntilWarranty = getDaysUntilDate(product.warranty_deadline);
 
-      if (daysUntilReturn === null) {
-        missingReturnDeadlines += 1;
-      } else if (daysUntilReturn < 0) {
+      if (daysUntilReturn !== null && daysUntilReturn < 0) {
         expiredReturns += 1;
-      } else if (daysUntilReturn <= 7) {
+      } else if (daysUntilReturn !== null && daysUntilReturn <= 7) {
         upcomingReturns += 1;
+      }
+
+      if (daysUntilWarranty !== null && daysUntilWarranty < 0) {
+        expiredWarranties += 1;
+      } else if (daysUntilWarranty !== null && daysUntilWarranty <= 30) {
+        upcomingWarranties += 1;
       }
     }
 
@@ -64,7 +70,8 @@ export default function HomeScreen() {
       totalProducts: products.length,
       upcomingReturns,
       expiredReturns,
-      missingReturnDeadlines,
+      upcomingWarranties,
+      expiredWarranties,
     };
   }, [products]);
 
@@ -113,13 +120,15 @@ export default function HomeScreen() {
           />
 
           <StatCard
-            label="Expired returns"
-            value={dashboardStats.expiredReturns.toString()}
+            label="Warranties ending soon"
+            value={dashboardStats.upcomingWarranties.toString()}
           />
 
           <StatCard
-            label="Missing deadlines"
-            value={dashboardStats.missingReturnDeadlines.toString()}
+            label="Expired deadlines"
+            value={(
+              dashboardStats.expiredReturns + dashboardStats.expiredWarranties
+            ).toString()}
           />
         </View>
       )}
