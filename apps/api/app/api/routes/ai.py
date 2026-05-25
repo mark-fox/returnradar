@@ -6,7 +6,6 @@ from app.core.config import settings
 from app.schemas.receipt_extraction import (
     ReceiptExtractionRequest,
     ReceiptExtractionResponse,
-    ReceiptProductSuggestion,
 )
 from app.services.receipt_extraction import (
     OpenAIReceiptExtractor,
@@ -16,6 +15,12 @@ from app.services.receipt_extraction import (
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 MAX_RECEIPT_IMAGE_BYTES = 8 * 1024 * 1024
+
+RECEIPT_IMAGE_EXTENSIONS_BY_CONTENT_TYPE = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+}
 
 @router.get("/status")
 def get_ai_status() -> dict[str, object]:
@@ -44,19 +49,8 @@ def test_openai_receipt_extraction(
 async def upload_receipt_image(
     image: UploadFile = File(...),
 ) -> ReceiptExtractionResponse:
-    allowed_content_types = {
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-    }
 
-    content_type_extensions = {
-        "image/jpeg": ".jpg",
-        "image/png": ".png",
-        "image/webp": ".webp",
-    }
-
-    if image.content_type not in allowed_content_types:
+    if image.content_type not in RECEIPT_IMAGE_EXTENSIONS_BY_CONTENT_TYPE:
         raise HTTPException(
             status_code=400,
             detail=f"Unsupported image type: {image.content_type}",
@@ -82,7 +76,7 @@ async def upload_receipt_image(
     uploads_dir = Path("uploads")
     uploads_dir.mkdir(exist_ok=True)
 
-    file_extension = content_type_extensions[image.content_type]
+    file_extension = RECEIPT_IMAGE_EXTENSIONS_BY_CONTENT_TYPE[image.content_type]
     filename = f"{uuid4()}{file_extension}"
     file_path = uploads_dir / filename
 
