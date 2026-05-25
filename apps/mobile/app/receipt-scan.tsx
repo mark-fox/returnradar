@@ -8,8 +8,6 @@ import {
     StyleSheet,
     Text,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import {
     centsToPriceInput,
     isValidDateString,
@@ -26,12 +24,12 @@ import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction
 import { ReceiptInputCard } from "@/src/features/receiptExtraction/ReceiptInputCard";
 import { ReceiptExtractionSummaryCard } from "@/src/features/receiptExtraction/ReceiptExtractionSummaryCard";
 import { ReceiptReviewCard } from "@/src/features/receiptExtraction/ReceiptReviewCard";
+import {
+    clearReceiptSession,
+    persistReceiptSession,
+    readReceiptSession,
+} from "@/src/features/receiptExtraction/receiptSessionStorage";
 
-const SAMPLE_RECEIPT_TEXT =
-    "BEST BUY\nSony WH-1000XM5 Headphones\nSubtotal 399.99\nTax 31.20\nTotal 431.19\nVISA";
-
-const RECEIPT_SESSION_STORAGE_KEY =
-    "returnradar-active-receipt-session";
 
 export default function ReceiptScanScreen() {
     const [rawText, setRawText] = useState("");
@@ -66,16 +64,11 @@ export default function ReceiptScanScreen() {
     useEffect(() => {
         const restoreReceiptSession = async () => {
             try {
-                const storedSession =
-                    await AsyncStorage.getItem(
-                        RECEIPT_SESSION_STORAGE_KEY,
-                    );
+                const parsed = await readReceiptSession();
 
-                if (!storedSession) {
+                if (!parsed) {
                     return;
                 }
-
-                const parsed = JSON.parse(storedSession);
 
                 setResult(parsed.result ?? null);
 
@@ -282,30 +275,6 @@ export default function ReceiptScanScreen() {
         setErrorMessage(null);
     };
 
-    const persistReceiptSession = async (session: {
-        result: ReceiptExtractionResponse;
-        suggestedName: string;
-        suggestedMerchant: string;
-        suggestedPrice: string;
-        suggestedPurchaseDate: string;
-        suggestedReturnDeadline: string;
-        suggestedWarrantyDeadline: string;
-        warrantyProvider: string;
-        suggestedNotes: string;
-        selectedImageUri: string | null;
-        uploadedImageInfo: string | null;
-        receiptImagePath: string;
-        savedReceiptItems: string[];
-    }) => {
-        try {
-            await AsyncStorage.setItem(
-                RECEIPT_SESSION_STORAGE_KEY,
-                JSON.stringify(session),
-            );
-        } catch (error) {
-            console.warn("Failed to persist receipt session", error);
-        }
-    };
 
     const resetReceiptSession = () => {
         setSaveSuccessMessage(
@@ -329,9 +298,7 @@ export default function ReceiptScanScreen() {
         setImageUploadStatus(null);
         setReceiptImagePath("");
 
-        void AsyncStorage.removeItem(
-            RECEIPT_SESSION_STORAGE_KEY,
-        );
+        void clearReceiptSession();
 
         setValidationMessage(null);
         setErrorMessage(null);
