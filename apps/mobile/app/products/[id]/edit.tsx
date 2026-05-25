@@ -19,7 +19,7 @@ import {
 
 import { getProduct, updateProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
-import { ProductFormInput } from "@/src/features/products/ProductFormFields";
+import { ProductFormFieldsGroup } from "@/src/features/products/ProductFormFieldsGroup";
 
 
 export default function EditProductScreen() {
@@ -181,84 +181,27 @@ export default function EditProductScreen() {
                 </Text>
 
                 <View style={styles.formCard}>
-                    <ProductFormInput
-                        label="Product name"
-                        required
-                        value={name}
-                        onChangeText={setName}
-                        placeholder="Sony WH-1000XM5 Headphones"
-                        autoCapitalize="words"
-                    />
-
-                    <ProductFormInput
-                        label="Merchant"
-                        value={merchant}
-                        onChangeText={setMerchant}
-                        placeholder="Best Buy"
-                        autoCapitalize="words"
-                    />
-
-                    <ProductFormInput
-                        label="Price"
-                        value={price}
-                        onChangeText={setPrice}
-                        placeholder="399.99"
-                        keyboardType="decimal-pad"
-                    />
-
-                    <ProductFormInput
-                        label="Purchase date"
-                        value={purchaseDate}
-                        onChangeText={setPurchaseDate}
-                        placeholder="2026-04-28"
-                        keyboardType="numbers-and-punctuation"
-                    />
-
-                    <ProductFormInput
-                        label="Return deadline"
-                        value={returnDeadline}
-                        onChangeText={setReturnDeadline}
-                        placeholder="2026-05-28"
-                        keyboardType="numbers-and-punctuation"
-                    />
-
-                    <ProductFormInput
-                        label="Warranty deadline"
-                        value={warrantyDeadline}
-                        onChangeText={setWarrantyDeadline}
-                        placeholder="2027-04-28"
-                        keyboardType="numbers-and-punctuation"
-                    />
-
-                    <ProductFormInput
-                        label="Warranty Provider"
-                        value={warrantyProvider}
-                        onChangeText={setWarrantyProvider}
-                        placeholder="Best Buy Geek Squad"
-                    />
-
-                    <ProductFormInput
-                        label="Warranty Claim URL"
-                        value={warrantyClaimUrl}
-                        onChangeText={setWarrantyClaimUrl}
-                        placeholder="https://..."
-                        autoCapitalize="none"
-                    />
-
-                    <ProductFormInput
-                        label="Warranty Notes"
-                        value={warrantyNotes}
-                        onChangeText={setWarrantyNotes}
-                        placeholder="Claim instructions, serial number requirements, etc."
-                        multiline
-                    />
-
-                    <ProductFormInput
-                        label="Notes"
-                        value={notes}
-                        onChangeText={setNotes}
-                        placeholder="Warranty card is in the box."
-                        multiline
+                    <ProductFormFieldsGroup
+                        name={name}
+                        merchant={merchant}
+                        price={price}
+                        purchaseDate={purchaseDate}
+                        returnDeadline={returnDeadline}
+                        warrantyDeadline={warrantyDeadline}
+                        warrantyProvider={warrantyProvider}
+                        warrantyClaimUrl={warrantyClaimUrl}
+                        warrantyNotes={warrantyNotes}
+                        notes={notes}
+                        setName={setName}
+                        setMerchant={setMerchant}
+                        setPrice={setPrice}
+                        setPurchaseDate={setPurchaseDate}
+                        setReturnDeadline={setReturnDeadline}
+                        setWarrantyDeadline={setWarrantyDeadline}
+                        setWarrantyProvider={setWarrantyProvider}
+                        setWarrantyClaimUrl={setWarrantyClaimUrl}
+                        setWarrantyNotes={setWarrantyNotes}
+                        setNotes={setNotes}
                     />
 
                     {validationMessage ? (
