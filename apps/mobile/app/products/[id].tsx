@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 
-import { deleteProduct, getProduct, archiveProduct } from "@/src/features/products/api";
+import { getProduct, archiveProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 import {
     getDaysUntilDate,
@@ -23,29 +23,18 @@ import {
 } from "@/src/features/products/deadlineUtils";
 import { DeadlineStatusPill } from "@/src/features/products/DeadlineStatusPill";
 import { getProductSourceLabel } from "@/src/features/products/sourceUtils";
+import {
+    formatProductDeadline,
+    formatProductPrice,
+} from "@/src/features/products/productListUtils";
 
-function formatDate(value: string | null): string {
-    if (!value) {
-        return "Not set";
-    }
 
-    return new Date(`${value}T00:00:00`).toLocaleDateString();
-}
-
-function formatPrice(product: Product): string {
-    if (product.price_cents === null) {
-        return "Not set";
-    }
-
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: product.currency,
-    }).format(product.price_cents / 100);
-}
-
-function formatDaysRemaining(daysRemaining: number | null): string {
+function formatDaysRemaining(
+    daysRemaining: number | null,
+    deadlineLabel: "return" | "warranty"
+): string {
     if (daysRemaining === null) {
-        return "No warranty deadline set";
+        return `No ${deadlineLabel} deadline set`;
     }
 
     if (daysRemaining < 0) {
@@ -54,7 +43,7 @@ function formatDaysRemaining(daysRemaining: number | null): string {
     }
 
     if (daysRemaining === 0) {
-        return "Warranty ends today";
+        return `${deadlineLabel === "return" ? "Return" : "Warranty"} ends today`;
     }
 
     return `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining`;
@@ -193,9 +182,11 @@ export default function ProductDetailScreen() {
                             : "N/A"
                     }
                 />
-                <DetailRow label="Price" value={formatPrice(product)} />
-                <DetailRow label="Purchase date" value={formatDate(product.purchase_date)} />
-
+                <DetailRow label="Price" value={formatProductPrice(product)} />
+                <DetailRow
+                    label="Purchase date"
+                    value={formatProductDeadline(product.purchase_date)}
+                />
                 <DetailRow label="Currency" value={product.currency} />
             </View>
 
@@ -221,14 +212,14 @@ export default function ProductDetailScreen() {
 
                 <DetailRow
                     label="Deadline"
-                    value={formatDate(product.return_deadline)}
+                    value={formatProductDeadline(product.return_deadline)}
                 />
 
                 <DeadlineStatusPill status={returnStatus} />
 
                 <DetailRow
                     label="Time remaining"
-                    value={formatDaysRemaining(returnDaysRemaining)}
+                    value={formatDaysRemaining(returnDaysRemaining, "return")}
                 />
             </View>
 
@@ -237,14 +228,14 @@ export default function ProductDetailScreen() {
 
                 <DetailRow
                     label="Deadline"
-                    value={formatDate(product.warranty_deadline)}
+                    value={formatProductDeadline(product.warranty_deadline)}
                 />
 
                 <DeadlineStatusPill status={warrantyStatus} />
 
                 <DetailRow
                     label="Time remaining"
-                    value={formatDaysRemaining(warrantyDaysRemaining)}
+                    value={formatDaysRemaining(warrantyDaysRemaining, "warranty")}
                 />
                 {product.warranty_provider ? (
                     <DetailRow
