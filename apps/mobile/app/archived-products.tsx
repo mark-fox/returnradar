@@ -13,6 +13,7 @@ import {
 } from "@/src/features/products/api";
 import { Product } from "@/src/features/products/types";
 import { useProductSelection } from "@/src/features/products/useProductSelection";
+import { ArchivedProductCard } from "@/src/features/products/ArchivedProductCard";
 
 export default function ArchivedProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -114,44 +115,17 @@ export default function ArchivedProductsScreen() {
                 </View>
             }
             renderItem={({ item }) => (
-                <Pressable
-                    style={[
-                        styles.card,
-                        selectedProductIds.includes(item.id) && styles.selectedCard,
-                    ]}
+                <ArchivedProductCard
+                    product={item}
+                    isSelected={selectedProductIds.includes(item.id)}
+                    selectionMode={selectionMode}
                     onPress={() => {
                         if (selectionMode) {
                             toggleSelectedProduct(item.id);
                         }
                     }}
-                >
-                    <Text style={styles.name}>
-                        {item.name}
-                    </Text>
-
-                    <View style={styles.archivedBadge}>
-                        <Text style={styles.archivedBadgeText}>
-                            Archived
-                        </Text>
-                    </View>
-
-                    <Text style={styles.meta}>
-                        {item.merchant ?? "Unknown merchant"}
-                    </Text>
-
-                    {!selectionMode ? (
-                        <Pressable
-                            style={styles.restoreButton}
-                            onPress={() =>
-                                handleRestore(item.id)
-                            }
-                        >
-                            <Text style={styles.restoreButtonText}>
-                                Restore Product
-                            </Text>
-                        </Pressable>
-                    ) : null}
-                </Pressable>
+                    onRestorePress={() => void handleRestore(item.id)}
+                />
             )}
         />
     );
@@ -175,49 +149,6 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         color: "#64748B",
         marginBottom: 24,
-    },
-    card: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 18,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-    },
-    name: {
-        fontSize: 16,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 8,
-    },
-    meta: {
-        fontSize: 14,
-        color: "#64748B",
-        marginBottom: 14,
-    },
-    restoreButton: {
-        backgroundColor: "#0F172A",
-        borderRadius: 14,
-        paddingVertical: 12,
-        alignItems: "center",
-    },
-    restoreButtonText: {
-        color: "#FFFFFF",
-        fontSize: 14,
-        fontWeight: "800",
-    },
-    archivedBadge: {
-        alignSelf: "flex-start",
-        backgroundColor: "#E2E8F0",
-        borderRadius: 999,
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        marginBottom: 10,
-    },
-    archivedBadgeText: {
-        fontSize: 12,
-        fontWeight: "800",
-        color: "#334155",
     },
     restoreMessageCard: {
         backgroundColor: "#DCFCE7",
@@ -257,9 +188,5 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "800",
         color: "#FFFFFF",
-    },
-    selectedCard: {
-        borderWidth: 2,
-        borderColor: "#2563EB",
     },
 });
