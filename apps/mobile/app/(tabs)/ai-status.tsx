@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import {
     ActivityIndicator,
+    Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -58,10 +59,19 @@ export default function AIStatusScreen() {
         return (
             <View style={styles.centeredState}>
                 <Stack.Screen options={{ title: "AI Status" }} />
+
                 <Text style={styles.errorTitle}>Unable to load AI status</Text>
+
                 <Text style={styles.errorText}>
                     {errorMessage ?? "Unknown error"}
                 </Text>
+
+                <Pressable
+                    style={styles.retryButton}
+                    onPress={() => void loadStatus()}
+                >
+                    <Text style={styles.retryButtonText}>Try again</Text>
+                </Pressable>
             </View>
         );
     }
@@ -198,5 +208,17 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         color: "#7F1D1D",
         textAlign: "center",
+    },
+    retryButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: 14,
+        paddingVertical: 12,
+        paddingHorizontal: 18,
+        marginTop: 18,
+    },
+    retryButtonText: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "800",
     },
 });
