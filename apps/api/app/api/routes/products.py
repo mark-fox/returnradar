@@ -1,10 +1,16 @@
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.product import Product
-from app.schemas.product import ProductCreate, ProductRead, ProductUpdate
+from app.schemas.product import (
+    DeadlineReminderRead,
+    ProductCreate,
+    ProductRead,
+    ProductUpdate,
+)
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -19,6 +25,34 @@ def get_product_or_404(product_id: int, db: Session) -> Product:
         )
 
     return product
+
+
+RETURN_REMINDER_WINDOW_DAYS = 7
+WARRANTY_REMINDER_WINDOW_DAYS = 30
+
+
+def get_days_remaining(deadline: date) -> int:
+    return (deadline - date.today()).days
+
+
+def get_deadline_status(days_remaining: int) -> str:
+    if days_remaining < 0:
+        return "expired"
+
+    if days_remaining == 0:
+        return "today"
+
+    return "upcoming"
+
+
+def get_deadline_priority(days_remaining: int) -> str:
+    if days_remaining <= 0:
+        return "high"
+
+    if days_remaining <= 7:
+        return "medium"
+
+    return "low"
 
 
 @router.post("", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
@@ -88,6 +122,64 @@ def list_products(
     statement = statement.order_by(order_expression).limit(limit).offset(offset)
 
     return list(db.scalars(statement).all())
+
+
+@router.get(
+    "/deadline-reminders",
+    response_model=list[DeadlineReminderRead],
+)
+def list_deadline_reminders(
+    db: Session = Depends(get_db),
+) -> list[DeadlineReminderRead]:
+    products = db.scalars(
+        select(Product).where(Product.is_archived.is_(False))
+    ).all()
+
+    reminders: list[DeadlineReminderRead] = []
+
+    for product in products:
+        if product.return_deadline is not None:
+            days_remaining = get_days_remaining(product.return_deadline)
+
+            if days_remaining < 0 or days_remaining <= RETURN_REMINDER_WINDOW_DAYS:
+                reminders.append(
+                    DeadlineReminderRead(
+                        product_id=product.id,
+                        product_name=product.name,
+                        merchant=product.merchant,
+                        deadline_type="return",
+                        deadline_date=product.return_deadline,
+                        days_remaining=days_remaining,
+                        status=get_deadline_status(days_remaining),
+                        priority=get_deadline_priority(days_remaining),
+                    )
+                )
+
+        if product.warranty_deadline is not None:
+            days_remaining = get_days_remaining(product.warranty_deadline)
+
+            if days_remaining < 0 or days_remaining <= WARRANTY_REMINDER_WINDOW_DAYS:
+                reminders.append(
+                    DeadlineReminderRead(
+                        product_id=product.id,
+                        product_name=product.name,
+                        merchant=product.merchant,
+                        deadline_type="warranty",
+                        deadline_date=product.warranty_deadline,
+                        days_remaining=days_remaining,
+                        status=get_deadline_status(days_remaining),
+                        priority=get_deadline_priority(days_remaining),
+                    )
+                )
+
+    return sorted(
+        reminders,
+        key=lambda reminder: (
+            reminder.days_remaining >= 0,
+            abs(reminder.days_remaining),
+            reminder.product_name,
+        ),
+    )
 
 
 @router.get("/{product_id}", response_model=ProductRead)

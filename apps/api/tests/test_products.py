@@ -414,3 +414,99 @@ def test_list_products_searches_warranty_metadata(
         product["name"] == "Warranty Search Product"
         for product in notes_search_response.json()
     )
+
+
+def test_list_deadline_reminders_returns_upcoming_and_expired_deadlines(
+    client: TestClient,
+) -> None:
+    upcoming_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Upcoming Return Product",
+            "merchant": "Target",
+            "purchase_date": "2026-05-01",
+            "return_deadline": "2026-05-28",
+            "warranty_deadline": "2026-06-15",
+            "source": "manual",
+        },
+    )
+
+    expired_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Expired Return Product",
+            "merchant": "Best Buy",
+            "purchase_date": "2026-05-01",
+            "return_deadline": "2026-05-20",
+            "source": "manual",
+        },
+    )
+
+    far_future_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Far Future Product",
+            "merchant": "Costco",
+            "purchase_date": "2026-05-01",
+            "return_deadline": "2026-12-31",
+            "warranty_deadline": "2027-12-31",
+            "source": "manual",
+        },
+    )
+
+    assert upcoming_response.status_code == 201
+    assert expired_response.status_code == 201
+    assert far_future_response.status_code == 201
+
+    response = client.get("/api/v1/products/deadline-reminders")
+
+    assert response.status_code == 200
+
+    payload = response.json()
+    product_names = [item["product_name"] for item in payload]
+
+    assert "Upcoming Return Product" in product_names
+    assert "Expired Return Product" in product_names
+    assert "Far Future Product" not in product_names
+
+    reminder_pairs = {
+        (item["product_name"], item["deadline_type"])
+        for item in payload
+    }
+
+    assert ("Upcoming Return Product", "return") in reminder_pairs
+    assert ("Upcoming Return Product", "warranty") in reminder_pairs
+    assert ("Expired Return Product", "return") in reminder_pairs
+
+
+def test_list_deadline_reminders_excludes_archived_products(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Archived Reminder Product",
+            "merchant": "Target",
+            "return_deadline": "2026-05-28",
+            "source": "manual",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+
+    archive_response = client.post(f"/api/v1/products/{product_id}/archive")
+
+    assert archive_response.status_code == 200
+
+    response = client.get("/api/v1/products/deadline-reminders")
+
+    assert response.status_code == 200
+
+    product_names = [
+        item["product_name"]
+        for item in response.json()
+    ]
+
+    assert "Archived Reminder Product" not in product_names

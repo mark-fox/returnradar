@@ -58,3 +58,14 @@ class ProductRead(ProductBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class DeadlineReminderRead(BaseModel):
+    product_id: int
+    product_name: str
+    merchant: str | None = None
+    deadline_type: Literal["return", "warranty"]
+    deadline_date: date
+    days_remaining: int
+    status: Literal["expired", "today", "upcoming"]
+    priority: Literal["high", "medium", "low"]
