@@ -124,6 +124,63 @@ export default function ReceiptScanScreen() {
         void restoreReceiptSession();
     }, []);
 
+    const handleAnalyzeReceiptImage = async (imageUri: string) => {
+        setSelectedImageUri(imageUri);
+        setUploadedImageInfo(null);
+        setImageUploadStatus(null);
+        setValidationMessage(null);
+        setErrorMessage(null);
+
+        try {
+            setImageUploadStatus("Uploading receipt image...");
+
+            const uploadResult = await uploadReceiptImage(imageUri);
+
+            setImageUploadStatus("Analyzing receipt with AI...");
+
+            setResult(uploadResult);
+
+            const imagePathWarning = uploadResult.warnings.find((warning) =>
+                warning.startsWith("receipt_image_path:")
+            );
+
+            if (imagePathWarning) {
+                setReceiptImagePath(
+                    imagePathWarning.replace("receipt_image_path:", "")
+                );
+            }
+
+            setSuggestedName(uploadResult.suggestion.name);
+            setSuggestedMerchant(uploadResult.suggestion.merchant ?? "");
+            setSuggestedPrice(
+                uploadResult.suggestion.price_cents === null
+                    ? ""
+                    : (uploadResult.suggestion.price_cents / 100).toFixed(2)
+            );
+            setSuggestedPurchaseDate(uploadResult.suggestion.purchase_date ?? "");
+            setSuggestedReturnDeadline(uploadResult.suggestion.return_deadline ?? "");
+            setSuggestedWarrantyDeadline(
+                uploadResult.suggestion.warranty_deadline ?? ""
+            );
+            setWarrantyProvider(uploadResult.suggestion.warranty_provider ?? "");
+            setSuggestedNotes(uploadResult.suggestion.notes ?? "");
+
+            setImageUploadStatus(null);
+            setUploadedImageInfo(
+                `${uploadResult.suggestion.name} extracted successfully`
+            );
+
+            await persistReceiptSession();
+        } catch (error) {
+            console.warn(error);
+
+            setImageUploadStatus(null);
+            setValidationMessage(
+                "Receipt image upload failed. Try selecting the image again or choose a different photo."
+            );
+        }
+    };
+
     const handleSelectReceiptImage = async () => {
         const permissionResult =
             await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -152,59 +209,7 @@ export default function ReceiptScanScreen() {
             return;
         }
 
-        setSelectedImageUri(imageUri);
-        setUploadedImageInfo(null);
-        setImageUploadStatus(null);
-        setValidationMessage(null);
-        setErrorMessage(null);
-
-        try {
-            setImageUploadStatus("Uploading receipt image...");
-
-            const uploadResult = await uploadReceiptImage(imageUri);
-
-            setImageUploadStatus("Analyzing receipt with AI...");
-
-            setResult(uploadResult);
-
-            const imagePathWarning = uploadResult.warnings.find(
-                (warning) => warning.startsWith("receipt_image_path:")
-            );
-
-            if (imagePathWarning) {
-                setReceiptImagePath(
-                    imagePathWarning.replace("receipt_image_path:", "")
-                );
-            }
-
-            setSuggestedName(uploadResult.suggestion.name);
-            setSuggestedMerchant(uploadResult.suggestion.merchant ?? "");
-            setSuggestedPrice(
-                uploadResult.suggestion.price_cents === null
-                    ? ""
-                    : (uploadResult.suggestion.price_cents / 100).toFixed(2)
-            );
-            setSuggestedPurchaseDate(uploadResult.suggestion.purchase_date ?? "");
-            setSuggestedReturnDeadline(uploadResult.suggestion.return_deadline ?? "");
-            setSuggestedWarrantyDeadline(uploadResult.suggestion.warranty_deadline ?? "");
-            setWarrantyProvider(
-                uploadResult.suggestion.warranty_provider ?? ""
-            );
-            setSuggestedNotes(uploadResult.suggestion.notes ?? "");
-
-            setImageUploadStatus(null);
-            setUploadedImageInfo(
-                `${uploadResult.suggestion.name} extracted successfully`
-            );
-            await persistReceiptSession();
-        } catch (error) {
-            console.warn(error);
-
-            setImageUploadStatus(null);
-            setValidationMessage(
-                "Receipt image upload failed. Try selecting the image again or choose a different photo."
-            );
-        }
+        await handleAnalyzeReceiptImage(imageUri);
     };
 
     const handleCaptureReceiptImage = async () => {
@@ -238,59 +243,7 @@ export default function ReceiptScanScreen() {
             return;
         }
 
-        setSelectedImageUri(imageUri);
-        setUploadedImageInfo(null);
-        setImageUploadStatus(null);
-        setValidationMessage(null);
-        setErrorMessage(null);
-
-        try {
-            setImageUploadStatus("Uploading receipt image...");
-
-            const uploadResult = await uploadReceiptImage(imageUri);
-
-            setImageUploadStatus("Analyzing receipt with AI...");
-
-            setResult(uploadResult);
-
-            const imagePathWarning = uploadResult.warnings.find(
-                (warning) => warning.startsWith("receipt_image_path:")
-            );
-
-            if (imagePathWarning) {
-                setReceiptImagePath(
-                    imagePathWarning.replace("receipt_image_path:", "")
-                );
-            }
-
-            setSuggestedName(uploadResult.suggestion.name);
-            setSuggestedMerchant(uploadResult.suggestion.merchant ?? "");
-            setSuggestedPrice(
-                uploadResult.suggestion.price_cents === null
-                    ? ""
-                    : (uploadResult.suggestion.price_cents / 100).toFixed(2)
-            );
-            setSuggestedPurchaseDate(uploadResult.suggestion.purchase_date ?? "");
-            setSuggestedReturnDeadline(uploadResult.suggestion.return_deadline ?? "");
-            setSuggestedWarrantyDeadline(uploadResult.suggestion.warranty_deadline ?? "");
-            setWarrantyProvider(
-                uploadResult.suggestion.warranty_provider ?? ""
-            );
-            setSuggestedNotes(uploadResult.suggestion.notes ?? "");
-
-            setImageUploadStatus(null);
-            setUploadedImageInfo(
-                `${uploadResult.suggestion.name} extracted successfully`
-            );
-            await persistReceiptSession();
-        } catch (error) {
-            console.warn(error);
-
-            setImageUploadStatus(null);
-            setValidationMessage(
-                "Receipt image upload failed. Try selecting the image again or choose a different photo."
-            );
-        }
+        await handleAnalyzeReceiptImage(imageUri);
     };
 
     const handleSelectLineItem = (
