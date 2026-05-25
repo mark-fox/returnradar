@@ -300,3 +300,85 @@ def test_update_product_allows_warranty_metadata(
     assert payload["warranty_provider"] == "Geek Squad"
     assert payload["warranty_claim_url"] == "https://example.com/claim"
     assert payload["warranty_notes"] == "Bring receipt and serial number."
+
+
+def test_archive_product_hides_product_from_default_list(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Product To Archive",
+            "merchant": "Target",
+            "source": "manual",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+
+    archive_response = client.post(f"/api/v1/products/{product_id}/archive")
+
+    assert archive_response.status_code == 200
+    assert archive_response.json()["is_archived"] is True
+
+    default_list_response = client.get("/api/v1/products")
+
+    assert default_list_response.status_code == 200
+
+    default_list_ids = [
+        product["id"]
+        for product in default_list_response.json()
+    ]
+
+    assert product_id not in default_list_ids
+
+    archived_list_response = client.get("/api/v1/products?include_archived=true")
+
+    assert archived_list_response.status_code == 200
+
+    archived_list_ids = [
+        product["id"]
+        for product in archived_list_response.json()
+    ]
+
+    assert product_id in archived_list_ids
+
+
+def test_restore_product_returns_product_to_default_list(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Product To Restore",
+            "merchant": "Best Buy",
+            "source": "manual",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+
+    archive_response = client.post(f"/api/v1/products/{product_id}/archive")
+
+    assert archive_response.status_code == 200
+    assert archive_response.json()["is_archived"] is True
+
+    restore_response = client.post(f"/api/v1/products/{product_id}/restore")
+
+    assert restore_response.status_code == 200
+    assert restore_response.json()["is_archived"] is False
+
+    default_list_response = client.get("/api/v1/products")
+
+    assert default_list_response.status_code == 200
+
+    default_list_ids = [
+        product["id"]
+        for product in default_list_response.json()
+    ]
+
+    assert product_id in default_list_ids
