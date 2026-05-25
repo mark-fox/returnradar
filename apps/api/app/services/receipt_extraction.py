@@ -98,9 +98,7 @@ class MockReceiptExtractor:
             suggestion=ReceiptProductSuggestion(
                 name=product_name,
                 merchant=merchant,
-                warranty_provider=infer_warranty_provider(
-    merchant
-),
+                warranty_provider=infer_warranty_provider(merchant),
                 purchase_date=today,
                 return_deadline=today + timedelta(days=30),
                 warranty_deadline=today + timedelta(days=365),
@@ -339,7 +337,7 @@ Rules:
 def build_receipt_extractor() -> ReceiptExtractor:
     if settings.receipt_extractor_provider == "mock":
         return MockReceiptExtractor()
-    
+
     if settings.receipt_extractor_provider == "openai":
         return OpenAIReceiptExtractor()
 
