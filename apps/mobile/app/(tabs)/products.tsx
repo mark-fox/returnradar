@@ -8,21 +8,13 @@ import {
     Text,
     TextInput,
     View,
-    Image,
 } from "react-native";
 
 import { listProducts, archiveProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 import { router, useFocusEffect } from "expo-router";
-import { getReturnDeadlineStatus } from "@/src/features/products/deadlineUtils";
-import { DeadlineStatusPill } from "@/src/features/products/DeadlineStatusPill";
-import { getProductSourceLabel } from "@/src/features/products/sourceUtils";
+import { ProductCard } from "@/src/features/products/ProductCard";
 import {
-    formatProductDeadline,
-    formatProductPrice,
-    getDeadlineUrgency,
-    getProductUrgency,
-    getProductUrgencyLabel,
     getVisibleProducts,
     type ProductSortOption,
     type ProductUrgencyFilter,
@@ -313,114 +305,15 @@ export default function ProductsScreen() {
                     </Text>
                 </View>
             }
-            renderItem={({ item }) => {
-                const returnUrgency = getDeadlineUrgency(
-                    item.return_deadline
-                );
-
-                const warrantyUrgency = getDeadlineUrgency(
-                    item.warranty_deadline
-                );
-
-                const overallUrgency =
-                    returnUrgency === "expired" ||
-                        warrantyUrgency === "expired"
-                        ? "expired"
-                        : returnUrgency === "urgent" ||
-                            warrantyUrgency === "urgent"
-                            ? "urgent"
-                            : returnUrgency === "soon" ||
-                                warrantyUrgency === "soon"
-                                ? "soon"
-                                : "safe";
-
-                return (
-                    <Pressable
-                        style={[
-                            styles.productCard,
-                            overallUrgency === "soon" &&
-                            styles.productCardSoon,
-                            overallUrgency === "urgent" &&
-                            styles.productCardUrgent,
-                            overallUrgency === "expired" &&
-                            styles.productCardExpired,
-                            selectedProductIds.includes(item.id) &&
-                            styles.selectedProductCard,
-                        ]}
-                        onPress={() => {
-                            if (selectionMode) {
-                                toggleSelectedProduct(item.id);
-                                return;
-                            }
-
-                            router.push(`/products/${item.id}`);
-                        }}
-                    >
-                        {item.receipt_image_path ? (
-                            <Image
-                                source={{
-                                    uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace(
-                                        "/api/v1",
-                                        "",
-                                    )}/${item.receipt_image_path}`,
-                                }}
-                                style={styles.receiptThumbnail}
-                                resizeMode="cover"
-                            />
-                        ) : null}
-                        <View
-                            style={[
-                                styles.urgencyBadge,
-                                overallUrgency === "safe" &&
-                                styles.urgencyBadgeSafe,
-                                overallUrgency === "soon" &&
-                                styles.urgencyBadgeSoon,
-                                overallUrgency === "urgent" &&
-                                styles.urgencyBadgeUrgent,
-                                overallUrgency === "expired" &&
-                                styles.urgencyBadgeExpired,
-                            ]}
-                        >
-                            <Text style={styles.urgencyBadgeText}>
-                                {getProductUrgencyLabel(overallUrgency)}
-                            </Text>
-                        </View>
-                        <Text style={styles.productName}>{item.name}</Text>
-
-                        {item.receipt_image_path ? (
-                            <View style={styles.receiptBadge}>
-                                <Text style={styles.receiptBadgeText}>
-                                    Receipt Saved
-                                </Text>
-                            </View>
-                        ) : null}
-
-                        <Text style={styles.productMeta}>
-                            {item.merchant ?? "Merchant not set"} · {formatProductPrice(item)}
-                        </Text>
-
-                        <Text style={styles.productSource}>
-                            {getProductSourceLabel(item.source)}
-                        </Text>
-
-                        <DeadlineStatusPill status={getReturnDeadlineStatus(item.return_deadline)} />
-
-                        <View style={styles.deadlineRow}>
-                            <Text style={styles.deadlineLabel}>Return</Text>
-                            <Text style={styles.deadlineValue}>
-                                {formatProductDeadline(item.return_deadline)}
-                            </Text>
-                        </View>
-
-                        <View style={styles.deadlineRow}>
-                            <Text style={styles.deadlineLabel}>Warranty</Text>
-                            <Text style={styles.deadlineValue}>
-                                {formatProductDeadline(item.warranty_deadline)}
-                            </Text>
-                        </View>
-                    </Pressable>
-                );
-            }}
+            renderItem={({ item }) => (
+                <ProductCard
+                    product={item}
+                    isSelected={selectedProductIds.includes(item.id)}
+                    selectionMode={selectionMode}
+                    onToggleSelected={() => toggleSelectedProduct(item.id)}
+                    onPress={() => router.push(`/products/${item.id}`)}
+                />
+            )}
         />
     );
 }
@@ -517,42 +410,6 @@ const styles = StyleSheet.create({
         fontSize: 15,
         lineHeight: 22,
         color: "#64748B",
-    },
-    productCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 18,
-        marginBottom: 14,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-    },
-    productName: {
-        fontSize: 18,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 6,
-    },
-    productMeta: {
-        fontSize: 14,
-        color: "#64748B",
-        marginBottom: 16,
-    },
-    deadlineRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        gap: 16,
-        paddingTop: 10,
-        borderTopWidth: 1,
-        borderTopColor: "#E2E8F0",
-    },
-    deadlineLabel: {
-        fontSize: 14,
-        fontWeight: "700",
-        color: "#334155",
-    },
-    deadlineValue: {
-        fontSize: 14,
-        color: "#475569",
     },
     errorCard: {
         backgroundColor: "#FFFFFF",
@@ -655,69 +512,6 @@ const styles = StyleSheet.create({
     sortButtonTextActive: {
         color: "#FFFFFF",
     },
-    productSource: {
-        fontSize: 13,
-        fontWeight: "700",
-        color: "#2563EB",
-        marginBottom: 12,
-    },
-    receiptThumbnail: {
-        width: "100%",
-        height: 140,
-        borderRadius: 16,
-        backgroundColor: "#E2E8F0",
-        marginBottom: 14,
-    },
-    receiptBadge: {
-        alignSelf: "flex-start",
-        backgroundColor: "#DBEAFE",
-        borderRadius: 999,
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        marginBottom: 12,
-    },
-    receiptBadgeText: {
-        fontSize: 12,
-        fontWeight: "800",
-        color: "#1D4ED8",
-    },
-    productCardSoon: {
-        borderColor: "#F59E0B",
-        borderWidth: 2,
-    },
-    productCardUrgent: {
-        borderColor: "#DC2626",
-        borderWidth: 2,
-    },
-    productCardExpired: {
-        borderColor: "#7F1D1D",
-        borderWidth: 2,
-        opacity: 0.82,
-    },
-    urgencyBadge: {
-        alignSelf: "flex-start",
-        borderRadius: 999,
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        marginBottom: 12,
-    },
-    urgencyBadgeSafe: {
-        backgroundColor: "#DCFCE7",
-    },
-    urgencyBadgeSoon: {
-        backgroundColor: "#FEF3C7",
-    },
-    urgencyBadgeUrgent: {
-        backgroundColor: "#FEE2E2",
-    },
-    urgencyBadgeExpired: {
-        backgroundColor: "#7F1D1D",
-    },
-    urgencyBadgeText: {
-        fontSize: 12,
-        fontWeight: "800",
-        color: "#111827",
-    },
     filterRow: {
         flexDirection: "row",
         flexWrap: "wrap",
@@ -795,9 +589,5 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "800",
         color: "#FFFFFF",
-    },
-    selectedProductCard: {
-        borderWidth: 2,
-        borderColor: "#2563EB",
     },
 });
