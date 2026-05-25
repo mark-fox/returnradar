@@ -359,15 +359,45 @@ export default function ReceiptScanScreen() {
 
             setResult(extractionResult);
 
-            setSuggestedName(extractionResult.suggestion.name);
-            setSuggestedMerchant(extractionResult.suggestion.merchant ?? "");
-            setSuggestedPrice(centsToPriceInput(extractionResult.suggestion.price_cents));
-            setSuggestedPurchaseDate(extractionResult.suggestion.purchase_date ?? "");
-            setSuggestedReturnDeadline(extractionResult.suggestion.return_deadline ?? "");
-            setSuggestedWarrantyDeadline(
-                extractionResult.suggestion.warranty_deadline ?? ""
+            const nextSuggestedName = extractionResult.suggestion.name;
+            const nextSuggestedMerchant = extractionResult.suggestion.merchant ?? "";
+            const nextSuggestedPrice = centsToPriceInput(
+                extractionResult.suggestion.price_cents
             );
-            setSuggestedNotes(extractionResult.suggestion.notes ?? "");
+            const nextSuggestedPurchaseDate =
+                extractionResult.suggestion.purchase_date ?? "";
+            const nextSuggestedReturnDeadline =
+                extractionResult.suggestion.return_deadline ?? "";
+            const nextSuggestedWarrantyDeadline =
+                extractionResult.suggestion.warranty_deadline ?? "";
+            const nextWarrantyProvider =
+                extractionResult.suggestion.warranty_provider ?? "";
+            const nextSuggestedNotes = extractionResult.suggestion.notes ?? "";
+
+            setSuggestedName(nextSuggestedName);
+            setSuggestedMerchant(nextSuggestedMerchant);
+            setSuggestedPrice(nextSuggestedPrice);
+            setSuggestedPurchaseDate(nextSuggestedPurchaseDate);
+            setSuggestedReturnDeadline(nextSuggestedReturnDeadline);
+            setSuggestedWarrantyDeadline(nextSuggestedWarrantyDeadline);
+            setWarrantyProvider(nextWarrantyProvider);
+            setSuggestedNotes(nextSuggestedNotes);
+
+            await persistReceiptSession({
+                result: extractionResult,
+                suggestedName: nextSuggestedName,
+                suggestedMerchant: nextSuggestedMerchant,
+                suggestedPrice: nextSuggestedPrice,
+                suggestedPurchaseDate: nextSuggestedPurchaseDate,
+                suggestedReturnDeadline: nextSuggestedReturnDeadline,
+                suggestedWarrantyDeadline: nextSuggestedWarrantyDeadline,
+                warrantyProvider: nextWarrantyProvider,
+                suggestedNotes: nextSuggestedNotes,
+                selectedImageUri,
+                uploadedImageInfo,
+                receiptImagePath,
+                savedReceiptItems,
+            });
         } catch (error) {
             console.warn(error);
             setErrorMessage(
