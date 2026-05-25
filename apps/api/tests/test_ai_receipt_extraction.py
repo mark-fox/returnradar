@@ -28,6 +28,7 @@ def test_receipt_extraction_returns_suggestion(client: TestClient) -> None:
 
     assert suggestion["name"] == "Sony WH-1000XM5 Headphones"
     assert suggestion["merchant"] == "BEST BUY"
+    assert suggestion["warranty_provider"] == "Geek Squad"
     assert suggestion["price_cents"] == 43119
     assert suggestion["currency"] == "USD"
     assert suggestion["purchase_date"] is not None

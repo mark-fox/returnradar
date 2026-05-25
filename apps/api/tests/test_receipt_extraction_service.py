@@ -67,6 +67,7 @@ def test_extract_receipt_suggestion_returns_expected_contract() -> None:
     assert result.confidence == 0.62
     assert result.suggestion.name == "Sony WH-1000XM5 Headphones"
     assert result.suggestion.merchant == "BEST BUY"
+    assert result.suggestion.warranty_provider == "Geek Squad"
     assert result.suggestion.price_cents == 43119
     assert result.suggestion.currency == "USD"
     assert result.suggestion.purchase_date is not None
