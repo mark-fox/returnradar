@@ -27,20 +27,20 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="products"
+        options={{
+          title: "Products",
+          tabBarIcon: ({ color }) => <Package size={22} color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
         name="ai-status"
         options={{
           title: "AI",
           tabBarIcon: ({ color }) => (
             <Bot size={22} color={color} />
           ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="products"
-        options={{
-          title: "Products",
-          tabBarIcon: ({ color }) => <Package size={22} color={color} />,
         }}
       />
     </Tabs>
