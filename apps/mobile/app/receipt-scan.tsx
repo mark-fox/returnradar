@@ -1,17 +1,12 @@
-import { Stack, router } from "expo-router";
+import { Stack } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useState, useEffect } from "react";
 import {
-    ActivityIndicator,
-    Image,
     KeyboardAvoidingView,
     Platform,
-    Pressable,
     ScrollView,
     StyleSheet,
     Text,
-    TextInput,
-    View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -28,9 +23,9 @@ import {
     uploadReceiptImage,
 } from "@/src/features/ai/api";
 import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction/types";
-import { ProductFormInput } from "@/src/features/products/ProductFormFields";
 import { ReceiptInputCard } from "@/src/features/receiptExtraction/ReceiptInputCard";
 import { ReceiptExtractionSummaryCard } from "@/src/features/receiptExtraction/ReceiptExtractionSummaryCard";
+import { ReceiptReviewCard } from "@/src/features/receiptExtraction/ReceiptReviewCard";
 
 const SAMPLE_RECEIPT_TEXT =
     "BEST BUY\nSony WH-1000XM5 Headphones\nSubtotal 399.99\nTax 31.20\nTotal 431.19\nVISA";
@@ -501,168 +496,36 @@ export default function ReceiptScanScreen() {
                             savedReceiptItems={savedReceiptItems}
                             onSelectLineItem={handleSelectLineItem}
                         />
-                        <View style={styles.resultCard}>
-                            <Text style={styles.resultEyebrow}>
-                                Source: {result.source} · Confidence:{" "}
-                                {Math.round(result.confidence * 100)}%
-                            </Text>
-
-                            <Text style={styles.resultTitle}>Review suggested details</Text>
-
-                            <ProductFormInput
-                                label="Product name"
-                                required
-                                value={suggestedName}
-                                onChangeText={setSuggestedName}
-                                placeholder="Product name"
-                                autoCapitalize="words"
-                            />
-
-                            <ProductFormInput
-                                label="Merchant"
-                                value={suggestedMerchant}
-                                onChangeText={setSuggestedMerchant}
-                                placeholder="Merchant"
-                                autoCapitalize="words"
-                            />
-
-                            <ProductFormInput
-                                label="Price"
-                                value={suggestedPrice}
-                                onChangeText={setSuggestedPrice}
-                                placeholder="399.99"
-                                keyboardType="decimal-pad"
-                            />
-
-                            <ProductFormInput
-                                label="Purchase date"
-                                value={suggestedPurchaseDate}
-                                onChangeText={setSuggestedPurchaseDate}
-                                placeholder="2026-04-28"
-                                keyboardType="numbers-and-punctuation"
-                            />
-
-                            <ProductFormInput
-                                label="Return deadline"
-                                value={suggestedReturnDeadline}
-                                onChangeText={setSuggestedReturnDeadline}
-                                placeholder="2026-05-28"
-                                keyboardType="numbers-and-punctuation"
-                            />
-
-                            <ProductFormInput
-                                label="Warranty deadline"
-                                value={suggestedWarrantyDeadline}
-                                onChangeText={setSuggestedWarrantyDeadline}
-                                placeholder="2027-04-28"
-                                keyboardType="numbers-and-punctuation"
-                            />
-
-                            <ProductFormInput
-                                label="Warranty provider"
-                                value={warrantyProvider}
-                                onChangeText={setWarrantyProvider}
-                                placeholder="Geek Squad"
-                                autoCapitalize="words"
-                            />
-
-                            <ProductFormInput
-                                label="Notes"
-                                value={suggestedNotes}
-                                onChangeText={setSuggestedNotes}
-                                placeholder="Notes"
-                                multiline
-                            />
-
-                            {validationMessage ? (
-                                <Text style={styles.validationText}>{validationMessage}</Text>
-                            ) : null}
-
-                            {errorMessage ? (
-                                <Text style={styles.errorText}>{errorMessage}</Text>
-                            ) : null}
-
-                            {restoredSessionNoticeVisible ? (
-                                <View style={styles.restoredSessionBanner}>
-                                    <Text style={styles.restoredSessionTitle}>
-                                        Recovered unfinished receipt session
-                                    </Text>
-
-                                    <Text style={styles.restoredSessionText}>
-                                        Your previous receipt scan was restored so you can continue saving items.
-                                    </Text>
-
-                                    <Pressable
-                                        onPress={() =>
-                                            setRestoredSessionNoticeVisible(false)
-                                        }
-                                    >
-                                        <Text style={styles.dismissBannerText}>
-                                            Dismiss
-                                        </Text>
-                                    </Pressable>
-                                </View>
-                            ) : null}
-
-                            {savedReceiptItemCount > 0 ? (
-                                <View style={styles.sessionSummaryCard}>
-                                    <Text style={styles.sessionSummaryTitle}>
-                                        Receipt Session Progress
-                                    </Text>
-
-                                    <Text style={styles.sessionSummaryText}>
-                                        Saved {savedReceiptItemCount} item
-                                        {savedReceiptItemCount === 1 ? "" : "s"} from this receipt.
-                                    </Text>
-
-                                    <View style={styles.savedItemsList}>
-                                        {savedReceiptItems.map((itemName) => (
-                                            <View
-                                                key={itemName}
-                                                style={styles.savedItemChip}
-                                            >
-                                                <Text style={styles.savedItemChipText}>
-                                                    {itemName}
-                                                </Text>
-                                            </View>
-                                        ))}
-                                    </View>
-                                </View>
-                            ) : null}
-
-                            {saveSuccessMessage ? (
-                                <Text style={styles.successText}>{saveSuccessMessage}</Text>
-                            ) : null}
-
-                            <View style={styles.warningBox}>
-                                <Text style={styles.warningTitle}>Before saving</Text>
-                                {result.warnings.map((warning) => (
-                                    <Text key={warning} style={styles.warningText}>
-                                        • {warning}
-                                    </Text>
-                                ))}
-                            </View>
-
-                            <Pressable
-                                style={[styles.saveButton, isSaving && styles.disabledButton]}
-                                onPress={() => void handleSaveSuggestion()}
-                                disabled={isSaving}
-                            >
-                                {isSaving ? (
-                                    <ActivityIndicator color="#FFFFFF" />
-                                ) : (
-                                    <Text style={styles.saveButtonText}>Save Confirmed Product</Text>
-                                )}
-                            </Pressable>
-                            <Pressable
-                                style={styles.finishSessionButton}
-                                onPress={resetReceiptSession}
-                            >
-                                <Text style={styles.finishSessionButtonText}>
-                                    Finish Receipt Session
-                                </Text>
-                            </Pressable>
-                        </View>
+                        <ReceiptReviewCard
+                            result={result}
+                            suggestedName={suggestedName}
+                            suggestedMerchant={suggestedMerchant}
+                            suggestedPrice={suggestedPrice}
+                            suggestedPurchaseDate={suggestedPurchaseDate}
+                            suggestedReturnDeadline={suggestedReturnDeadline}
+                            suggestedWarrantyDeadline={suggestedWarrantyDeadline}
+                            warrantyProvider={warrantyProvider}
+                            suggestedNotes={suggestedNotes}
+                            validationMessage={validationMessage}
+                            errorMessage={errorMessage}
+                            saveSuccessMessage={saveSuccessMessage}
+                            restoredSessionNoticeVisible={restoredSessionNoticeVisible}
+                            savedReceiptItems={savedReceiptItems}
+                            isSaving={isSaving}
+                            onSuggestedNameChange={setSuggestedName}
+                            onSuggestedMerchantChange={setSuggestedMerchant}
+                            onSuggestedPriceChange={setSuggestedPrice}
+                            onSuggestedPurchaseDateChange={setSuggestedPurchaseDate}
+                            onSuggestedReturnDeadlineChange={setSuggestedReturnDeadline}
+                            onSuggestedWarrantyDeadlineChange={setSuggestedWarrantyDeadline}
+                            onWarrantyProviderChange={setWarrantyProvider}
+                            onSuggestedNotesChange={setSuggestedNotes}
+                            onDismissRestoredSessionNotice={() =>
+                                setRestoredSessionNoticeVisible(false)
+                            }
+                            onSaveSuggestion={() => void handleSaveSuggestion()}
+                            onFinishSession={resetReceiptSession}
+                        />
                     </>
                 ) : null}
 
@@ -734,139 +597,5 @@ const styles = StyleSheet.create({
     },
     disabledButton: {
         opacity: 0.7,
-    },
-    resultCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 18,
-        borderWidth: 1,
-        borderColor: "#BFDBFE",
-        marginBottom: 30,
-    },
-    resultEyebrow: {
-        fontSize: 13,
-        fontWeight: "700",
-        color: "#2563EB",
-        marginBottom: 8,
-    },
-    resultTitle: {
-        fontSize: 20,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 16,
-    },
-    warningBox: {
-        backgroundColor: "#FFFBEB",
-        borderRadius: 16,
-        padding: 14,
-        marginTop: 4,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: "#FDE68A",
-    },
-    warningTitle: {
-        fontSize: 15,
-        fontWeight: "800",
-        color: "#92400E",
-        marginBottom: 6,
-    },
-    warningText: {
-        fontSize: 14,
-        lineHeight: 20,
-        color: "#92400E",
-        marginBottom: 4,
-    },
-    saveButton: {
-        backgroundColor: "#16A34A",
-        borderRadius: 14,
-        paddingVertical: 14,
-        paddingHorizontal: 16,
-        alignItems: "center",
-    },
-    saveButtonText: {
-        color: "#FFFFFF",
-        fontSize: 16,
-        fontWeight: "800",
-    },
-    successText: {
-        color: "#166534",
-        fontSize: 14,
-        lineHeight: 20,
-        fontWeight: "700",
-        marginBottom: 12,
-    },
-    sessionSummaryCard: {
-        backgroundColor: "#F8FAFC",
-        borderRadius: 18,
-        padding: 18,
-        marginBottom: 18,
-        borderWidth: 1,
-        borderColor: "#CBD5E1",
-    },
-    sessionSummaryTitle: {
-        fontSize: 15,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 8,
-    },
-    sessionSummaryText: {
-        fontSize: 14,
-        lineHeight: 20,
-        color: "#475569",
-        marginBottom: 12,
-    },
-    savedItemsList: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-    },
-    savedItemChip: {
-        backgroundColor: "#DBEAFE",
-        borderRadius: 999,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        marginRight: 8,
-        marginBottom: 8,
-    },
-    savedItemChipText: {
-        fontSize: 12,
-        fontWeight: "700",
-        color: "#1D4ED8",
-    },
-    finishSessionButton: {
-        backgroundColor: "#0F172A",
-        borderRadius: 16,
-        paddingVertical: 14,
-        alignItems: "center",
-        marginTop: 10,
-    },
-    finishSessionButtonText: {
-        color: "#FFFFFF",
-        fontSize: 15,
-        fontWeight: "800",
-    },
-    restoredSessionBanner: {
-        backgroundColor: "#FEF3C7",
-        borderRadius: 18,
-        padding: 18,
-        marginBottom: 18,
-        borderWidth: 1,
-        borderColor: "#FCD34D",
-    },
-    restoredSessionTitle: {
-        fontSize: 15,
-        fontWeight: "800",
-        color: "#92400E",
-        marginBottom: 8,
-    },
-    restoredSessionText: {
-        fontSize: 14,
-        lineHeight: 20,
-        color: "#78350F",
-        marginBottom: 10,
-    },
-    dismissBannerText: {
-        fontSize: 13,
-        fontWeight: "800",
-        color: "#B45309",
     },
 });
