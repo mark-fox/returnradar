@@ -101,3 +101,26 @@ def test_receipt_image_upload_rejects_invalid_types(
     payload = response.json()
 
     assert "Unsupported image type" in payload["detail"]
+
+
+def test_receipt_image_upload_rejects_large_images(
+    client: TestClient,
+) -> None:
+    oversized_image = b"0" * ((8 * 1024 * 1024) + 1)
+
+    response = client.post(
+        "/api/v1/ai/receipt-image",
+        files={
+            "image": (
+                "large-receipt.png",
+                oversized_image,
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 413
+
+    payload = response.json()
+
+    assert payload["detail"] == "Receipt image is too large. Maximum size is 8 MB."
