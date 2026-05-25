@@ -1,7 +1,6 @@
 import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
     Pressable,
     RefreshControl,
     ScrollView,
@@ -22,6 +21,11 @@ import { DeadlineSection } from "@/src/features/products/DeadlineSection";
 import { DeadlineSummaryGrid } from "@/src/features/products/DeadlineSummaryGrid";
 import type { DeadlineFocusSection, DeadlineTypeFilter } from "@/src/features/products/deadlineFilters";
 import { DeadlineTypeFilterChips } from "@/src/features/products/DeadlineTypeFilterChips";
+import {
+    DeadlineEmptyState,
+    DeadlineErrorState,
+    DeadlineLoadingState,
+} from "@/src/features/products/DeadlineScreenStates";
 
 
 export default function DeadlinesScreen() {
@@ -79,29 +83,15 @@ export default function DeadlinesScreen() {
         deadlineGroups.expiredWarranties.length > 0;
 
     if (isLoading) {
-        return (
-            <View style={styles.centeredState}>
-                <Stack.Screen options={{ title: "Deadlines" }} />
-                <ActivityIndicator />
-                <Text style={styles.stateText}>Loading deadlines...</Text>
-            </View>
-        );
+        return <DeadlineLoadingState />;
     }
 
     if (errorMessage) {
         return (
-            <View style={styles.container}>
-                <Stack.Screen options={{ title: "Deadlines" }} />
-
-                <View style={styles.errorCard}>
-                    <Text style={styles.errorTitle}>Unable to load deadlines</Text>
-                    <Text style={styles.errorText}>{errorMessage}</Text>
-
-                    <Pressable style={styles.primaryButton} onPress={() => void loadProducts()}>
-                        <Text style={styles.primaryButtonText}>Try again</Text>
-                    </Pressable>
-                </View>
-            </View>
+            <DeadlineErrorState
+                message={errorMessage}
+                onRetry={() => void loadProducts()}
+            />
         );
     }
 
@@ -155,13 +145,10 @@ export default function DeadlinesScreen() {
             />
 
             {!hasAnyDeadlines ? (
-                <View style={styles.emptyState}>
-                    <Text style={styles.emptyTitle}>No urgent deadlines</Text>
-                    <Text style={styles.emptyText}>
-                        Products with return deadlines in the next 7 days or warranty
-                        deadlines in the next 30 days will appear here.
-                    </Text>
-                </View>
+                <DeadlineEmptyState
+                    title="No urgent deadlines"
+                    message="Products with return deadlines in the next 7 days or warranty deadlines in the next 30 days will appear here."
+                />
             ) : (
                 <>
                     {deadlineFilter !== "warranties" &&
@@ -229,18 +216,6 @@ export default function DeadlinesScreen() {
 
 
 const styles = StyleSheet.create({
-    centeredState: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#F8FAFC",
-        padding: 24,
-    },
-    stateText: {
-        marginTop: 12,
-        fontSize: 16,
-        color: "#475569",
-    },
     container: {
         flexGrow: 1,
         backgroundColor: "#F8FAFC",
@@ -264,55 +239,6 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         color: "#475569",
         marginBottom: 24,
-    },
-    emptyState: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 8,
-    },
-    emptyText: {
-        fontSize: 15,
-        lineHeight: 22,
-        color: "#64748B",
-    },
-    errorCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: "#FCA5A5",
-    },
-    errorTitle: {
-        fontSize: 20,
-        fontWeight: "800",
-        color: "#991B1B",
-        marginBottom: 8,
-    },
-    errorText: {
-        fontSize: 15,
-        lineHeight: 22,
-        color: "#7F1D1D",
-        marginBottom: 18,
-    },
-    primaryButton: {
-        backgroundColor: "#2563EB",
-        borderRadius: 14,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        alignItems: "center",
-    },
-    primaryButtonText: {
-        color: "#FFFFFF",
-        fontSize: 15,
-        fontWeight: "700",
     },
     lastUpdatedText: {
         fontSize: 13,
