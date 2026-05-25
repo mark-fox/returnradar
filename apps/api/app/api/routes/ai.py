@@ -48,6 +48,12 @@ async def upload_receipt_image(
         "image/webp",
     }
 
+    content_type_extensions = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+    }
+
     if image.content_type not in allowed_content_types:
         raise HTTPException(
             status_code=400,
@@ -58,7 +64,8 @@ async def upload_receipt_image(
     uploads_dir = Path("uploads")
     uploads_dir.mkdir(exist_ok=True)
 
-    filename = f"{uuid4()}-{image.filename}"
+    file_extension = content_type_extensions[image.content_type]
+    filename = f"{uuid4()}{file_extension}"
     file_path = uploads_dir / filename
 
     file_path.write_bytes(contents)
