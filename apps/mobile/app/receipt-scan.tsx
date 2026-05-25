@@ -445,14 +445,13 @@ export default function ReceiptScanScreen() {
             setValidationMessage(null);
             setErrorMessage(null);
 
-            const savedProduct = await createProduct({
+            await createProduct({
                 name: trimmedName,
                 merchant: suggestedMerchant.trim() || null,
                 purchase_date: normalizeOptionalDate(suggestedPurchaseDate),
                 return_deadline: normalizeOptionalDate(suggestedReturnDeadline),
                 warranty_deadline: normalizeOptionalDate(suggestedWarrantyDeadline),
-                warranty_provider:
-                    warrantyProvider.trim() || null,
+                warranty_provider: warrantyProvider.trim() || null,
                 price_cents: priceCents,
                 currency: result?.suggestion.currency ?? "USD",
                 notes: suggestedNotes.trim() || null,
@@ -464,11 +463,34 @@ export default function ReceiptScanScreen() {
                 receipt_image_path: receiptImagePath,
             });
 
-            setSavedReceiptItems((current) => [
-                ...current,
+            const nextSavedReceiptItems = [
+                ...savedReceiptItems,
                 trimmedName,
-            ]);
-            setSaveSuccessMessage(`${trimmedName} was saved. You can select another receipt item or start a new receipt.`);
+            ];
+
+            setSavedReceiptItems(nextSavedReceiptItems);
+
+            if (result) {
+                await persistReceiptSession({
+                    result,
+                    suggestedName,
+                    suggestedMerchant,
+                    suggestedPrice,
+                    suggestedPurchaseDate,
+                    suggestedReturnDeadline,
+                    suggestedWarrantyDeadline,
+                    warrantyProvider,
+                    suggestedNotes,
+                    selectedImageUri,
+                    uploadedImageInfo,
+                    receiptImagePath,
+                    savedReceiptItems: nextSavedReceiptItems,
+                });
+            }
+
+            setSaveSuccessMessage(
+                `${trimmedName} was saved. You can select another receipt item or start a new receipt.`
+            );
             setErrorMessage(null);
         } catch (error) {
             console.warn(error);
