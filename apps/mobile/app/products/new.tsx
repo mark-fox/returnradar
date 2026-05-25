@@ -18,6 +18,7 @@ import {
 } from "@/src/features/products/formUtils";
 
 import { createProduct } from "@/src/features/products/api";
+import { FieldLabel } from "@/src/features/products/ProductFormFields";
 
 
 export default function NewProductScreen() {
@@ -173,9 +174,7 @@ export default function NewProductScreen() {
                         style={styles.input}
                     />
 
-                    <Text style={styles.label}>
-                        Warranty Provider
-                    </Text>
+                    <FieldLabel label="Warranty Provider" />
 
                     <TextInput
                         style={styles.input}
@@ -184,9 +183,7 @@ export default function NewProductScreen() {
                         onChangeText={setWarrantyProvider}
                     />
 
-                    <Text style={styles.label}>
-                        Warranty Claim URL
-                    </Text>
+                    <FieldLabel label="Warranty Claim URL" />
 
                     <TextInput
                         style={styles.input}
@@ -196,9 +193,7 @@ export default function NewProductScreen() {
                         onChangeText={setWarrantyClaimUrl}
                     />
 
-                    <Text style={styles.label}>
-                        Warranty Notes
-                    </Text>
+                    <FieldLabel label="Warranty Notes" />
 
                     <TextInput
                         style={[styles.input, styles.notesInput]}
@@ -243,14 +238,6 @@ export default function NewProductScreen() {
     );
 }
 
-function FieldLabel({ label, required = false }: { label: string; required?: boolean }) {
-    return (
-        <Text style={styles.label}>
-            {label}
-            {required ? <Text style={styles.required}> *</Text> : null}
-        </Text>
-    );
-}
 
 const styles = StyleSheet.create({
     screen: {
@@ -287,15 +274,6 @@ const styles = StyleSheet.create({
         padding: 18,
         borderWidth: 1,
         borderColor: "#E2E8F0",
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: "700",
-        color: "#334155",
-        marginBottom: 8,
-    },
-    required: {
-        color: "#DC2626",
     },
     input: {
         borderWidth: 1,
