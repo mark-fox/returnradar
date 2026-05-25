@@ -114,6 +114,45 @@ export default function ReceiptScanScreen() {
         void restoreReceiptSession();
     }, []);
 
+    const applyExtractionResultToReviewForm = (
+        extractionResult: ReceiptExtractionResponse
+    ) => {
+        const nextSuggestedName = extractionResult.suggestion.name;
+        const nextSuggestedMerchant = extractionResult.suggestion.merchant ?? "";
+        const nextSuggestedPrice = centsToPriceInput(
+            extractionResult.suggestion.price_cents
+        );
+        const nextSuggestedPurchaseDate =
+            extractionResult.suggestion.purchase_date ?? "";
+        const nextSuggestedReturnDeadline =
+            extractionResult.suggestion.return_deadline ?? "";
+        const nextSuggestedWarrantyDeadline =
+            extractionResult.suggestion.warranty_deadline ?? "";
+        const nextWarrantyProvider =
+            extractionResult.suggestion.warranty_provider ?? "";
+        const nextSuggestedNotes = extractionResult.suggestion.notes ?? "";
+
+        setSuggestedName(nextSuggestedName);
+        setSuggestedMerchant(nextSuggestedMerchant);
+        setSuggestedPrice(nextSuggestedPrice);
+        setSuggestedPurchaseDate(nextSuggestedPurchaseDate);
+        setSuggestedReturnDeadline(nextSuggestedReturnDeadline);
+        setSuggestedWarrantyDeadline(nextSuggestedWarrantyDeadline);
+        setWarrantyProvider(nextWarrantyProvider);
+        setSuggestedNotes(nextSuggestedNotes);
+
+        return {
+            suggestedName: nextSuggestedName,
+            suggestedMerchant: nextSuggestedMerchant,
+            suggestedPrice: nextSuggestedPrice,
+            suggestedPurchaseDate: nextSuggestedPurchaseDate,
+            suggestedReturnDeadline: nextSuggestedReturnDeadline,
+            suggestedWarrantyDeadline: nextSuggestedWarrantyDeadline,
+            warrantyProvider: nextWarrantyProvider,
+            suggestedNotes: nextSuggestedNotes,
+        };
+    };
+
     const handleAnalyzeReceiptImage = async (imageUri: string) => {
         setSelectedImageUri(imageUri);
         setUploadedImageInfo(null);
@@ -138,47 +177,17 @@ export default function ReceiptScanScreen() {
                 ? imagePathWarning.replace("receipt_image_path:", "")
                 : "";
 
-            const nextSuggestedName = uploadResult.suggestion.name;
-            const nextSuggestedMerchant = uploadResult.suggestion.merchant ?? "";
-            const nextSuggestedPrice =
-                uploadResult.suggestion.price_cents === null
-                    ? ""
-                    : (uploadResult.suggestion.price_cents / 100).toFixed(2);
-            const nextSuggestedPurchaseDate =
-                uploadResult.suggestion.purchase_date ?? "";
-            const nextSuggestedReturnDeadline =
-                uploadResult.suggestion.return_deadline ?? "";
-            const nextSuggestedWarrantyDeadline =
-                uploadResult.suggestion.warranty_deadline ?? "";
-            const nextWarrantyProvider =
-                uploadResult.suggestion.warranty_provider ?? "";
-            const nextSuggestedNotes = uploadResult.suggestion.notes ?? "";
+            const reviewFormValues = applyExtractionResultToReviewForm(uploadResult);
             const nextUploadedImageInfo =
-                `${nextSuggestedName} extracted successfully`;
+                `${reviewFormValues.suggestedName} extracted successfully`;
 
             setReceiptImagePath(nextReceiptImagePath);
-            setSuggestedName(nextSuggestedName);
-            setSuggestedMerchant(nextSuggestedMerchant);
-            setSuggestedPrice(nextSuggestedPrice);
-            setSuggestedPurchaseDate(nextSuggestedPurchaseDate);
-            setSuggestedReturnDeadline(nextSuggestedReturnDeadline);
-            setSuggestedWarrantyDeadline(nextSuggestedWarrantyDeadline);
-            setWarrantyProvider(nextWarrantyProvider);
-            setSuggestedNotes(nextSuggestedNotes);
-
             setImageUploadStatus(null);
             setUploadedImageInfo(nextUploadedImageInfo);
 
             await persistReceiptSession({
                 result: uploadResult,
-                suggestedName: nextSuggestedName,
-                suggestedMerchant: nextSuggestedMerchant,
-                suggestedPrice: nextSuggestedPrice,
-                suggestedPurchaseDate: nextSuggestedPurchaseDate,
-                suggestedReturnDeadline: nextSuggestedReturnDeadline,
-                suggestedWarrantyDeadline: nextSuggestedWarrantyDeadline,
-                warrantyProvider: nextWarrantyProvider,
-                suggestedNotes: nextSuggestedNotes,
+                ...reviewFormValues,
                 selectedImageUri: imageUri,
                 uploadedImageInfo: nextUploadedImageInfo,
                 receiptImagePath: nextReceiptImagePath,
@@ -326,40 +335,12 @@ export default function ReceiptScanScreen() {
 
             setResult(extractionResult);
 
-            const nextSuggestedName = extractionResult.suggestion.name;
-            const nextSuggestedMerchant = extractionResult.suggestion.merchant ?? "";
-            const nextSuggestedPrice = centsToPriceInput(
-                extractionResult.suggestion.price_cents
-            );
-            const nextSuggestedPurchaseDate =
-                extractionResult.suggestion.purchase_date ?? "";
-            const nextSuggestedReturnDeadline =
-                extractionResult.suggestion.return_deadline ?? "";
-            const nextSuggestedWarrantyDeadline =
-                extractionResult.suggestion.warranty_deadline ?? "";
-            const nextWarrantyProvider =
-                extractionResult.suggestion.warranty_provider ?? "";
-            const nextSuggestedNotes = extractionResult.suggestion.notes ?? "";
-
-            setSuggestedName(nextSuggestedName);
-            setSuggestedMerchant(nextSuggestedMerchant);
-            setSuggestedPrice(nextSuggestedPrice);
-            setSuggestedPurchaseDate(nextSuggestedPurchaseDate);
-            setSuggestedReturnDeadline(nextSuggestedReturnDeadline);
-            setSuggestedWarrantyDeadline(nextSuggestedWarrantyDeadline);
-            setWarrantyProvider(nextWarrantyProvider);
-            setSuggestedNotes(nextSuggestedNotes);
+            const reviewFormValues =
+                applyExtractionResultToReviewForm(extractionResult);
 
             await persistReceiptSession({
                 result: extractionResult,
-                suggestedName: nextSuggestedName,
-                suggestedMerchant: nextSuggestedMerchant,
-                suggestedPrice: nextSuggestedPrice,
-                suggestedPurchaseDate: nextSuggestedPurchaseDate,
-                suggestedReturnDeadline: nextSuggestedReturnDeadline,
-                suggestedWarrantyDeadline: nextSuggestedWarrantyDeadline,
-                warrantyProvider: nextWarrantyProvider,
-                suggestedNotes: nextSuggestedNotes,
+                ...reviewFormValues,
                 selectedImageUri,
                 uploadedImageInfo,
                 receiptImagePath,
