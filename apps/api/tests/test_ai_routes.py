@@ -48,6 +48,7 @@ def test_receipt_image_upload_accepts_png(
         suggestion=ReceiptProductSuggestion(
             name="Mock Receipt Product",
             merchant="Mock Store",
+            warranty_provider="Geek Squad",
             purchase_date=None,
             return_deadline=None,
             warranty_deadline=None,
@@ -80,6 +81,7 @@ def test_receipt_image_upload_accepts_png(
 
     assert payload["source"] == "openai-vision"
     assert payload["suggestion"]["name"] == "Mock Receipt Product"
+    assert payload["suggestion"]["warranty_provider"] == "Geek Squad"
 
 
 def test_receipt_image_upload_rejects_invalid_types(
