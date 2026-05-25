@@ -27,6 +27,7 @@ import {
     formatProductDeadline,
     formatProductPrice,
 } from "@/src/features/products/productListUtils";
+import { DetailRow } from "@/src/features/products/DetailRow";
 
 
 function formatDaysRemaining(
@@ -311,14 +312,6 @@ export default function ProductDetailScreen() {
     );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
-    return (
-        <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>{label}</Text>
-            <Text style={styles.detailValue}>{value}</Text>
-        </View>
-    );
-}
 
 const styles = StyleSheet.create({
     centeredState: {
@@ -358,22 +351,6 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         borderWidth: 1,
         borderColor: "#E2E8F0",
-    },
-    detailRow: {
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: "#E2E8F0",
-    },
-    detailLabel: {
-        fontSize: 13,
-        fontWeight: "700",
-        color: "#64748B",
-        marginBottom: 4,
-        textTransform: "uppercase",
-    },
-    detailValue: {
-        fontSize: 16,
-        color: "#0F172A",
     },
     sectionTitle: {
         fontSize: 18,
