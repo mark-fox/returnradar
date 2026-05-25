@@ -2,6 +2,7 @@ import { apiFetch } from "@/src/lib/api";
 
 import type {
     CreateProductInput,
+    DeadlineReminder,
     Product,
     UpdateProductInput,
 } from "./types";
@@ -27,6 +28,10 @@ export function listProducts(params: ListProductsParams = {}): Promise<Product[]
     }
 
     return apiFetch<Product[]>(`/products?${queryParams.toString()}`);
+}
+
+export function listDeadlineReminders(): Promise<DeadlineReminder[]> {
+    return apiFetch<DeadlineReminder[]>("/products/deadline-reminders");
 }
 
 export function getProduct(productId: number): Promise<Product> {

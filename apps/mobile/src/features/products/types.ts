@@ -41,3 +41,20 @@ export type CreateProductInput = {
 };
 
 export type UpdateProductInput = Partial<CreateProductInput>;
+
+export type DeadlineReminderType = "return" | "warranty";
+
+export type DeadlineReminderStatus = "expired" | "today" | "upcoming";
+
+export type DeadlineReminderPriority = "high" | "medium" | "low";
+
+export type DeadlineReminder = {
+    product_id: number;
+    product_name: string;
+    merchant: string | null;
+    deadline_type: DeadlineReminderType;
+    deadline_date: string;
+    days_remaining: number;
+    status: DeadlineReminderStatus;
+    priority: DeadlineReminderPriority;
+};
