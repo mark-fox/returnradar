@@ -1,49 +1,55 @@
 from datetime import date, datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProductBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    merchant: Optional[str] = Field(default=None, max_length=255)
+    merchant: str | None = Field(default=None, max_length=255)
 
-    purchase_date: Optional[date] = None
-    return_deadline: Optional[date] = None
-    warranty_deadline: Optional[date] = None
-    warranty_provider: Optional[str] = Field(default=None, max_length=255)
-    warranty_claim_url: Optional[str] = Field(default=None, max_length=500)
-    warranty_notes: Optional[str] = None
+    purchase_date: date | None = None
+    return_deadline: date | None = None
+    warranty_deadline: date | None = None
+    warranty_provider: str | None = Field(default=None, max_length=255)
+    warranty_claim_url: str | None = Field(default=None, max_length=500)
+    warranty_notes: str | None = None
 
-    price_cents: Optional[int] = Field(default=None, ge=0)
+    price_cents: int | None = Field(default=None, ge=0)
     currency: str = Field(default="USD", min_length=3, max_length=3)
 
-    notes: Optional[str] = None
-    receipt_image_path: Optional[str] = Field(default=None, max_length=500)
+    notes: str | None = None
+    receipt_image_path: str | None = Field(default=None, max_length=500)
     source: Literal["manual", "receipt_ai"] = "manual"
-    ai_provider: Optional[str] = Field(default=None, max_length=100)
-    ai_confidence: Optional[int] = Field(default=None, ge=0, le=100)
+    ai_provider: str | None = Field(default=None, max_length=100)
+    ai_confidence: int | None = Field(default=None, ge=0, le=100)
     is_archived: bool = False
-    
+
 
 class ProductCreate(ProductBase):
     pass
 
 
 class ProductUpdate(BaseModel):
-    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    merchant: Optional[str] = Field(default=None, max_length=255)
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    merchant: str | None = Field(default=None, max_length=255)
 
-    purchase_date: Optional[date] = None
-    return_deadline: Optional[date] = None
-    warranty_deadline: Optional[date] = None
+    purchase_date: date | None = None
+    return_deadline: date | None = None
+    warranty_deadline: date | None = None
+    warranty_provider: str | None = Field(default=None, max_length=255)
+    warranty_claim_url: str | None = Field(default=None, max_length=500)
+    warranty_notes: str | None = None
 
-    price_cents: Optional[int] = Field(default=None, ge=0)
-    currency: Optional[str] = Field(default=None, min_length=3, max_length=3)
+    price_cents: int | None = Field(default=None, ge=0)
+    currency: str | None = Field(default=None, min_length=3, max_length=3)
 
-    notes: Optional[str] = None
-    receipt_image_path: Optional[str] = Field(default=None, max_length=500)
-    source: Optional[Literal["manual", "receipt_ai"]] = None
+    notes: str | None = None
+    receipt_image_path: str | None = Field(default=None, max_length=500)
+    source: Literal["manual", "receipt_ai"] | None = None
+    ai_provider: str | None = Field(default=None, max_length=100)
+    ai_confidence: int | None = Field(default=None, ge=0, le=100)
+    is_archived: bool | None = None
 
 
 class ProductRead(ProductBase):
