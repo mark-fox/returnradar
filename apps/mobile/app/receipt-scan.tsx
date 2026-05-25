@@ -29,6 +29,7 @@ import {
 } from "@/src/features/ai/api";
 import type { ReceiptExtractionResponse } from "@/src/features/receiptExtraction/types";
 import { ProductFormInput } from "@/src/features/products/ProductFormFields";
+import { ReceiptInputCard } from "@/src/features/receiptExtraction/ReceiptInputCard";
 
 const SAMPLE_RECEIPT_TEXT =
     "BEST BUY\nSony WH-1000XM5 Headphones\nSubtotal 399.99\nTax 31.20\nTotal 431.19\nVISA";
@@ -480,75 +481,17 @@ export default function ReceiptScanScreen() {
                     product details for you to review before saving.
                 </Text>
 
-                <View style={styles.formCard}>
-                    <Text style={styles.label}>Receipt photo</Text>
-
-                    <Pressable
-                        style={styles.primaryButton}
-                        onPress={() => void handleCaptureReceiptImage()}
-                    >
-                        <Text style={styles.primaryButtonText}>
-                            Capture Receipt Photo
-                        </Text>
-                    </Pressable>
-
-                    <Pressable
-                        style={styles.secondaryButton}
-                        onPress={() => void handleSelectReceiptImage()}
-                    >
-                        <Text style={styles.secondaryButtonText}>
-                            Select Receipt Image
-                        </Text>
-                    </Pressable>
-
-                    {selectedImageUri ? (
-                        <>
-                            <Image
-                                source={{ uri: selectedImageUri }}
-                                style={styles.receiptImagePreview}
-                                resizeMode="cover"
-                            />
-
-                            {imageUploadStatus ? (
-                                <Text style={styles.uploadStatusText}>
-                                    {imageUploadStatus}
-                                </Text>
-                            ) : null}
-
-                            {uploadedImageInfo ? (
-                                <Text style={styles.uploadSuccessText}>
-                                    Uploaded: {uploadedImageInfo}
-                                </Text>
-                            ) : null}
-                        </>
-                    ) : (
-                        <Text style={styles.helperText}>
-                            Image selection is ready. OCR/vision extraction will be connected next.
-                        </Text>
-                    )}
-
-                    <Text style={styles.fallbackLabel}>Fallback: paste receipt text</Text>
-                    <TextInput
-                        value={rawText}
-                        onChangeText={setRawText}
-                        placeholder="Optional fallback for testing or copied receipt text..."
-                        multiline
-                        textAlignVertical="top"
-                        style={[styles.input, styles.receiptInput]}
-                    />
-
-                    <Pressable
-                        style={[styles.primaryButton, isExtracting && styles.disabledButton]}
-                        onPress={() => void handleExtract()}
-                        disabled={isExtracting}
-                    >
-                        {isExtracting ? (
-                            <ActivityIndicator color="#FFFFFF" />
-                        ) : (
-                            <Text style={styles.primaryButtonText}>Extract From Text</Text>
-                        )}
-                    </Pressable>
-                </View>
+                <ReceiptInputCard
+                    rawText={rawText}
+                    selectedImageUri={selectedImageUri}
+                    imageUploadStatus={imageUploadStatus}
+                    uploadedImageInfo={uploadedImageInfo}
+                    isExtracting={isExtracting}
+                    onRawTextChange={setRawText}
+                    onCaptureReceiptImage={() => void handleCaptureReceiptImage()}
+                    onSelectReceiptImage={() => void handleSelectReceiptImage()}
+                    onExtractFromText={() => void handleExtract()}
+                />
 
                 {result ? (
                     <>
@@ -829,34 +772,6 @@ const styles = StyleSheet.create({
         color: "#475569",
         marginBottom: 24,
     },
-    formCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 18,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-        marginBottom: 18,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: "700",
-        color: "#334155",
-        marginBottom: 8,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: "#CBD5E1",
-        borderRadius: 14,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        fontSize: 16,
-        color: "#0F172A",
-        backgroundColor: "#FFFFFF",
-        marginBottom: 16,
-    },
-    receiptInput: {
-        minHeight: 180,
-    },
     validationText: {
         color: "#B45309",
         fontSize: 14,
@@ -936,54 +851,6 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 16,
         fontWeight: "800",
-    },
-    secondaryButton: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 14,
-        paddingVertical: 14,
-        paddingHorizontal: 16,
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "#CBD5E1",
-        marginBottom: 14,
-    },
-    secondaryButtonText: {
-        color: "#0F172A",
-        fontSize: 16,
-        fontWeight: "800",
-    },
-    receiptImagePreview: {
-        width: "100%",
-        height: 220,
-        borderRadius: 16,
-        marginBottom: 18,
-        backgroundColor: "#E2E8F0",
-    },
-    helperText: {
-        fontSize: 14,
-        lineHeight: 20,
-        color: "#64748B",
-        marginBottom: 18,
-    },
-    uploadSuccessText: {
-        fontSize: 14,
-        fontWeight: "700",
-        color: "#166534",
-        marginBottom: 18,
-    },
-    uploadStatusText: {
-        fontSize: 14,
-        fontWeight: "700",
-        color: "#1D4ED8",
-        marginBottom: 12,
-    },
-    fallbackLabel: {
-        fontSize: 13,
-        fontWeight: "800",
-        color: "#64748B",
-        marginTop: 18,
-        marginBottom: 8,
-        textTransform: "uppercase",
     },
     summaryCard: {
         backgroundColor: "#FFFFFF",
