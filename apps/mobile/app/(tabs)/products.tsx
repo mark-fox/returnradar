@@ -1,13 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
     FlatList,
-    Pressable,
     RefreshControl,
     StyleSheet,
-    Text,
-    TextInput,
-    View,
 } from "react-native";
 
 import { listProducts, archiveProduct } from "@/src/features/products/api";
@@ -20,6 +15,11 @@ import {
     type ProductSortOption,
     type ProductUrgencyFilter,
 } from "@/src/features/products/productListUtils";
+import {
+    ProductEmptyState,
+    ProductErrorState,
+    ProductLoadingState,
+} from "@/src/features/products/ProductListStates";
 
 export default function ProductsScreen() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -106,26 +106,15 @@ export default function ProductsScreen() {
     }
 
     if (isLoading) {
-        return (
-            <View style={styles.centeredState}>
-                <ActivityIndicator />
-                <Text style={styles.stateText}>Loading products...</Text>
-            </View>
-        );
+        return <ProductLoadingState />;
     }
 
     if (errorMessage) {
         return (
-            <View style={styles.container}>
-                <View style={styles.errorCard}>
-                    <Text style={styles.errorTitle}>Unable to load products</Text>
-                    <Text style={styles.errorText}>{errorMessage}</Text>
-
-                    <Pressable style={styles.primaryButton} onPress={() => void loadProducts()}>
-                        <Text style={styles.primaryButtonText}>Try again</Text>
-                    </Pressable>
-                </View>
-            </View>
+            <ProductErrorState
+                message={errorMessage}
+                onRetry={() => void loadProducts()}
+            />
         );
     }
 
@@ -160,15 +149,9 @@ export default function ProductsScreen() {
                 />
             }
             ListEmptyComponent={
-                <View style={styles.emptyState}>
-                    <Text style={styles.emptyTitle}>
-                        {debouncedSearchQuery.trim() ? "No matching products" : "No products yet"}                    </Text>
-                    <Text style={styles.emptyText}>
-                        {debouncedSearchQuery.trim()
-                            ? "Try a different search term or clear the search box."
-                            : "Add your first product manually or save one from the receipt extraction flow."}
-                    </Text>
-                </View>
+                <ProductEmptyState
+                    isSearching={Boolean(debouncedSearchQuery.trim())}
+                />
             }
             renderItem={({ item }) => (
                 <ProductCard
@@ -185,23 +168,6 @@ export default function ProductsScreen() {
 
 
 const styles = StyleSheet.create({
-    centeredState: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#F8FAFC",
-        padding: 24,
-    },
-    stateText: {
-        marginTop: 12,
-        fontSize: 16,
-        color: "#475569",
-    },
-    container: {
-        flex: 1,
-        backgroundColor: "#F8FAFC",
-        padding: 24,
-    },
     listContent: {
         backgroundColor: "#F8FAFC",
         padding: 24,
@@ -209,55 +175,6 @@ const styles = StyleSheet.create({
     },
     emptyListContent: {
         flexGrow: 1,
-    },
-    emptyState: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#0F172A",
-        marginBottom: 8,
-    },
-    emptyText: {
-        fontSize: 15,
-        lineHeight: 22,
-        color: "#64748B",
-    },
-    errorCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: "#FCA5A5",
-    },
-    errorTitle: {
-        fontSize: 20,
-        fontWeight: "800",
-        color: "#991B1B",
-        marginBottom: 8,
-    },
-    errorText: {
-        fontSize: 15,
-        lineHeight: 22,
-        color: "#7F1D1D",
-        marginBottom: 18,
-    },
-    primaryButton: {
-        backgroundColor: "#2563EB",
-        borderRadius: 14,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        alignItems: "center",
-    },
-    primaryButtonText: {
-        color: "#FFFFFF",
-        fontSize: 15,
-        fontWeight: "700",
     },
     searchInput: {
         borderWidth: 1,
