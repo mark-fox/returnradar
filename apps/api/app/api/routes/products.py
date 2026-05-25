@@ -9,6 +9,18 @@ from app.schemas.product import ProductCreate, ProductRead, ProductUpdate
 router = APIRouter(prefix="/products", tags=["products"])
 
 
+def get_product_or_404(product_id: int, db: Session) -> Product:
+    product = db.get(Product, product_id)
+
+    if product is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found",
+        )
+
+    return product
+
+
 @router.post("", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
 def create_product(product_in: ProductCreate, db: Session = Depends(get_db)) -> Product:
     existing_product = db.scalar(
@@ -78,15 +90,7 @@ def list_products(
 
 @router.get("/{product_id}", response_model=ProductRead)
 def get_product(product_id: int, db: Session = Depends(get_db)) -> Product:
-    product = db.get(Product, product_id)
-
-    if product is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
-        )
-
-    return product
+    return get_product_or_404(product_id, db)
 
 
 @router.patch("/{product_id}", response_model=ProductRead)
@@ -95,13 +99,7 @@ def update_product(
     product_in: ProductUpdate,
     db: Session = Depends(get_db),
 ) -> Product:
-    product = db.get(Product, product_id)
-
-    if product is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
-        )
+    product = get_product_or_404(product_id, db)
 
     update_data = product_in.model_dump(exclude_unset=True)
 
@@ -117,13 +115,7 @@ def update_product(
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_product(product_id: int, db: Session = Depends(get_db)) -> None:
-    product = db.get(Product, product_id)
-
-    if product is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
-        )
+    product = get_product_or_404(product_id, db)
 
     db.delete(product)
     db.commit()
@@ -134,13 +126,7 @@ def archive_product(
     product_id: int,
     db: Session = Depends(get_db),
 ) -> Product:
-    product = db.get(Product, product_id)
-
-    if product is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
-        )
+    product = get_product_or_404(product_id, db)
 
     product.is_archived = True
 
@@ -159,13 +145,7 @@ def restore_product(
     product_id: int,
     db: Session = Depends(get_db),
 ) -> Product:
-    product = db.get(Product, product_id)
-
-    if product is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
-        )
+    product = get_product_or_404(product_id, db)
 
     product.is_archived = False
 
