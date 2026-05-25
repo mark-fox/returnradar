@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,12 +9,15 @@ class Settings(BaseSettings):
     api_prefix: str = "/api/v1"
 
     database_url: str
-    receipt_extractor_provider: str = "mock"
-    backend_cors_origins: str = "http://localhost:8081,http://localhost:19006,http://localhost:3000"
+    receipt_extractor_provider: Literal["mock", "openai"] = "mock"
+    backend_cors_origins: str = (
+        "http://localhost:8081,"
+        "http://localhost:19006,"
+        "http://localhost:3000"
+    )
+    openai_api_key: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env")
-
-    openai_api_key: str | None = None
 
     @property
     def cors_origins(self) -> list[str]:
