@@ -1,4 +1,5 @@
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, TextInput } from "react-native";
+import type { KeyboardTypeOptions, TextInputProps } from "react-native";
 
 type FieldLabelProps = {
     label: string;
@@ -14,6 +15,46 @@ export function FieldLabel({ label, required = false }: FieldLabelProps) {
     );
 }
 
+type ProductFormInputProps = TextInputProps & {
+    label: string;
+    required?: boolean;
+    value: string;
+    onChangeText: (value: string) => void;
+    keyboardType?: KeyboardTypeOptions;
+    multiline?: boolean;
+};
+
+export function ProductFormInput({
+    label,
+    required = false,
+    value,
+    onChangeText,
+    keyboardType,
+    multiline = false,
+    style,
+    ...textInputProps
+}: ProductFormInputProps) {
+    return (
+        <>
+            <FieldLabel label={label} required={required} />
+
+            <TextInput
+                value={value}
+                onChangeText={onChangeText}
+                keyboardType={keyboardType}
+                multiline={multiline}
+                textAlignVertical={multiline ? "top" : undefined}
+                style={[
+                    styles.input,
+                    multiline && styles.notesInput,
+                    style,
+                ]}
+                {...textInputProps}
+            />
+        </>
+    );
+}
+
 const styles = StyleSheet.create({
     label: {
         fontSize: 14,
@@ -23,5 +64,19 @@ const styles = StyleSheet.create({
     },
     required: {
         color: "#DC2626",
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        borderRadius: 14,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        fontSize: 16,
+        color: "#0F172A",
+        backgroundColor: "#FFFFFF",
+        marginBottom: 16,
+    },
+    notesInput: {
+        minHeight: 110,
     },
 });
