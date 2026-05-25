@@ -14,6 +14,7 @@ import { listProducts, archiveProduct } from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 import { router, useFocusEffect } from "expo-router";
 import { ProductCard } from "@/src/features/products/ProductCard";
+import { ProductListHeader } from "@/src/features/products/ProductListHeader";
 import {
     getVisibleProducts,
     type ProductSortOption,
@@ -140,159 +141,23 @@ export default function ProductsScreen() {
                 <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
             }
             ListHeaderComponent={
-                <View style={styles.header}>
-                    <Text style={styles.eyebrow}>Products</Text>
-                    <Text style={styles.title}>Tracked purchases</Text>
-                    <Text style={styles.description}>
-                        Saved products from your ReturnRadar backend will appear here.
-                    </Text>
-                    <Pressable
-                        style={styles.addButton}
-                        onPress={() => router.push("/products/new")}
-                    >
-                        <Text style={styles.addButtonText}>Add Product</Text>
-                    </Pressable>
-
-                    <Pressable
-                        style={styles.archivedButton}
-                        onPress={() => router.push("/archived-products")}
-                    >
-                        <Text style={styles.archivedButtonText}>
-                            View Archived Products
-                        </Text>
-                    </Pressable>
-
-                    <View style={styles.bulkActionsRow}>
-                        <Pressable
-                            style={styles.bulkModeButton}
-                            onPress={() => {
-                                setSelectionMode((current) => !current);
-
-                                setSelectedProductIds([]);
-                            }}
-                        >
-                            <Text style={styles.bulkModeButtonText}>
-                                {selectionMode
-                                    ? "Cancel Selection"
-                                    : "Bulk Archive"}
-                            </Text>
-                        </Pressable>
-
-                        {selectionMode &&
-                            selectedProductIds.length > 0 ? (
-                            <Pressable
-                                style={styles.bulkArchiveButton}
-                                onPress={handleBulkArchive}
-                            >
-                                <Text style={styles.bulkArchiveButtonText}>
-                                    Archive ({selectedProductIds.length})
-                                </Text>
-                            </Pressable>
-                        ) : null}
-                    </View>
-
-                    <TextInput
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        placeholder="Search products, merchants, or notes"
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        style={styles.searchInput}
-                    />
-                    {searchQuery.trim() ? (
-                        <Pressable
-                            style={styles.clearSearchButton}
-                            onPress={() => setSearchQuery("")}
-                        >
-                            <Text style={styles.clearSearchButtonText}>Clear search</Text>
-                        </Pressable>
-                    ) : null}
-
-                    <View style={styles.sortSection}>
-                        <Text style={styles.sortLabel}>Sort by</Text>
-
-                        <View style={styles.sortButtonRow}>
-                            <SortButton
-                                label="Newest"
-                                isActive={sortOption === "newest"}
-                                onPress={() => setSortOption("newest")}
-                            />
-                            <SortButton
-                                label="Return"
-                                isActive={sortOption === "returnDeadline"}
-                                onPress={() => setSortOption("returnDeadline")}
-                            />
-                            <SortButton
-                                label="Warranty"
-                                isActive={sortOption === "warrantyDeadline"}
-                                onPress={() => setSortOption("warrantyDeadline")}
-                            />
-                            <SortButton
-                                label="Name"
-                                isActive={sortOption === "name"}
-                                onPress={() => setSortOption("name")}
-                            />
-                        </View>
-                    </View>
-                    <Text style={styles.filterLabel}>
-                        Status Filters
-                    </Text>
-                    <View style={styles.filterRow}>
-                        <Pressable
-                            style={[
-                                styles.filterChip,
-                                urgencyFilter === "all" &&
-                                styles.filterChipActive,
-                            ]}
-                            onPress={() => setUrgencyFilter("all")}
-                        >
-                            <Text style={styles.filterChipText}>
-                                All
-                            </Text>
-                        </Pressable>
-
-                        <Pressable
-                            style={[
-                                styles.filterChip,
-                                urgencyFilter === "expired" &&
-                                styles.filterChipExpired,
-                            ]}
-                            onPress={() => setUrgencyFilter("expired")}
-                        >
-                            <Text style={styles.filterChipText}>
-                                Expired
-                            </Text>
-                        </Pressable>
-
-                        <Pressable
-                            style={[
-                                styles.filterChip,
-                                urgencyFilter === "urgent" &&
-                                styles.filterChipUrgent,
-                            ]}
-                            onPress={() => setUrgencyFilter("urgent")}
-                        >
-                            <Text style={styles.filterChipText}>
-                                Attention Needed
-                            </Text>
-                        </Pressable>
-
-                        <Pressable
-                            style={[
-                                styles.filterChip,
-                                urgencyFilter === "protected" &&
-                                styles.filterChipProtected,
-                            ]}
-                            onPress={() =>
-                                setUrgencyFilter("protected")
-                            }
-                        >
-                            <Text style={styles.filterChipText}>
-                                Protected
-                            </Text>
-                        </Pressable>
-                    </View>
-                </View>
+                <ProductListHeader
+                    searchQuery={searchQuery}
+                    sortOption={sortOption}
+                    urgencyFilter={urgencyFilter}
+                    selectionMode={selectionMode}
+                    selectedProductCount={selectedProductIds.length}
+                    onSearchQueryChange={setSearchQuery}
+                    onSortOptionChange={setSortOption}
+                    onUrgencyFilterChange={setUrgencyFilter}
+                    onAddProductPress={() => router.push("/products/new")}
+                    onArchivedProductsPress={() => router.push("/archived-products")}
+                    onToggleSelectionMode={() => {
+                        setSelectionMode((current) => !current);
+                        setSelectedProductIds([]);
+                    }}
+                    onBulkArchive={() => void handleBulkArchive()}
+                />
             }
             ListEmptyComponent={
                 <View style={styles.emptyState}>
@@ -315,33 +180,6 @@ export default function ProductsScreen() {
                 />
             )}
         />
-    );
-}
-
-
-function SortButton({
-    label,
-    isActive,
-    onPress,
-}: {
-    label: string;
-    isActive: boolean;
-    onPress: () => void;
-}) {
-    return (
-        <Pressable
-            style={[styles.sortButton, isActive && styles.sortButtonActive]}
-            onPress={onPress}
-        >
-            <Text
-                style={[
-                    styles.sortButtonText,
-                    isActive && styles.sortButtonTextActive,
-                ]}
-            >
-                {label}
-            </Text>
-        </Pressable>
     );
 }
 
@@ -371,27 +209,6 @@ const styles = StyleSheet.create({
     },
     emptyListContent: {
         flexGrow: 1,
-    },
-    header: {
-        marginBottom: 24,
-    },
-    eyebrow: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: "#2563EB",
-        marginBottom: 8,
-    },
-    title: {
-        fontSize: 30,
-        lineHeight: 36,
-        fontWeight: "800",
-        color: "#0F172A",
-        marginBottom: 10,
-    },
-    description: {
-        fontSize: 16,
-        lineHeight: 24,
-        color: "#475569",
     },
     emptyState: {
         backgroundColor: "#FFFFFF",
@@ -441,19 +258,6 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "700",
-    },
-    addButton: {
-        backgroundColor: "#2563EB",
-        borderRadius: 14,
-        paddingVertical: 13,
-        paddingHorizontal: 16,
-        alignItems: "center",
-        marginTop: 18,
-    },
-    addButtonText: {
-        color: "#FFFFFF",
-        fontSize: 15,
-        fontWeight: "800",
     },
     searchInput: {
         borderWidth: 1,
@@ -550,44 +354,5 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         textTransform: "uppercase",
         letterSpacing: 0.5,
-    },
-    archivedButton: {
-        alignSelf: "flex-start",
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        marginBottom: 14,
-    },
-    archivedButtonText: {
-        fontSize: 13,
-        fontWeight: "700",
-        color: "#2563EB",
-    },
-    bulkActionsRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 18,
-    },
-    bulkModeButton: {
-        backgroundColor: "#E2E8F0",
-        borderRadius: 12,
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-        marginRight: 10,
-    },
-    bulkModeButtonText: {
-        fontSize: 13,
-        fontWeight: "800",
-        color: "#0F172A",
-    },
-    bulkArchiveButton: {
-        backgroundColor: "#DC2626",
-        borderRadius: 12,
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-    },
-    bulkArchiveButtonText: {
-        fontSize: 13,
-        fontWeight: "800",
-        color: "#FFFFFF",
     },
 });
