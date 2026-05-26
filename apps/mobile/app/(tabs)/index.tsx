@@ -19,6 +19,7 @@ import type {
 } from "@/src/features/products/types";
 import { getDaysUntilDate } from "@/src/features/products/deadlineUtils";
 import { DeadlineReminderList } from "@/src/features/products/DeadlineReminderList";
+import { NotificationPermissionCard } from "@/src/features/notifications/NotificationPermissionCard";
 
 
 export default function HomeScreen() {
@@ -149,6 +150,8 @@ export default function HomeScreen() {
           />
         </View>
       )}
+
+      {!isLoading && !errorMessage ? <NotificationPermissionCard /> : null}
 
       {!isLoading && !errorMessage ? (
         <DeadlineReminderList
