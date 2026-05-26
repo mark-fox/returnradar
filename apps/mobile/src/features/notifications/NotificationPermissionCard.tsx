@@ -1,38 +1,88 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import type { DeadlineReminder } from "@/src/features/products/types";
+
+import {
+    cancelExistingDeadlineReminderNotifications,
+    scheduleDeadlineReminderNotifications,
+} from "./deadlineReminderNotifications";
 import {
     getNotificationPermissionStatus,
     requestNotificationPermissions,
     type NotificationPermissionStatus,
 } from "./notificationPermissions";
-import type { DeadlineReminder } from "@/src/features/products/types";
-import {
-    cancelExistingDeadlineReminderNotifications,
-    scheduleDeadlineReminderNotifications,
-} from "./deadlineReminderNotifications";
-
 
 type NotificationPermissionCardProps = {
     reminders: DeadlineReminder[];
 };
+
+type SchedulingStatus = "idle" | "checking" | "scheduling" | "clearing" | "error";
 
 export function NotificationPermissionCard({
     reminders,
 }: NotificationPermissionCardProps) {
     const [permissionStatus, setPermissionStatus] =
         useState<NotificationPermissionStatus | null>(null);
-    const [isRequesting, setIsRequesting] = useState(false);
-    const [scheduledMessage, setScheduledMessage] = useState<string | null>(null);
+    const [schedulingStatus, setSchedulingStatus] =
+        useState<SchedulingStatus>("checking");
+    const [statusMessage, setStatusMessage] = useState<string | null>(null);
+    const [hasAutoScheduled, setHasAutoScheduled] = useState(false);
+
+    const schedulableReminderCount = useMemo(() => {
+        return reminders.filter((reminder) => reminder.status !== "expired").length;
+    }, [reminders]);
+
+    const isBusy =
+        schedulingStatus === "checking" ||
+        schedulingStatus === "scheduling" ||
+        schedulingStatus === "clearing";
 
     useEffect(() => {
         const loadPermissionStatus = async () => {
-            const status = await getNotificationPermissionStatus();
-            setPermissionStatus(status);
+            try {
+                setSchedulingStatus("checking");
+
+                const status = await getNotificationPermissionStatus();
+
+                setPermissionStatus(status);
+                setSchedulingStatus("idle");
+            } catch (error) {
+                console.warn(error);
+                setSchedulingStatus("error");
+                setStatusMessage("Could not check notification permissions.");
+            }
         };
 
         void loadPermissionStatus();
     }, []);
+
+    const scheduleReminders = useCallback(
+        async (mode: "automatic" | "manual") => {
+            try {
+                setSchedulingStatus("scheduling");
+                setStatusMessage(null);
+
+                const result = await scheduleDeadlineReminderNotifications(reminders);
+
+                setStatusMessage(
+                    `${result.scheduledCount} reminder notification${result.scheduledCount === 1 ? "" : "s"
+                    } scheduled.`
+                );
+
+                if (mode === "manual") {
+                    setHasAutoScheduled(true);
+                }
+
+                setSchedulingStatus("idle");
+            } catch (error) {
+                console.warn(error);
+                setSchedulingStatus("error");
+                setStatusMessage("Could not schedule reminder notifications.");
+            }
+        },
+        [reminders]
+    );
 
     useEffect(() => {
         const autoScheduleReminders = async () => {
@@ -40,59 +90,58 @@ export function NotificationPermissionCard({
                 return;
             }
 
-            const result = await scheduleDeadlineReminderNotifications(reminders);
+            if (hasAutoScheduled) {
+                return;
+            }
 
-            setScheduledMessage(
-                `${result.scheduledCount} reminder notification${result.scheduledCount === 1 ? "" : "s"
-                } scheduled.`
-            );
+            await scheduleReminders("automatic");
+            setHasAutoScheduled(true);
         };
 
         void autoScheduleReminders();
-    }, [permissionStatus, reminders]);
+    }, [permissionStatus, hasAutoScheduled, reminders, scheduleReminders]);
+
+
+    const handleRequestPermission = async () => {
+        try {
+            setSchedulingStatus("checking");
+            setStatusMessage(null);
+
+            const status = await requestNotificationPermissions();
+
+            setPermissionStatus(status);
+
+            if (status === "granted") {
+                await scheduleReminders("manual");
+                return;
+            }
+
+            setSchedulingStatus("idle");
+        } catch (error) {
+            console.warn(error);
+            setSchedulingStatus("error");
+            setStatusMessage("Could not request notification permission.");
+        }
+    };
 
     const handleScheduleReminders = async () => {
-        try {
-            setIsRequesting(true);
-            setScheduledMessage(null);
-
-            const result = await scheduleDeadlineReminderNotifications(reminders);
-
-            setScheduledMessage(
-                `${result.scheduledCount} reminder notification${result.scheduledCount === 1 ? "" : "s"
-                } scheduled.`
-            );
-        } finally {
-            setIsRequesting(false);
-        }
+        await scheduleReminders("manual");
     };
 
     const handleCancelReminders = async () => {
         try {
-            setIsRequesting(true);
-            setScheduledMessage(null);
+            setSchedulingStatus("clearing");
+            setStatusMessage(null);
 
             await cancelExistingDeadlineReminderNotifications();
 
-            setScheduledMessage("Reminder notifications were cleared.");
-        } finally {
-            setIsRequesting(false);
-        }
-    };
-
-    const handleRequestPermission = async () => {
-        try {
-            setIsRequesting(true);
-            setScheduledMessage(null);
-
-            const status = await requestNotificationPermissions();
-            setPermissionStatus(status);
-
-            if (status === "granted") {
-                await handleScheduleReminders();
-            }
-        } finally {
-            setIsRequesting(false);
+            setStatusMessage("Reminder notifications were cleared.");
+            setHasAutoScheduled(false);
+            setSchedulingStatus("idle");
+        } catch (error) {
+            console.warn(error);
+            setSchedulingStatus("error");
+            setStatusMessage("Could not clear scheduled reminders.");
         }
     };
 
@@ -105,11 +154,18 @@ export function NotificationPermissionCard({
             </Text>
 
             <Text style={styles.description}>
-                {getPermissionDescription(permissionStatus)}
+                {getPermissionDescription(permissionStatus, schedulableReminderCount)}
             </Text>
 
-            {scheduledMessage ? (
-                <Text style={styles.successText}>{scheduledMessage}</Text>
+            {statusMessage ? (
+                <Text
+                    style={[
+                        styles.statusText,
+                        schedulingStatus === "error" && styles.errorText,
+                    ]}
+                >
+                    {statusMessage}
+                </Text>
             ) : null}
 
             {permissionStatus === "granted" ? (
@@ -117,26 +173,30 @@ export function NotificationPermissionCard({
                     <Pressable
                         style={[
                             styles.button,
-                            isRequesting && styles.disabledButton,
+                            isBusy && styles.disabledButton,
                         ]}
                         onPress={() => void handleScheduleReminders()}
-                        disabled={isRequesting}
+                        disabled={isBusy}
                     >
                         <Text style={styles.buttonText}>
-                            {isRequesting ? "Scheduling..." : "Schedule Reminder Notifications"}
+                            {schedulingStatus === "scheduling"
+                                ? "Scheduling..."
+                                : "Refresh Reminder Notifications"}
                         </Text>
                     </Pressable>
 
                     <Pressable
                         style={[
                             styles.secondaryButton,
-                            isRequesting && styles.disabledButton,
+                            isBusy && styles.disabledButton,
                         ]}
                         onPress={() => void handleCancelReminders()}
-                        disabled={isRequesting}
+                        disabled={isBusy}
                     >
                         <Text style={styles.secondaryButtonText}>
-                            Clear Scheduled Reminders
+                            {schedulingStatus === "clearing"
+                                ? "Clearing..."
+                                : "Clear Scheduled Reminders"}
                         </Text>
                     </Pressable>
                 </>
@@ -144,13 +204,15 @@ export function NotificationPermissionCard({
                 <Pressable
                     style={[
                         styles.button,
-                        isRequesting && styles.disabledButton,
+                        isBusy && styles.disabledButton,
                     ]}
                     onPress={() => void handleRequestPermission()}
-                    disabled={isRequesting}
+                    disabled={isBusy}
                 >
                     <Text style={styles.buttonText}>
-                        {isRequesting ? "Checking..." : "Enable Notifications"}
+                        {schedulingStatus === "checking"
+                            ? "Checking..."
+                            : "Enable Notifications"}
                     </Text>
                 </Pressable>
             )}
@@ -173,17 +235,23 @@ function getPermissionTitle(
 }
 
 function getPermissionDescription(
-    permissionStatus: NotificationPermissionStatus | null
+    permissionStatus: NotificationPermissionStatus | null,
+    schedulableReminderCount: number
 ): string {
     if (permissionStatus === "granted") {
-        return "ReturnRadar can remind you about upcoming return and warranty deadlines.";
+        if (schedulableReminderCount === 0) {
+            return "ReturnRadar is ready to schedule reminders when upcoming deadlines are available.";
+        }
+
+        return `${schedulableReminderCount} upcoming reminder${schedulableReminderCount === 1 ? "" : "s"
+            } can be scheduled on this device.`;
     }
 
     if (permissionStatus === "denied") {
         return "You can still view reminders in the app. To receive device notifications, enable them in your system settings.";
     }
 
-    return "Enable notifications now so ReturnRadar can eventually remind you before deadlines are missed.";
+    return "Enable notifications so ReturnRadar can remind you before return and warranty deadlines are missed.";
 }
 
 const styles = StyleSheet.create({
@@ -214,6 +282,16 @@ const styles = StyleSheet.create({
         color: "#475569",
         marginBottom: 14,
     },
+    statusText: {
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: "700",
+        color: "#166534",
+        marginBottom: 12,
+    },
+    errorText: {
+        color: "#B91C1C",
+    },
     button: {
         backgroundColor: "#2563EB",
         borderRadius: 14,
@@ -221,20 +299,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         alignItems: "center",
     },
-    disabledButton: {
-        opacity: 0.7,
-    },
     buttonText: {
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "800",
-    },
-    successText: {
-        fontSize: 14,
-        lineHeight: 20,
-        fontWeight: "700",
-        color: "#166534",
-        marginBottom: 12,
     },
     secondaryButton: {
         backgroundColor: "#FFFFFF",
@@ -250,5 +318,8 @@ const styles = StyleSheet.create({
         color: "#0F172A",
         fontSize: 15,
         fontWeight: "800",
+    },
+    disabledButton: {
+        opacity: 0.7,
     },
 });
