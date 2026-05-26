@@ -27,10 +27,26 @@ export function NotificationPermissionCard({
     const [schedulingStatus, setSchedulingStatus] =
         useState<SchedulingStatus>("checking");
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
-    const [hasAutoScheduled, setHasAutoScheduled] = useState(false);
+    const [lastAutoScheduledReminderSignature, setLastAutoScheduledReminderSignature] =
+        useState<string | null>(null);
 
     const schedulableReminderCount = useMemo(() => {
         return reminders.filter((reminder) => reminder.status !== "expired").length;
+    }, [reminders]);
+
+    const reminderSignature = useMemo(() => {
+        return reminders
+            .filter((reminder) => reminder.status !== "expired")
+            .map((reminder) =>
+                [
+                    reminder.product_id,
+                    reminder.deadline_type,
+                    reminder.deadline_date,
+                    reminder.days_remaining,
+                    reminder.status,
+                ].join(":")
+            )
+            .join("|");
     }, [reminders]);
 
     const isBusy =
@@ -71,7 +87,7 @@ export function NotificationPermissionCard({
                 );
 
                 if (mode === "manual") {
-                    setHasAutoScheduled(true);
+                    setLastAutoScheduledReminderSignature(reminderSignature);
                 }
 
                 setSchedulingStatus("idle");
@@ -81,7 +97,7 @@ export function NotificationPermissionCard({
                 setStatusMessage("Could not schedule reminder notifications.");
             }
         },
-        [reminders]
+        [reminders, reminderSignature]
     );
 
     useEffect(() => {
@@ -90,16 +106,25 @@ export function NotificationPermissionCard({
                 return;
             }
 
-            if (hasAutoScheduled) {
+            if (!reminderSignature) {
+                return;
+            }
+
+            if (lastAutoScheduledReminderSignature === reminderSignature) {
                 return;
             }
 
             await scheduleReminders("automatic");
-            setHasAutoScheduled(true);
+            setLastAutoScheduledReminderSignature(reminderSignature);
         };
 
         void autoScheduleReminders();
-    }, [permissionStatus, hasAutoScheduled, reminders, scheduleReminders]);
+    }, [
+        permissionStatus,
+        reminderSignature,
+        lastAutoScheduledReminderSignature,
+        scheduleReminders,
+    ]);
 
 
     const handleRequestPermission = async () => {
@@ -136,7 +161,7 @@ export function NotificationPermissionCard({
             await cancelExistingDeadlineReminderNotifications();
 
             setStatusMessage("Reminder notifications were cleared.");
-            setHasAutoScheduled(false);
+            setLastAutoScheduledReminderSignature(null);
             setSchedulingStatus("idle");
         } catch (error) {
             console.warn(error);
