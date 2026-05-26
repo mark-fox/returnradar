@@ -31,6 +31,22 @@ export function NotificationPermissionCard({
         void loadPermissionStatus();
     }, []);
 
+    const handleScheduleReminders = async () => {
+        try {
+            setIsRequesting(true);
+            setScheduledMessage(null);
+
+            const result = await scheduleDeadlineReminderNotifications(reminders);
+
+            setScheduledMessage(
+                `${result.scheduledCount} reminder notification${result.scheduledCount === 1 ? "" : "s"
+                } scheduled.`
+            );
+        } finally {
+            setIsRequesting(false);
+        }
+    };
+
     const handleRequestPermission = async () => {
         try {
             setIsRequesting(true);
@@ -40,12 +56,7 @@ export function NotificationPermissionCard({
             setPermissionStatus(status);
 
             if (status === "granted") {
-                const result = await scheduleDeadlineReminderNotifications(reminders);
-
-                setScheduledMessage(
-                    `${result.scheduledCount} reminder notification${result.scheduledCount === 1 ? "" : "s"
-                    } scheduled.`
-                );
+                await handleScheduleReminders();
             }
         } finally {
             setIsRequesting(false);
@@ -68,7 +79,20 @@ export function NotificationPermissionCard({
                 <Text style={styles.successText}>{scheduledMessage}</Text>
             ) : null}
 
-            {permissionStatus !== "granted" ? (
+            {permissionStatus === "granted" ? (
+                <Pressable
+                    style={[
+                        styles.button,
+                        isRequesting && styles.disabledButton,
+                    ]}
+                    onPress={() => void handleScheduleReminders()}
+                    disabled={isRequesting}
+                >
+                    <Text style={styles.buttonText}>
+                        {isRequesting ? "Scheduling..." : "Schedule Reminder Notifications"}
+                    </Text>
+                </Pressable>
+            ) : (
                 <Pressable
                     style={[
                         styles.button,
@@ -81,7 +105,7 @@ export function NotificationPermissionCard({
                         {isRequesting ? "Checking..." : "Enable Notifications"}
                     </Text>
                 </Pressable>
-            ) : null}
+            )}
         </View>
     );
 }
