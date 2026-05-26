@@ -83,8 +83,7 @@ function getNotificationBody(reminder: DeadlineReminder): string {
         return `${reminder.product_name} has a deadline today.`;
     }
 
-    return `${reminder.product_name} has ${reminder.days_remaining} day${reminder.days_remaining === 1 ? "" : "s"
-        } remaining.`;
+    return `${reminder.product_name} has an upcoming ${reminder.deadline_type} deadline.`;
 }
 
 function getReminderNotificationDate(reminder: DeadlineReminder): Date {
@@ -95,12 +94,10 @@ function getReminderNotificationDate(reminder: DeadlineReminder): Date {
     }
 
     const notificationDate = new Date(now);
-
-    notificationDate.setDate(now.getDate() + reminder.days_remaining);
     notificationDate.setHours(9, 0, 0, 0);
 
     if (notificationDate <= now) {
-        return new Date(now.getTime() + 60 * 1000);
+        notificationDate.setDate(notificationDate.getDate() + 1);
     }
 
     return notificationDate;
