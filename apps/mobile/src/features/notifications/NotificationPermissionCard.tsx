@@ -7,7 +7,10 @@ import {
     type NotificationPermissionStatus,
 } from "./notificationPermissions";
 import type { DeadlineReminder } from "@/src/features/products/types";
-import { scheduleDeadlineReminderNotifications } from "./deadlineReminderNotifications";
+import {
+    cancelExistingDeadlineReminderNotifications,
+    scheduleDeadlineReminderNotifications,
+} from "./deadlineReminderNotifications";
 
 
 type NotificationPermissionCardProps = {
@@ -47,6 +50,19 @@ export function NotificationPermissionCard({
         }
     };
 
+    const handleCancelReminders = async () => {
+        try {
+            setIsRequesting(true);
+            setScheduledMessage(null);
+
+            await cancelExistingDeadlineReminderNotifications();
+
+            setScheduledMessage("Reminder notifications were cleared.");
+        } finally {
+            setIsRequesting(false);
+        }
+    };
+
     const handleRequestPermission = async () => {
         try {
             setIsRequesting(true);
@@ -80,18 +96,33 @@ export function NotificationPermissionCard({
             ) : null}
 
             {permissionStatus === "granted" ? (
-                <Pressable
-                    style={[
-                        styles.button,
-                        isRequesting && styles.disabledButton,
-                    ]}
-                    onPress={() => void handleScheduleReminders()}
-                    disabled={isRequesting}
-                >
-                    <Text style={styles.buttonText}>
-                        {isRequesting ? "Scheduling..." : "Schedule Reminder Notifications"}
-                    </Text>
-                </Pressable>
+                <>
+                    <Pressable
+                        style={[
+                            styles.button,
+                            isRequesting && styles.disabledButton,
+                        ]}
+                        onPress={() => void handleScheduleReminders()}
+                        disabled={isRequesting}
+                    >
+                        <Text style={styles.buttonText}>
+                            {isRequesting ? "Scheduling..." : "Schedule Reminder Notifications"}
+                        </Text>
+                    </Pressable>
+
+                    <Pressable
+                        style={[
+                            styles.secondaryButton,
+                            isRequesting && styles.disabledButton,
+                        ]}
+                        onPress={() => void handleCancelReminders()}
+                        disabled={isRequesting}
+                    >
+                        <Text style={styles.secondaryButtonText}>
+                            Clear Scheduled Reminders
+                        </Text>
+                    </Pressable>
+                </>
             ) : (
                 <Pressable
                     style={[
@@ -187,5 +218,20 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#166534",
         marginBottom: 12,
+    },
+    secondaryButton: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 14,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        marginTop: 10,
+    },
+    secondaryButtonText: {
+        color: "#0F172A",
+        fontSize: 15,
+        fontWeight: "800",
     },
 });
