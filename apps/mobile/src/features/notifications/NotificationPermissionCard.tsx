@@ -34,6 +34,23 @@ export function NotificationPermissionCard({
         void loadPermissionStatus();
     }, []);
 
+    useEffect(() => {
+        const autoScheduleReminders = async () => {
+            if (permissionStatus !== "granted") {
+                return;
+            }
+
+            const result = await scheduleDeadlineReminderNotifications(reminders);
+
+            setScheduledMessage(
+                `${result.scheduledCount} reminder notification${result.scheduledCount === 1 ? "" : "s"
+                } scheduled.`
+            );
+        };
+
+        void autoScheduleReminders();
+    }, [permissionStatus, reminders]);
+
     const handleScheduleReminders = async () => {
         try {
             setIsRequesting(true);
