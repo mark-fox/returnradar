@@ -6,11 +6,21 @@ import {
     requestNotificationPermissions,
     type NotificationPermissionStatus,
 } from "./notificationPermissions";
+import type { DeadlineReminder } from "@/src/features/products/types";
+import { scheduleDeadlineReminderNotifications } from "./deadlineReminderNotifications";
 
-export function NotificationPermissionCard() {
+
+type NotificationPermissionCardProps = {
+    reminders: DeadlineReminder[];
+};
+
+export function NotificationPermissionCard({
+    reminders,
+}: NotificationPermissionCardProps) {
     const [permissionStatus, setPermissionStatus] =
         useState<NotificationPermissionStatus | null>(null);
     const [isRequesting, setIsRequesting] = useState(false);
+    const [scheduledMessage, setScheduledMessage] = useState<string | null>(null);
 
     useEffect(() => {
         const loadPermissionStatus = async () => {
@@ -24,9 +34,19 @@ export function NotificationPermissionCard() {
     const handleRequestPermission = async () => {
         try {
             setIsRequesting(true);
+            setScheduledMessage(null);
 
             const status = await requestNotificationPermissions();
             setPermissionStatus(status);
+
+            if (status === "granted") {
+                const result = await scheduleDeadlineReminderNotifications(reminders);
+
+                setScheduledMessage(
+                    `${result.scheduledCount} reminder notification${result.scheduledCount === 1 ? "" : "s"
+                    } scheduled.`
+                );
+            }
         } finally {
             setIsRequesting(false);
         }
@@ -43,6 +63,10 @@ export function NotificationPermissionCard() {
             <Text style={styles.description}>
                 {getPermissionDescription(permissionStatus)}
             </Text>
+
+            {scheduledMessage ? (
+                <Text style={styles.successText}>{scheduledMessage}</Text>
+            ) : null}
 
             {permissionStatus !== "granted" ? (
                 <Pressable
@@ -132,5 +156,12 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "800",
+    },
+    successText: {
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: "700",
+        color: "#166534",
+        marginBottom: 12,
     },
 });

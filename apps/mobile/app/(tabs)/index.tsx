@@ -151,7 +151,9 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {!isLoading && !errorMessage ? <NotificationPermissionCard /> : null}
+      {!isLoading && !errorMessage ? (
+        <NotificationPermissionCard reminders={deadlineReminders} />
+      ) : null}
 
       {!isLoading && !errorMessage ? (
         <DeadlineReminderList
