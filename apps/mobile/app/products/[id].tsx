@@ -28,6 +28,7 @@ import {
 } from "@/src/features/products/productListUtils";
 import { DetailRow } from "@/src/features/products/DetailRow";
 import { DetailSection } from "@/src/features/products/DetailSection";
+import { buildUploadedFileUrl } from "@/src/lib/apiUrls";
 
 
 function formatDaysRemaining(
@@ -152,6 +153,7 @@ export default function ProductDetailScreen() {
     const warrantyStatus = getWarrantyDeadlineStatus(product.warranty_deadline);
     const warrantyDaysRemaining = getDaysUntilDate(product.warranty_deadline);
     const returnDaysRemaining = getDaysUntilDate(product.return_deadline);
+    const receiptImageUrl = buildUploadedFileUrl(product.receipt_image_path);
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -191,19 +193,18 @@ export default function ProductDetailScreen() {
                 <DetailRow label="Currency" value={product.currency} />
             </DetailSection>
 
-            {product.receipt_image_path ? (
+            {receiptImageUrl ? (
                 <DetailSection title="Receipt Image">
                     <Pressable onPress={() => setIsReceiptViewerVisible(true)}>
-                        <Image
-                            source={{
-                                uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace(
-                                    "/api/v1",
-                                    ""
-                                )}/${product.receipt_image_path}`,
-                            }}
-                            style={styles.receiptImage}
-                            resizeMode="cover"
-                        />
+                        {receiptImageUrl ? (
+                            <Pressable onPress={() => setIsReceiptViewerVisible(true)}>
+                                <Image
+                                    source={{ uri: receiptImageUrl }}
+                                    style={styles.receiptImage}
+                                    resizeMode="cover"
+                                />
+                            </Pressable>
+                        ) : null}
                     </Pressable>
                 </DetailSection>
             ) : null}
@@ -282,14 +283,7 @@ export default function ProductDetailScreen() {
                 )}
             </Pressable>
             <ImageViewing
-                images={[
-                    {
-                        uri: `${process.env.EXPO_PUBLIC_API_BASE_URL?.replace(
-                            "/api/v1",
-                            "",
-                        )}/${product.receipt_image_path}`,
-                    },
-                ]}
+                images={receiptImageUrl ? [{ uri: receiptImageUrl }] : []}
                 imageIndex={0}
                 visible={isReceiptViewerVisible}
                 onRequestClose={() =>
