@@ -209,6 +209,12 @@ export default function ProductDetailScreen() {
                             <Text style={styles.receiptImageFallbackText}>
                                 The receipt image path is saved, but the image could not be loaded.
                             </Text>
+
+                            {product.receipt_image_path ? (
+                                <Text style={styles.receiptImagePathText}>
+                                    Saved path: {product.receipt_image_path}
+                                </Text>
+                            ) : null}
                         </View>
                     ) : (
                         <Pressable onPress={() => setIsReceiptViewerVisible(true)}>
@@ -429,5 +435,11 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 20,
         color: "#64748B",
+    },
+    receiptImagePathText: {
+        fontSize: 12,
+        lineHeight: 18,
+        color: "#64748B",
+        marginTop: 8,
     },
 });
