@@ -72,10 +72,7 @@ async def upload_receipt_image(
 
     file_path.write_bytes(contents)
 
-    extraction_response.warnings.insert(
-        0,
-        f"receipt_image_path:{file_path.as_posix()}",
-    )
+    extraction_response.receipt_image_path = file_path.as_posix()
 
     return extraction_response
 

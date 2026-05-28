@@ -172,13 +172,7 @@ export default function ReceiptScanScreen() {
 
             setResult(uploadResult);
 
-            const imagePathWarning = uploadResult.warnings.find((warning) =>
-                warning.startsWith("receipt_image_path:")
-            );
-
-            const nextReceiptImagePath = imagePathWarning
-                ? imagePathWarning.replace("receipt_image_path:", "")
-                : "";
+            const nextReceiptImagePath = uploadResult.receipt_image_path ?? "";
 
             const reviewFormValues = applyExtractionResultToReviewForm(uploadResult);
             const nextUploadedImageInfo =

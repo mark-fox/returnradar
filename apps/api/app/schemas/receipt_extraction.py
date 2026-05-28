@@ -30,3 +30,4 @@ class ReceiptExtractionResponse(BaseModel):
     suggestion: ReceiptProductSuggestion
     warnings: list[str] = Field(default_factory=list)
     line_items: list[ReceiptLineItem] = Field(default_factory=list)
+    receipt_image_path: str | None = None

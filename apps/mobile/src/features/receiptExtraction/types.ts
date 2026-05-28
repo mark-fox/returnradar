@@ -23,4 +23,5 @@ export type ReceiptExtractionResponse = {
         name: string;
         price_cents: number | null;
     }[];
+    receipt_image_path: string | null;
 };

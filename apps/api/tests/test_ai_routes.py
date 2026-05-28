@@ -82,6 +82,8 @@ def test_receipt_image_upload_accepts_png(
     assert payload["source"] == "openai-vision"
     assert payload["suggestion"]["name"] == "Mock Receipt Product"
     assert payload["suggestion"]["warranty_provider"] == "Geek Squad"
+    assert payload["receipt_image_path"] is not None
+    assert payload["receipt_image_path"].startswith("uploads/")
 
 
 def test_receipt_image_upload_rejects_invalid_types(
