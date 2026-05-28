@@ -1,5 +1,5 @@
 import { Stack, router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -60,6 +60,7 @@ export default function ProductDetailScreen() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isReceiptViewerVisible, setIsReceiptViewerVisible] = useState(false);
+    const [receiptImageFailedToLoad, setReceiptImageFailedToLoad] = useState(false);
 
     const loadProduct = useCallback(async () => {
         try {
@@ -85,6 +86,10 @@ export default function ProductDetailScreen() {
             void loadProduct();
         }, [loadProduct])
     );
+
+    useEffect(() => {
+        setReceiptImageFailedToLoad(false);
+    }, [product?.receipt_image_path]);
 
     const handleDelete = async () => {
         if (!Number.isFinite(productId)) {
@@ -195,17 +200,26 @@ export default function ProductDetailScreen() {
 
             {receiptImageUrl ? (
                 <DetailSection title="Receipt Image">
-                    <Pressable onPress={() => setIsReceiptViewerVisible(true)}>
-                        {receiptImageUrl ? (
-                            <Pressable onPress={() => setIsReceiptViewerVisible(true)}>
-                                <Image
-                                    source={{ uri: receiptImageUrl }}
-                                    style={styles.receiptImage}
-                                    resizeMode="cover"
-                                />
-                            </Pressable>
-                        ) : null}
-                    </Pressable>
+                    {receiptImageFailedToLoad ? (
+                        <View style={styles.receiptImageFallback}>
+                            <Text style={styles.receiptImageFallbackTitle}>
+                                Receipt image unavailable
+                            </Text>
+
+                            <Text style={styles.receiptImageFallbackText}>
+                                The receipt image path is saved, but the image could not be loaded.
+                            </Text>
+                        </View>
+                    ) : (
+                        <Pressable onPress={() => setIsReceiptViewerVisible(true)}>
+                            <Image
+                                source={{ uri: receiptImageUrl }}
+                                style={styles.receiptImage}
+                                resizeMode="cover"
+                                onError={() => setReceiptImageFailedToLoad(true)}
+                            />
+                        </Pressable>
+                    )}
                 </DetailSection>
             ) : null}
 
@@ -282,14 +296,14 @@ export default function ProductDetailScreen() {
                     <Text style={styles.deleteButtonText}>Archive Product</Text>
                 )}
             </Pressable>
-            <ImageViewing
-                images={receiptImageUrl ? [{ uri: receiptImageUrl }] : []}
-                imageIndex={0}
-                visible={isReceiptViewerVisible}
-                onRequestClose={() =>
-                    setIsReceiptViewerVisible(false)
-                }
-            />
+            {receiptImageUrl ? (
+                <ImageViewing
+                    images={[{ uri: receiptImageUrl }]}
+                    imageIndex={0}
+                    visible={isReceiptViewerVisible}
+                    onRequestClose={() => setIsReceiptViewerVisible(false)}
+                />
+            ) : null}
         </ScrollView>
     );
 }
@@ -426,5 +440,23 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "800",
+    },
+    receiptImageFallback: {
+        backgroundColor: "#F8FAFC",
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+    },
+    receiptImageFallbackTitle: {
+        fontSize: 15,
+        fontWeight: "800",
+        color: "#0F172A",
+        marginBottom: 6,
+    },
+    receiptImageFallbackText: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: "#64748B",
     },
 });
