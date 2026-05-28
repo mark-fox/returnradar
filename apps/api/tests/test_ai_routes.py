@@ -84,6 +84,10 @@ def test_receipt_image_upload_accepts_png(
     assert payload["suggestion"]["warranty_provider"] == "Geek Squad"
     assert payload["receipt_image_path"] is not None
     assert payload["receipt_image_path"].startswith("uploads/")
+    assert not any(
+        warning.startswith("receipt_image_path:")
+        for warning in payload["warnings"]
+    )
 
 
 def test_receipt_image_upload_rejects_invalid_types(
