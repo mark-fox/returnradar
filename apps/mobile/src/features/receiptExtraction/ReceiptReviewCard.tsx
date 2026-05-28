@@ -12,6 +12,8 @@ type ReceiptReviewCardProps = {
     suggestedReturnDeadline: string;
     suggestedWarrantyDeadline: string;
     warrantyProvider: string;
+    warrantyClaimUrl: string;
+    warrantyNotes: string;
     suggestedNotes: string;
     validationMessage: string | null;
     errorMessage: string | null;
@@ -26,6 +28,8 @@ type ReceiptReviewCardProps = {
     onSuggestedReturnDeadlineChange: (value: string) => void;
     onSuggestedWarrantyDeadlineChange: (value: string) => void;
     onWarrantyProviderChange: (value: string) => void;
+    onWarrantyClaimUrlChange: (value: string) => void;
+    onWarrantyNotesChange: (value: string) => void;
     onSuggestedNotesChange: (value: string) => void;
     onDismissRestoredSessionNotice: () => void;
     onSaveSuggestion: () => void;
@@ -41,6 +45,8 @@ export function ReceiptReviewCard({
     suggestedReturnDeadline,
     suggestedWarrantyDeadline,
     warrantyProvider,
+    warrantyClaimUrl,
+    warrantyNotes,
     suggestedNotes,
     validationMessage,
     errorMessage,
@@ -55,6 +61,8 @@ export function ReceiptReviewCard({
     onSuggestedReturnDeadlineChange,
     onSuggestedWarrantyDeadlineChange,
     onWarrantyProviderChange,
+    onWarrantyClaimUrlChange,
+    onWarrantyNotesChange,
     onSuggestedNotesChange,
     onDismissRestoredSessionNotice,
     onSaveSuggestion,
@@ -126,6 +134,22 @@ export function ReceiptReviewCard({
                 onChangeText={onWarrantyProviderChange}
                 placeholder="Geek Squad"
                 autoCapitalize="words"
+            />
+
+            <ProductFormInput
+                label="Warranty claim URL"
+                value={warrantyClaimUrl}
+                onChangeText={onWarrantyClaimUrlChange}
+                placeholder="https://..."
+                autoCapitalize="none"
+            />
+
+            <ProductFormInput
+                label="Warranty notes"
+                value={warrantyNotes}
+                onChangeText={onWarrantyNotesChange}
+                placeholder="Claim instructions, serial number requirements, etc."
+                multiline
             />
 
             <ProductFormInput

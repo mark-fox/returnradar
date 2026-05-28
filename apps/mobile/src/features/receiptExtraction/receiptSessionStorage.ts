@@ -14,6 +14,8 @@ export type ReceiptScanSession = {
     suggestedReturnDeadline: string;
     suggestedWarrantyDeadline: string;
     warrantyProvider: string;
+    warrantyClaimUrl: string;
+    warrantyNotes: string;
     suggestedNotes: string;
     selectedImageUri: string | null;
     uploadedImageInfo: string | null;

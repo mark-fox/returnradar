@@ -56,6 +56,8 @@ export default function ReceiptScanScreen() {
     const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
     const [savedReceiptItems, setSavedReceiptItems] = useState<string[]>([]);
     const [warrantyProvider, setWarrantyProvider] = useState("");
+    const [warrantyClaimUrl, setWarrantyClaimUrl] = useState("");
+    const [warrantyNotes, setWarrantyNotes] = useState("");
 
     const [restoredSessionNoticeVisible, setRestoredSessionNoticeVisible] =
         useState(false);
@@ -85,6 +87,8 @@ export default function ReceiptScanScreen() {
                 );
                 setSuggestedNotes(parsed.suggestedNotes ?? "");
                 setWarrantyProvider(parsed.warrantyProvider ?? "");
+                setWarrantyClaimUrl(parsed.warrantyClaimUrl ?? "");
+                setWarrantyNotes(parsed.warrantyNotes ?? "");
                 setSelectedImageUri(
                     parsed.selectedImageUri ?? null,
                 );
@@ -187,6 +191,8 @@ export default function ReceiptScanScreen() {
             await persistReceiptSession({
                 result: uploadResult,
                 ...reviewFormValues,
+                warrantyClaimUrl: "",
+                warrantyNotes: "",
                 selectedImageUri: imageUri,
                 uploadedImageInfo: nextUploadedImageInfo,
                 receiptImagePath: nextReceiptImagePath,
@@ -301,6 +307,8 @@ export default function ReceiptScanScreen() {
         setSuggestedWarrantyDeadline("");
         setSuggestedNotes("");
         setWarrantyProvider("");
+        setWarrantyClaimUrl("");
+        setWarrantyNotes("");
         setSelectedImageUri(null);
         setUploadedImageInfo(null);
         setImageUploadStatus(null);
@@ -340,6 +348,8 @@ export default function ReceiptScanScreen() {
             await persistReceiptSession({
                 result: extractionResult,
                 ...reviewFormValues,
+                warrantyClaimUrl: "",
+                warrantyNotes: "",
                 selectedImageUri,
                 uploadedImageInfo,
                 receiptImagePath,
@@ -399,6 +409,8 @@ export default function ReceiptScanScreen() {
                 return_deadline: normalizeOptionalDate(suggestedReturnDeadline),
                 warranty_deadline: normalizeOptionalDate(suggestedWarrantyDeadline),
                 warranty_provider: warrantyProvider.trim() || null,
+                warranty_claim_url: warrantyClaimUrl.trim() || null,
+                warranty_notes: warrantyNotes.trim() || null,
                 price_cents: priceCents,
                 currency: result?.suggestion.currency ?? "USD",
                 notes: suggestedNotes.trim() || null,
@@ -427,6 +439,8 @@ export default function ReceiptScanScreen() {
                     suggestedReturnDeadline,
                     suggestedWarrantyDeadline,
                     warrantyProvider,
+                    warrantyClaimUrl,
+                    warrantyNotes,
                     suggestedNotes,
                     selectedImageUri,
                     uploadedImageInfo,
@@ -504,6 +518,8 @@ export default function ReceiptScanScreen() {
                             suggestedReturnDeadline={suggestedReturnDeadline}
                             suggestedWarrantyDeadline={suggestedWarrantyDeadline}
                             warrantyProvider={warrantyProvider}
+                            warrantyClaimUrl={warrantyClaimUrl}
+                            warrantyNotes={warrantyNotes}
                             suggestedNotes={suggestedNotes}
                             validationMessage={validationMessage}
                             errorMessage={errorMessage}
@@ -518,6 +534,8 @@ export default function ReceiptScanScreen() {
                             onSuggestedReturnDeadlineChange={setSuggestedReturnDeadline}
                             onSuggestedWarrantyDeadlineChange={setSuggestedWarrantyDeadline}
                             onWarrantyProviderChange={setWarrantyProvider}
+                            onWarrantyClaimUrlChange={setWarrantyClaimUrl}
+                            onWarrantyNotesChange={setWarrantyNotes}
                             onSuggestedNotesChange={setSuggestedNotes}
                             onDismissRestoredSessionNotice={() =>
                                 setRestoredSessionNoticeVisible(false)
