@@ -93,6 +93,9 @@ export default function HomeScreen() {
   }, [products]);
 
 
+  const hasNoProducts = !isLoading && !errorMessage && products.length === 0;
+
+
   const topDeadlineReminders = useMemo(() => {
     return deadlineReminders.slice(0, 4);
   }, [deadlineReminders]);
@@ -150,6 +153,39 @@ export default function HomeScreen() {
           />
         </View>
       )}
+
+      {hasNoProducts ? (
+        <View style={styles.onboardingCard}>
+          <Text style={styles.onboardingEyebrow}>Get started</Text>
+
+          <Text style={styles.onboardingTitle}>
+            Track your first purchase
+          </Text>
+
+          <Text style={styles.onboardingText}>
+            Scan a receipt or add a product manually to start tracking return windows,
+            warranty deadlines, and receipt details.
+          </Text>
+
+          <Pressable
+            style={styles.onboardingPrimaryButton}
+            onPress={() => router.push("/receipt-scan")}
+          >
+            <Text style={styles.onboardingPrimaryButtonText}>
+              Scan First Receipt
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.onboardingSecondaryButton}
+            onPress={() => router.push("/products/new")}
+          >
+            <Text style={styles.onboardingSecondaryButtonText}>
+              Add Product Manually
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       {!isLoading && !errorMessage ? (
         <NotificationPermissionCard reminders={deadlineReminders} />
@@ -381,5 +417,60 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: "#64748B",
+  },
+  onboardingCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    marginBottom: 28,
+  },
+  onboardingEyebrow: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#2563EB",
+    marginBottom: 8,
+    textTransform: "uppercase",
+  },
+  onboardingTitle: {
+    fontSize: 24,
+    lineHeight: 30,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 10,
+  },
+  onboardingText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#475569",
+    marginBottom: 18,
+  },
+  onboardingPrimaryButton: {
+    backgroundColor: "#2563EB",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  onboardingPrimaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  onboardingSecondaryButton: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+  },
+  onboardingSecondaryButtonText: {
+    color: "#0F172A",
+    fontSize: 16,
+    fontWeight: "800",
   },
 });
