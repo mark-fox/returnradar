@@ -187,18 +187,18 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      {!isLoading && !errorMessage ? (
+      {!isLoading && !errorMessage && !hasNoProducts ? (
         <NotificationPermissionCard reminders={deadlineReminders} />
       ) : null}
 
-      {!isLoading && !errorMessage ? (
+      {!isLoading && !errorMessage && !hasNoProducts ? (
         <DeadlineReminderList
           reminders={topDeadlineReminders}
           onReminderPress={(productId) => router.push(`/products/${productId}`)}
         />
       ) : null}
 
-      {!isLoading && !errorMessage ? (
+      {!isLoading && !errorMessage && !hasNoProducts ? (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recently added</Text>
 
