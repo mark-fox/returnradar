@@ -284,6 +284,25 @@ export default function ReceiptScanScreen() {
     };
 
 
+    const findNextUnsavedLineItem = (
+        savedItemNames: string[],
+        currentItemName: string
+    ) => {
+        if (!result) {
+            return null;
+        }
+
+        return (
+            result.line_items.find((item) => {
+                const itemWasSaved = savedItemNames.includes(item.name);
+                const isCurrentItem = item.name === currentItemName;
+
+                return !itemWasSaved && !isCurrentItem;
+            }) ?? null
+        );
+    };
+
+
     const resetReceiptSession = () => {
         setSaveSuccessMessage(
             "Receipt session completed. Ready for a new receipt."
@@ -423,12 +442,31 @@ export default function ReceiptScanScreen() {
 
             setSavedReceiptItems(nextSavedReceiptItems);
 
+            const nextUnsavedLineItem = findNextUnsavedLineItem(
+                nextSavedReceiptItems,
+                trimmedName
+            );
+
+            let nextSuggestedName = suggestedName;
+            let nextSuggestedPrice = suggestedPrice;
+
+            if (nextUnsavedLineItem) {
+                nextSuggestedName = nextUnsavedLineItem.name;
+                nextSuggestedPrice =
+                    nextUnsavedLineItem.price_cents === null
+                        ? ""
+                        : (nextUnsavedLineItem.price_cents / 100).toFixed(2);
+
+                setSuggestedName(nextSuggestedName);
+                setSuggestedPrice(nextSuggestedPrice);
+            }
+
             if (result) {
                 await persistReceiptSession({
                     result,
-                    suggestedName,
+                    suggestedName: nextSuggestedName,
                     suggestedMerchant,
-                    suggestedPrice,
+                    suggestedPrice: nextSuggestedPrice,
                     suggestedPurchaseDate,
                     suggestedReturnDeadline,
                     suggestedWarrantyDeadline,
@@ -444,7 +482,9 @@ export default function ReceiptScanScreen() {
             }
 
             setSaveSuccessMessage(
-                `${trimmedName} was saved. You can select another receipt item or start a new receipt.`
+                nextUnsavedLineItem
+                    ? `${trimmedName} was saved. Next detected item loaded for review.`
+                    : `${trimmedName} was saved. All detected receipt items have been reviewed.`
             );
             setErrorMessage(null);
         } catch (error) {
