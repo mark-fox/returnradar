@@ -541,6 +541,7 @@ export default function ReceiptScanScreen() {
                         <ReceiptExtractionSummaryCard
                             result={result}
                             savedReceiptItems={savedReceiptItems}
+                            activeItemName={suggestedName}
                             onSelectLineItem={handleSelectLineItem}
                         />
                         <ReceiptReviewCard

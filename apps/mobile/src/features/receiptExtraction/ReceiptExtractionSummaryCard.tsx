@@ -7,6 +7,7 @@ type ReceiptLineItem = ReceiptExtractionResponse["line_items"][number];
 type ReceiptExtractionSummaryCardProps = {
     result: ReceiptExtractionResponse;
     savedReceiptItems: string[];
+    activeItemName: string;
     onSelectLineItem: (
         itemName: string,
         itemPriceCents: number | null
@@ -16,6 +17,7 @@ type ReceiptExtractionSummaryCardProps = {
 export function ReceiptExtractionSummaryCard({
     result,
     savedReceiptItems,
+    activeItemName,
     onSelectLineItem,
 }: ReceiptExtractionSummaryCardProps) {
     return (
@@ -47,6 +49,7 @@ export function ReceiptExtractionSummaryCard({
                 <DetectedLineItemsList
                     lineItems={result.line_items}
                     savedReceiptItems={savedReceiptItems}
+                    activeItemName={activeItemName}
                     onSelectLineItem={onSelectLineItem}
                 />
             ) : null}
@@ -57,10 +60,12 @@ export function ReceiptExtractionSummaryCard({
 function DetectedLineItemsList({
     lineItems,
     savedReceiptItems,
+    activeItemName,
     onSelectLineItem,
 }: {
     lineItems: ReceiptLineItem[];
     savedReceiptItems: string[];
+    activeItemName: string;
     onSelectLineItem: (
         itemName: string,
         itemPriceCents: number | null
@@ -78,12 +83,14 @@ function DetectedLineItemsList({
 
             {lineItems.map((item, index) => {
                 const isAlreadySaved = savedReceiptItems.includes(item.name);
+                const isActiveItem = item.name === activeItemName && !isAlreadySaved;
 
                 return (
                     <Pressable
                         key={`${item.name}-${index}`}
                         style={[
                             styles.lineItemRow,
+                            isActiveItem && styles.activeLineItemRow,
                             isAlreadySaved && styles.savedLineItemRow,
                         ]}
                         disabled={isAlreadySaved}
@@ -98,6 +105,12 @@ function DetectedLineItemsList({
                         {isAlreadySaved ? (
                             <Text style={styles.savedLineItemText}>
                                 Saved
+                            </Text>
+                        ) : null}
+
+                        {isActiveItem ? (
+                            <Text style={styles.activeLineItemText}>
+                                Reviewing
                             </Text>
                         ) : null}
 
@@ -188,6 +201,17 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "800",
         color: "#166534",
+        marginRight: 10,
+    },
+    activeLineItemRow: {
+        backgroundColor: "#EFF6FF",
+        borderWidth: 1,
+        borderColor: "#93C5FD",
+    },
+    activeLineItemText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#1D4ED8",
         marginRight: 10,
     },
 });
