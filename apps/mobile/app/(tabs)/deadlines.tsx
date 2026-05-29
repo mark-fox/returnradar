@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import {
     Pressable,
     RefreshControl,
@@ -101,10 +101,30 @@ export default function DeadlinesScreen() {
             />
 
             {!hasAnyDeadlines ? (
-                <DeadlineEmptyState
-                    title="No deadlines need attention"
-                    message="Products with return deadlines in the next 7 days, warranty deadlines in the next 30 days, or expired deadlines will appear here."
-                />
+                <>
+                    <DeadlineEmptyState
+                        title="No deadlines need attention"
+                        message="Products with return deadlines in the next 7 days, warranty deadlines in the next 30 days, or expired deadlines will appear here."
+                    />
+
+                    <Pressable
+                        style={styles.emptyActionButton}
+                        onPress={() => router.push("/products/new")}
+                    >
+                        <Text style={styles.emptyActionButtonText}>
+                            Add Product With Deadline
+                        </Text>
+                    </Pressable>
+
+                    <Pressable
+                        style={styles.emptySecondaryButton}
+                        onPress={() => router.push("/receipt-scan")}
+                    >
+                        <Text style={styles.emptySecondaryButtonText}>
+                            Scan Receipt
+                        </Text>
+                    </Pressable>
+                </>
             ) : (
                 <>
                     {deadlineFilter !== "warranties" &&
@@ -212,6 +232,35 @@ const styles = StyleSheet.create({
     clearFocusButtonText: {
         color: "#FFFFFF",
         fontSize: 14,
+        fontWeight: "800",
+    },
+    emptyActionButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        marginTop: 6,
+        marginBottom: 12,
+    },
+    emptyActionButtonText: {
+        color: "#FFFFFF",
+        fontSize: 16,
+        fontWeight: "800",
+    },
+    emptySecondaryButton: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        marginBottom: 24,
+    },
+    emptySecondaryButtonText: {
+        color: "#0F172A",
+        fontSize: 16,
         fontWeight: "800",
     },
 });
