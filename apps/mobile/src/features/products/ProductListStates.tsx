@@ -40,9 +40,15 @@ export function ProductErrorState({
 
 type ProductEmptyStateProps = {
     isSearching: boolean;
+    onAddProductPress: () => void;
+    onScanReceiptPress: () => void;
 };
 
-export function ProductEmptyState({ isSearching }: ProductEmptyStateProps) {
+export function ProductEmptyState({
+    isSearching,
+    onAddProductPress,
+    onScanReceiptPress,
+}: ProductEmptyStateProps) {
     return (
         <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>
@@ -52,8 +58,30 @@ export function ProductEmptyState({ isSearching }: ProductEmptyStateProps) {
             <Text style={styles.emptyText}>
                 {isSearching
                     ? "Try a different search term or clear the search box."
-                    : "Add your first product manually or save one from the receipt extraction flow."}
+                    : "Add your first product manually or scan a receipt to start tracking return windows and warranty deadlines."}
             </Text>
+
+            {!isSearching ? (
+                <>
+                    <Pressable
+                        style={styles.emptyPrimaryButton}
+                        onPress={onScanReceiptPress}
+                    >
+                        <Text style={styles.emptyPrimaryButtonText}>
+                            Scan Receipt
+                        </Text>
+                    </Pressable>
+
+                    <Pressable
+                        style={styles.emptySecondaryButton}
+                        onPress={onAddProductPress}
+                    >
+                        <Text style={styles.emptySecondaryButtonText}>
+                            Add Product Manually
+                        </Text>
+                    </Pressable>
+                </>
+            ) : null}
         </View>
     );
 }
@@ -122,6 +150,34 @@ const styles = StyleSheet.create({
     },
     primaryButtonText: {
         color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "800",
+    },
+    emptyPrimaryButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: 14,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        marginTop: 18,
+        marginBottom: 10,
+    },
+    emptyPrimaryButtonText: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "800",
+    },
+    emptySecondaryButton: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 14,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+    },
+    emptySecondaryButtonText: {
+        color: "#0F172A",
         fontSize: 15,
         fontWeight: "800",
     },

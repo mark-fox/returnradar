@@ -104,6 +104,8 @@ export default function ProductsScreen() {
             ListEmptyComponent={
                 <ProductEmptyState
                     isSearching={Boolean(debouncedSearchQuery.trim())}
+                    onAddProductPress={() => router.push("/products/new")}
+                    onScanReceiptPress={() => router.push("/receipt-scan")}
                 />
             }
             renderItem={({ item }) => (
