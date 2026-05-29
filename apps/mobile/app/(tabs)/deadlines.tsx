@@ -64,9 +64,9 @@ export default function DeadlinesScreen() {
             <Stack.Screen options={{ title: "Deadlines" }} />
 
             <Text style={styles.eyebrow}>Deadline Radar</Text>
-            <Text style={styles.title}>Upcoming deadlines</Text>
+            <Text style={styles.title}>Deadline center</Text>
             <Text style={styles.description}>
-                Review returns and warranties that need attention soon.
+                Review return windows and warranty deadlines that are coming up or already expired.
             </Text>
 
             <Text style={styles.lastUpdatedText}>
@@ -102,8 +102,8 @@ export default function DeadlinesScreen() {
 
             {!hasAnyDeadlines ? (
                 <DeadlineEmptyState
-                    title="No urgent deadlines"
-                    message="Products with return deadlines in the next 7 days or warranty deadlines in the next 30 days will appear here."
+                    title="No deadlines need attention"
+                    message="Products with return deadlines in the next 7 days, warranty deadlines in the next 30 days, or expired deadlines will appear here."
                 />
             ) : (
                 <>
