@@ -58,6 +58,7 @@ export default function ReceiptScanScreen() {
     const [warrantyProvider, setWarrantyProvider] = useState("");
     const [warrantyClaimUrl, setWarrantyClaimUrl] = useState("");
     const [warrantyNotes, setWarrantyNotes] = useState("");
+    const [skippedReceiptItems, setSkippedReceiptItems] = useState<string[]>([]);
 
     const [restoredSessionNoticeVisible, setRestoredSessionNoticeVisible] =
         useState(false);
@@ -103,6 +104,10 @@ export default function ReceiptScanScreen() {
 
                 setSavedReceiptItems(
                     parsed.savedReceiptItems ?? [],
+                );
+
+                setSkippedReceiptItems(
+                    parsed.skippedReceiptItems ?? [],
                 );
 
                 setRestoredSessionNoticeVisible(true);
@@ -191,6 +196,7 @@ export default function ReceiptScanScreen() {
                 uploadedImageInfo: nextUploadedImageInfo,
                 receiptImagePath: nextReceiptImagePath,
                 savedReceiptItems,
+                skippedReceiptItems,
             });
         } catch (error) {
             console.warn(error);
@@ -284,8 +290,74 @@ export default function ReceiptScanScreen() {
     };
 
 
-    const findNextUnsavedLineItem = (
+    const handleSkipCurrentLineItem = async () => {
+        const trimmedName = suggestedName.trim();
+
+        if (!trimmedName || !result) {
+            return;
+        }
+
+        if (savedReceiptItems.includes(trimmedName)) {
+            return;
+        }
+
+        const nextSkippedReceiptItems = skippedReceiptItems.includes(trimmedName)
+            ? skippedReceiptItems
+            : [...skippedReceiptItems, trimmedName];
+
+        setSkippedReceiptItems(nextSkippedReceiptItems);
+
+        const nextUnreviewedLineItem = findNextUnreviewedLineItem(
+            savedReceiptItems,
+            nextSkippedReceiptItems,
+            trimmedName
+        );
+
+        let nextSuggestedName = suggestedName;
+        let nextSuggestedPrice = suggestedPrice;
+
+        if (nextUnreviewedLineItem) {
+            nextSuggestedName = nextUnreviewedLineItem.name;
+            nextSuggestedPrice =
+                nextUnreviewedLineItem.price_cents === null
+                    ? ""
+                    : (nextUnreviewedLineItem.price_cents / 100).toFixed(2);
+
+            setSuggestedName(nextSuggestedName);
+            setSuggestedPrice(nextSuggestedPrice);
+        }
+
+        await persistReceiptSession({
+            result,
+            suggestedName: nextSuggestedName,
+            suggestedMerchant,
+            suggestedPrice: nextSuggestedPrice,
+            suggestedPurchaseDate,
+            suggestedReturnDeadline,
+            suggestedWarrantyDeadline,
+            warrantyProvider,
+            warrantyClaimUrl,
+            warrantyNotes,
+            suggestedNotes,
+            selectedImageUri,
+            uploadedImageInfo,
+            receiptImagePath,
+            savedReceiptItems,
+            skippedReceiptItems: nextSkippedReceiptItems,
+        });
+
+        setSaveSuccessMessage(
+            nextUnreviewedLineItem
+                ? `${trimmedName} was skipped. Next detected item loaded for review.`
+                : `${trimmedName} was skipped. All detected receipt items have been reviewed.`
+        );
+
+        setErrorMessage(null);
+    };
+
+    const findNextUnreviewedLineItem = (
         savedItemNames: string[],
+        skippedItemNames: string[],
         currentItemName: string
     ) => {
         if (!result) {
@@ -295,9 +367,10 @@ export default function ReceiptScanScreen() {
         return (
             result.line_items.find((item) => {
                 const itemWasSaved = savedItemNames.includes(item.name);
+                const itemWasSkipped = skippedItemNames.includes(item.name);
                 const isCurrentItem = item.name === currentItemName;
 
-                return !itemWasSaved && !isCurrentItem;
+                return !itemWasSaved && !itemWasSkipped && !isCurrentItem;
             }) ?? null
         );
     };
@@ -332,6 +405,7 @@ export default function ReceiptScanScreen() {
         setValidationMessage(null);
         setErrorMessage(null);
         setSavedReceiptItems([]);
+        setSkippedReceiptItems([]);
         setRestoredSessionNoticeVisible(false);
     };
 
@@ -367,6 +441,7 @@ export default function ReceiptScanScreen() {
                 uploadedImageInfo,
                 receiptImagePath,
                 savedReceiptItems,
+                skippedReceiptItems,
             });
         } catch (error) {
             console.warn(error);
@@ -442,8 +517,9 @@ export default function ReceiptScanScreen() {
 
             setSavedReceiptItems(nextSavedReceiptItems);
 
-            const nextUnsavedLineItem = findNextUnsavedLineItem(
+            const nextUnsavedLineItem = findNextUnreviewedLineItem(
                 nextSavedReceiptItems,
+                skippedReceiptItems,
                 trimmedName
             );
 
@@ -478,6 +554,7 @@ export default function ReceiptScanScreen() {
                     uploadedImageInfo,
                     receiptImagePath,
                     savedReceiptItems: nextSavedReceiptItems,
+                    skippedReceiptItems,
                 });
             }
 
@@ -541,6 +618,7 @@ export default function ReceiptScanScreen() {
                         <ReceiptExtractionSummaryCard
                             result={result}
                             savedReceiptItems={savedReceiptItems}
+                            skippedReceiptItems={skippedReceiptItems}
                             activeItemName={suggestedName}
                             onSelectLineItem={handleSelectLineItem}
                         />
@@ -576,6 +654,7 @@ export default function ReceiptScanScreen() {
                                 setRestoredSessionNoticeVisible(false)
                             }
                             onSaveSuggestion={() => void handleSaveSuggestion()}
+                            onSkipCurrentLineItem={() => void handleSkipCurrentLineItem()}
                             onFinishSession={resetReceiptSession}
                         />
                     </>

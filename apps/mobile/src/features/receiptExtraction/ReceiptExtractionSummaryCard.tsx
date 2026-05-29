@@ -7,6 +7,7 @@ type ReceiptLineItem = ReceiptExtractionResponse["line_items"][number];
 type ReceiptExtractionSummaryCardProps = {
     result: ReceiptExtractionResponse;
     savedReceiptItems: string[];
+    skippedReceiptItems: string[];
     activeItemName: string;
     onSelectLineItem: (
         itemName: string,
@@ -17,6 +18,7 @@ type ReceiptExtractionSummaryCardProps = {
 export function ReceiptExtractionSummaryCard({
     result,
     savedReceiptItems,
+    skippedReceiptItems,
     activeItemName,
     onSelectLineItem,
 }: ReceiptExtractionSummaryCardProps) {
@@ -49,6 +51,7 @@ export function ReceiptExtractionSummaryCard({
                 <DetectedLineItemsList
                     lineItems={result.line_items}
                     savedReceiptItems={savedReceiptItems}
+                    skippedReceiptItems={skippedReceiptItems}
                     activeItemName={activeItemName}
                     onSelectLineItem={onSelectLineItem}
                 />
@@ -60,11 +63,13 @@ export function ReceiptExtractionSummaryCard({
 function DetectedLineItemsList({
     lineItems,
     savedReceiptItems,
+    skippedReceiptItems,
     activeItemName,
     onSelectLineItem,
 }: {
     lineItems: ReceiptLineItem[];
     savedReceiptItems: string[];
+    skippedReceiptItems: string[];
     activeItemName: string;
     onSelectLineItem: (
         itemName: string,
@@ -83,7 +88,10 @@ function DetectedLineItemsList({
 
             {lineItems.map((item, index) => {
                 const isAlreadySaved = savedReceiptItems.includes(item.name);
-                const isActiveItem = item.name === activeItemName && !isAlreadySaved;
+                const isSkipped = skippedReceiptItems.includes(item.name);
+                const isActiveItem =
+                    item.name === activeItemName && !isAlreadySaved && !isSkipped;
+                const isReviewed = isAlreadySaved || isSkipped;
 
                 return (
                     <Pressable
@@ -91,9 +99,9 @@ function DetectedLineItemsList({
                         style={[
                             styles.lineItemRow,
                             isActiveItem && styles.activeLineItemRow,
-                            isAlreadySaved && styles.savedLineItemRow,
+                            isReviewed && styles.reviewedLineItemRow,
                         ]}
-                        disabled={isAlreadySaved}
+                        disabled={isReviewed}
                         onPress={() =>
                             onSelectLineItem(item.name, item.price_cents)
                         }
@@ -105,6 +113,12 @@ function DetectedLineItemsList({
                         {isAlreadySaved ? (
                             <Text style={styles.savedLineItemText}>
                                 Saved
+                            </Text>
+                        ) : null}
+
+                        {isSkipped ? (
+                            <Text style={styles.skippedLineItemText}>
+                                Skipped
                             </Text>
                         ) : null}
 
@@ -194,7 +208,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#1D4ED8",
     },
-    savedLineItemRow: {
+    reviewedLineItemRow: {
         opacity: 0.45,
     },
     savedLineItemText: {
@@ -212,6 +226,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "800",
         color: "#1D4ED8",
+        marginRight: 10,
+    },
+    skippedLineItemText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#64748B",
         marginRight: 10,
     },
 });

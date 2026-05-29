@@ -21,6 +21,7 @@ export type ReceiptScanSession = {
     uploadedImageInfo: string | null;
     receiptImagePath: string;
     savedReceiptItems: string[];
+    skippedReceiptItems: string[];
 };
 
 export async function readReceiptSession(): Promise<Partial<ReceiptScanSession> | null> {

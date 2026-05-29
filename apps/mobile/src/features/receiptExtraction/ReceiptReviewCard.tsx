@@ -33,6 +33,7 @@ type ReceiptReviewCardProps = {
     onSuggestedNotesChange: (value: string) => void;
     onDismissRestoredSessionNotice: () => void;
     onSaveSuggestion: () => void;
+    onSkipCurrentLineItem: () => void;
     onFinishSession: () => void;
 };
 
@@ -66,6 +67,7 @@ export function ReceiptReviewCard({
     onSuggestedNotesChange,
     onDismissRestoredSessionNotice,
     onSaveSuggestion,
+    onSkipCurrentLineItem,
     onFinishSession,
 }: ReceiptReviewCardProps) {
     const savedReceiptItemCount = savedReceiptItems.length;
@@ -241,6 +243,16 @@ export function ReceiptReviewCard({
             </Pressable>
 
             <Pressable
+                style={styles.skipButton}
+                onPress={onSkipCurrentLineItem}
+                disabled={isSaving}
+            >
+                <Text style={styles.skipButtonText}>
+                    Skip Current Item
+                </Text>
+            </Pressable>
+
+            <Pressable
                 style={styles.finishSessionButton}
                 onPress={onFinishSession}
             >
@@ -401,5 +413,20 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "800",
         color: "#B45309",
+    },
+    skipButton: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        marginTop: 10,
+    },
+    skipButtonText: {
+        color: "#0F172A",
+        fontSize: 16,
+        fontWeight: "800",
     },
 });
