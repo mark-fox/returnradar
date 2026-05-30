@@ -290,6 +290,56 @@ export default function ReceiptScanScreen() {
     };
 
 
+    const handleAddMissingLineItem = async (
+        itemName: string,
+        itemPriceCents: number | null
+    ) => {
+        if (!result) {
+            return;
+        }
+
+        const nextResult = {
+            ...result,
+            line_items: [
+                ...result.line_items,
+                {
+                    name: itemName,
+                    price_cents: itemPriceCents,
+                },
+            ],
+        };
+
+        const nextSuggestedPrice =
+            itemPriceCents === null
+                ? ""
+                : (itemPriceCents / 100).toFixed(2);
+
+        setResult(nextResult);
+        setSuggestedName(itemName);
+        setSuggestedPrice(nextSuggestedPrice);
+        setSaveSuccessMessage(`${itemName} was added to the receipt review queue.`);
+        setErrorMessage(null);
+
+        await persistReceiptSession({
+            result: nextResult,
+            suggestedName: itemName,
+            suggestedMerchant,
+            suggestedPrice: nextSuggestedPrice,
+            suggestedPurchaseDate,
+            suggestedReturnDeadline,
+            suggestedWarrantyDeadline,
+            warrantyProvider,
+            warrantyClaimUrl,
+            warrantyNotes,
+            suggestedNotes,
+            selectedImageUri,
+            uploadedImageInfo,
+            receiptImagePath,
+            savedReceiptItems,
+            skippedReceiptItems,
+        });
+    };
+
     const handleSkipCurrentLineItem = async () => {
         const trimmedName = suggestedName.trim();
 
@@ -621,6 +671,9 @@ export default function ReceiptScanScreen() {
                             skippedReceiptItems={skippedReceiptItems}
                             activeItemName={suggestedName}
                             onSelectLineItem={handleSelectLineItem}
+                            onAddLineItem={(itemName, itemPriceCents) =>
+                                void handleAddMissingLineItem(itemName, itemPriceCents)
+                            }
                         />
                         <ReceiptReviewCard
                             result={result}

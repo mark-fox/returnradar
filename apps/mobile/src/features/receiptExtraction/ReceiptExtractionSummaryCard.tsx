@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import type { ReceiptExtractionResponse } from "./types";
 
@@ -13,6 +14,10 @@ type ReceiptExtractionSummaryCardProps = {
         itemName: string,
         itemPriceCents: number | null
     ) => void;
+    onAddLineItem: (
+        itemName: string,
+        itemPriceCents: number | null
+    ) => void;
 };
 
 export function ReceiptExtractionSummaryCard({
@@ -21,6 +26,7 @@ export function ReceiptExtractionSummaryCard({
     skippedReceiptItems,
     activeItemName,
     onSelectLineItem,
+    onAddLineItem,
 }: ReceiptExtractionSummaryCardProps) {
     return (
         <View style={styles.summaryCard}>
@@ -54,6 +60,7 @@ export function ReceiptExtractionSummaryCard({
                     skippedReceiptItems={skippedReceiptItems}
                     activeItemName={activeItemName}
                     onSelectLineItem={onSelectLineItem}
+                    onAddLineItem={onAddLineItem}
                 />
             ) : null}
         </View>
@@ -66,6 +73,7 @@ function DetectedLineItemsList({
     skippedReceiptItems,
     activeItemName,
     onSelectLineItem,
+    onAddLineItem,
 }: {
     lineItems: ReceiptLineItem[];
     savedReceiptItems: string[];
@@ -75,7 +83,41 @@ function DetectedLineItemsList({
         itemName: string,
         itemPriceCents: number | null
     ) => void;
+    onAddLineItem: (
+        itemName: string,
+        itemPriceCents: number | null
+    ) => void;
 }) {
+    const [customItemName, setCustomItemName] = useState("");
+    const [customItemPrice, setCustomItemPrice] = useState("");
+    const [customItemError, setCustomItemError] = useState<string | null>(null);
+
+    const handleAddCustomItem = () => {
+        const trimmedName = customItemName.trim();
+
+        if (!trimmedName) {
+            setCustomItemError("Enter an item name.");
+            return;
+        }
+
+        if (lineItems.some((item) => item.name === trimmedName)) {
+            setCustomItemError("That item is already in the receipt list.");
+            return;
+        }
+
+        const priceCents = parseCustomPriceToCents(customItemPrice);
+
+        if (customItemPrice.trim() && priceCents === null) {
+            setCustomItemError("Enter a valid price, like 19.99.");
+            return;
+        }
+
+        onAddLineItem(trimmedName, priceCents);
+
+        setCustomItemName("");
+        setCustomItemPrice("");
+        setCustomItemError(null);
+    };
     return (
         <View style={styles.lineItemsSection}>
             <Text style={styles.lineItemsTitle}>
@@ -136,8 +178,58 @@ function DetectedLineItemsList({
                     </Pressable>
                 );
             })}
+            <View style={styles.customItemCard}>
+                <Text style={styles.customItemTitle}>
+                    Missing an item?
+                </Text>
+
+                <TextInput
+                    value={customItemName}
+                    onChangeText={setCustomItemName}
+                    placeholder="Item name"
+                    autoCapitalize="words"
+                    style={styles.customItemInput}
+                />
+
+                <TextInput
+                    value={customItemPrice}
+                    onChangeText={setCustomItemPrice}
+                    placeholder="Optional price, like 19.99"
+                    keyboardType="decimal-pad"
+                    style={styles.customItemInput}
+                />
+
+                {customItemError ? (
+                    <Text style={styles.customItemError}>
+                        {customItemError}
+                    </Text>
+                ) : null}
+
+                <Pressable
+                    style={styles.addCustomItemButton}
+                    onPress={handleAddCustomItem}
+                >
+                    <Text style={styles.addCustomItemButtonText}>
+                        Add Missing Item
+                    </Text>
+                </Pressable>
+            </View>
         </View>
     );
+}
+
+function parseCustomPriceToCents(priceValue: string): number | null {
+    const trimmedPrice = priceValue.trim();
+
+    if (!trimmedPrice) {
+        return null;
+    }
+
+    if (!/^\d+(\.\d{1,2})?$/.test(trimmedPrice)) {
+        return null;
+    }
+
+    return Math.round(Number(trimmedPrice) * 100);
 }
 
 const styles = StyleSheet.create({
@@ -233,5 +325,47 @@ const styles = StyleSheet.create({
         fontWeight: "800",
         color: "#64748B",
         marginRight: 10,
+    },
+    customItemCard: {
+        backgroundColor: "#F8FAFC",
+        borderRadius: 16,
+        padding: 14,
+        marginTop: 8,
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+    },
+    customItemTitle: {
+        fontSize: 14,
+        fontWeight: "800",
+        color: "#0F172A",
+        marginBottom: 10,
+    },
+    customItemInput: {
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 15,
+        color: "#0F172A",
+        backgroundColor: "#FFFFFF",
+        marginBottom: 10,
+    },
+    customItemError: {
+        color: "#B91C1C",
+        fontSize: 13,
+        lineHeight: 18,
+        marginBottom: 10,
+    },
+    addCustomItemButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: 12,
+        paddingVertical: 12,
+        alignItems: "center",
+    },
+    addCustomItemButtonText: {
+        color: "#FFFFFF",
+        fontSize: 14,
+        fontWeight: "800",
     },
 });
