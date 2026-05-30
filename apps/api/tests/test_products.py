@@ -510,3 +510,69 @@ def test_list_deadline_reminders_excludes_archived_products(
     ]
 
     assert "Archived Reminder Product" not in product_names
+
+
+def test_create_product_allows_support_metadata(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Smart Speaker",
+            "merchant": "Best Buy",
+            "model_number": "SPK-2026",
+            "serial_number": "SN123456789",
+            "manual_url": "https://example.com/manual",
+            "support_url": "https://example.com/support",
+            "support_phone": "1-800-555-1234",
+            "source": "manual",
+        },
+    )
+
+    assert response.status_code == 201
+
+    payload = response.json()
+
+    assert payload["model_number"] == "SPK-2026"
+    assert payload["serial_number"] == "SN123456789"
+    assert payload["manual_url"] == "https://example.com/manual"
+    assert payload["support_url"] == "https://example.com/support"
+    assert payload["support_phone"] == "1-800-555-1234"
+
+
+def test_update_product_allows_support_metadata(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Router",
+            "merchant": "Target",
+            "source": "manual",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+
+    update_response = client.patch(
+        f"/api/v1/products/{product_id}",
+        json={
+            "model_number": "RTR-9000",
+            "serial_number": "ROUTER-SN-001",
+            "manual_url": "https://example.com/router-manual",
+            "support_url": "https://example.com/router-support",
+            "support_phone": "1-888-555-9999",
+        },
+    )
+
+    assert update_response.status_code == 200
+
+    payload = update_response.json()
+
+    assert payload["model_number"] == "RTR-9000"
+    assert payload["serial_number"] == "ROUTER-SN-001"
+    assert payload["manual_url"] == "https://example.com/router-manual"
+    assert payload["support_url"] == "https://example.com/router-support"
+    assert payload["support_phone"] == "1-888-555-9999"

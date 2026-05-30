@@ -14,6 +14,11 @@ class ProductBase(BaseModel):
     warranty_provider: str | None = Field(default=None, max_length=255)
     warranty_claim_url: str | None = Field(default=None, max_length=500)
     warranty_notes: str | None = None
+    model_number: str | None = Field(default=None, max_length=255)
+    serial_number: str | None = Field(default=None, max_length=255)
+    manual_url: str | None = Field(default=None, max_length=500)
+    support_url: str | None = Field(default=None, max_length=500)
+    support_phone: str | None = Field(default=None, max_length=50)
 
     price_cents: int | None = Field(default=None, ge=0)
     currency: str = Field(default="USD", min_length=3, max_length=3)
@@ -40,6 +45,11 @@ class ProductUpdate(BaseModel):
     warranty_provider: str | None = Field(default=None, max_length=255)
     warranty_claim_url: str | None = Field(default=None, max_length=500)
     warranty_notes: str | None = None
+    model_number: str | None = Field(default=None, max_length=255)
+    serial_number: str | None = Field(default=None, max_length=255)
+    manual_url: str | None = Field(default=None, max_length=500)
+    support_url: str | None = Field(default=None, max_length=500)
+    support_phone: str | None = Field(default=None, max_length=50)
 
     price_cents: int | None = Field(default=None, ge=0)
     currency: str | None = Field(default=None, min_length=3, max_length=3)
