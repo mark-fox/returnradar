@@ -106,6 +106,9 @@ def list_products(
                 Product.notes.ilike(search_pattern),
                 Product.warranty_provider.ilike(search_pattern),
                 Product.warranty_notes.ilike(search_pattern),
+                Product.model_number.ilike(search_pattern),
+                Product.serial_number.ilike(search_pattern),
+                Product.support_phone.ilike(search_pattern),
             )
         )
 

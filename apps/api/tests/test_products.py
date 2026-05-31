@@ -576,3 +576,42 @@ def test_update_product_allows_support_metadata(
     assert payload["manual_url"] == "https://example.com/router-manual"
     assert payload["support_url"] == "https://example.com/router-support"
     assert payload["support_phone"] == "1-888-555-9999"
+
+
+def test_list_products_searches_support_metadata(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Support Search Product",
+            "merchant": "Best Buy",
+            "model_number": "MODEL-ABC-123",
+            "serial_number": "SERIAL-XYZ-789",
+            "support_phone": "1-800-555-2026",
+            "source": "manual",
+        },
+    )
+
+    assert response.status_code == 201
+
+    model_search_response = client.get("/api/v1/products?search=MODEL-ABC")
+    serial_search_response = client.get("/api/v1/products?search=SERIAL-XYZ")
+    phone_search_response = client.get("/api/v1/products?search=555-2026")
+
+    assert model_search_response.status_code == 200
+    assert serial_search_response.status_code == 200
+    assert phone_search_response.status_code == 200
+
+    assert any(
+        product["name"] == "Support Search Product"
+        for product in model_search_response.json()
+    )
+    assert any(
+        product["name"] == "Support Search Product"
+        for product in serial_search_response.json()
+    )
+    assert any(
+        product["name"] == "Support Search Product"
+        for product in phone_search_response.json()
+    )
