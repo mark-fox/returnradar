@@ -80,7 +80,7 @@ export function ProductListHeader({
             <TextInput
                 value={searchQuery}
                 onChangeText={onSearchQueryChange}
-                placeholder="Search products, merchants, or notes"
+                placeholder="Search name, merchant, model, serial, or support info"
                 autoCapitalize="none"
                 autoCorrect={false}
                 style={styles.searchInput}
