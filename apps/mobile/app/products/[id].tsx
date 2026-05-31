@@ -12,8 +12,13 @@ import {
     Linking,
 } from "react-native";
 import ImageViewing from "react-native-image-viewing";
+import * as ImagePicker from "expo-image-picker";
 
-import { getProduct, archiveProduct } from "@/src/features/products/api";
+import {
+    archiveProduct,
+    attachReceiptImageToProduct,
+    getProduct,
+} from "@/src/features/products/api";
 import type { Product } from "@/src/features/products/types";
 import {
     getDaysUntilDate,
@@ -61,6 +66,9 @@ export default function ProductDetailScreen() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isReceiptViewerVisible, setIsReceiptViewerVisible] = useState(false);
     const [receiptImageFailedToLoad, setReceiptImageFailedToLoad] = useState(false);
+    const [isAttachingReceiptImage, setIsAttachingReceiptImage] = useState(false);
+    const [receiptImageUploadMessage, setReceiptImageUploadMessage] =
+        useState<string | null>(null);
 
     const loadProduct = useCallback(async () => {
         try {
@@ -124,6 +132,62 @@ export default function ProductDetailScreen() {
                 },
             ]
         );
+    };
+
+    const handleAttachReceiptImage = async () => {
+        if (!product) {
+            return;
+        }
+
+        const permissionResult =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permissionResult.granted) {
+            setReceiptImageUploadMessage(
+                "Photo library access is needed to attach a receipt image."
+            );
+            return;
+        }
+
+        const pickerResult = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images"],
+            allowsEditing: false,
+            quality: 0.8,
+            exif: false,
+            base64: false,
+        });
+
+        if (pickerResult.canceled) {
+            return;
+        }
+
+        const imageUri = pickerResult.assets[0]?.uri;
+
+        if (!imageUri) {
+            setReceiptImageUploadMessage("Could not read the selected image.");
+            return;
+        }
+
+        try {
+            setIsAttachingReceiptImage(true);
+            setReceiptImageUploadMessage(null);
+
+            const updatedProduct = await attachReceiptImageToProduct(
+                product.id,
+                imageUri
+            );
+
+            setProduct(updatedProduct);
+            setReceiptImageFailedToLoad(false);
+            setReceiptImageUploadMessage("Receipt image attached.");
+        } catch (error) {
+            console.warn(error);
+            setReceiptImageUploadMessage(
+                "Could not attach receipt image. Please try again."
+            );
+        } finally {
+            setIsAttachingReceiptImage(false);
+        }
     };
 
     if (isLoading) {
@@ -207,32 +271,63 @@ export default function ProductDetailScreen() {
 
             {receiptImageUrl ? (
                 <DetailSection title="Receipt Image">
-                    {receiptImageFailedToLoad ? (
-                        <View style={styles.receiptImageFallback}>
-                            <Text style={styles.receiptImageFallbackTitle}>
-                                Receipt image unavailable
-                            </Text>
-
-                            <Text style={styles.receiptImageFallbackText}>
-                                The receipt image path is saved, but the image could not be loaded.
-                            </Text>
-
-                            {product.receipt_image_path ? (
-                                <Text style={styles.receiptImagePathText}>
-                                    Saved path: {product.receipt_image_path}
+                    {receiptImageUrl ? (
+                        receiptImageFailedToLoad ? (
+                            <View style={styles.receiptImageFallback}>
+                                <Text style={styles.receiptImageFallbackTitle}>
+                                    Receipt image unavailable
                                 </Text>
-                            ) : null}
-                        </View>
+
+                                <Text style={styles.receiptImageFallbackText}>
+                                    The receipt image path is saved, but the image could not be loaded.
+                                </Text>
+
+                                {product.receipt_image_path ? (
+                                    <Text style={styles.receiptImagePathText}>
+                                        Saved path: {product.receipt_image_path}
+                                    </Text>
+                                ) : null}
+                            </View>
+                        ) : (
+                            <Pressable onPress={() => setIsReceiptViewerVisible(true)}>
+                                <Image
+                                    source={{ uri: receiptImageUrl }}
+                                    style={styles.receiptImage}
+                                    resizeMode="cover"
+                                    onError={() => setReceiptImageFailedToLoad(true)}
+                                />
+                            </Pressable>
+                        )
                     ) : (
-                        <Pressable onPress={() => setIsReceiptViewerVisible(true)}>
-                            <Image
-                                source={{ uri: receiptImageUrl }}
-                                style={styles.receiptImage}
-                                resizeMode="cover"
-                                onError={() => setReceiptImageFailedToLoad(true)}
-                            />
-                        </Pressable>
+                        <Text style={styles.emptyReceiptImageText}>
+                            No receipt image is attached to this product yet.
+                        </Text>
                     )}
+
+                    {receiptImageUploadMessage ? (
+                        <Text style={styles.receiptImageUploadMessage}>
+                            {receiptImageUploadMessage}
+                        </Text>
+                    ) : null}
+
+                    <Pressable
+                        style={[
+                            styles.attachReceiptImageButton,
+                            isAttachingReceiptImage && styles.disabledButton,
+                        ]}
+                        onPress={() => void handleAttachReceiptImage()}
+                        disabled={isAttachingReceiptImage}
+                    >
+                        {isAttachingReceiptImage ? (
+                            <ActivityIndicator color="#FFFFFF" />
+                        ) : (
+                            <Text style={styles.attachReceiptImageButtonText}>
+                                {receiptImageUrl
+                                    ? "Replace Receipt Image"
+                                    : "Attach Receipt Image"}
+                            </Text>
+                        )}
+                    </Pressable>
                 </DetailSection>
             ) : null}
 
@@ -525,6 +620,33 @@ const styles = StyleSheet.create({
     },
     supportSecondaryButtonText: {
         color: "#0F172A",
+        fontSize: 15,
+        fontWeight: "800",
+    },
+    emptyReceiptImageText: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: "#64748B",
+        marginBottom: 12,
+    },
+    receiptImageUploadMessage: {
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: "700",
+        color: "#166534",
+        marginTop: 12,
+        marginBottom: 12,
+    },
+    attachReceiptImageButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: 14,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        marginTop: 12,
+    },
+    attachReceiptImageButtonText: {
+        color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "800",
     },

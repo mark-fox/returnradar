@@ -55,6 +55,25 @@ export function updateProduct(
     });
 }
 
+export async function attachReceiptImageToProduct(
+    productId: number,
+    imageUri: string
+): Promise<Product> {
+    const formData = new FormData();
+
+    formData.append("image", {
+        uri: imageUri,
+        name: "receipt.jpg",
+        type: "image/jpeg",
+    } as unknown as Blob);
+
+    return apiFetch<Product>(`/products/${productId}/receipt-image`, {
+        method: "POST",
+        body: formData,
+        headers: {},
+    });
+}
+
 export async function deleteProduct(productId: number): Promise<void> {
     await apiFetch<void>(`/products/${productId}`, {
         method: "DELETE",

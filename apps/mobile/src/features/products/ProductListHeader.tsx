@@ -80,11 +80,15 @@ export function ProductListHeader({
             <TextInput
                 value={searchQuery}
                 onChangeText={onSearchQueryChange}
-                placeholder="Search name, merchant, model, serial, or support info"
+                placeholder="Search products..."
                 autoCapitalize="none"
                 autoCorrect={false}
                 style={styles.searchInput}
             />
+
+            <Text style={styles.searchHelperText}>
+                Search names, merchants, model numbers, serial numbers, and support info.
+            </Text>
 
             {searchQuery.trim() ? (
                 <Pressable
@@ -375,5 +379,11 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "800",
         color: "#0F172A",
+    },
+    searchHelperText: {
+        fontSize: 12,
+        lineHeight: 18,
+        color: "#64748B",
+        marginTop: 8,
     },
 });
