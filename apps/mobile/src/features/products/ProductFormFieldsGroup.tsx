@@ -1,6 +1,6 @@
 import { ProductFormInput } from "./ProductFormFields";
 import { Pressable, StyleSheet, Text } from "react-native";
-import { getSuggestedReturnDeadline } from "./returnPolicySuggestions";
+import { getReturnDeadlineSuggestion } from "./returnPolicySuggestions";
 
 type ProductFormFieldsGroupProps = {
     name: string;
@@ -68,17 +68,17 @@ export function ProductFormFieldsGroup({
     setNotes,
 }: ProductFormFieldsGroupProps) {
 
-    const suggestedReturnDeadline = getSuggestedReturnDeadline(
+    const returnDeadlineSuggestion = getReturnDeadlineSuggestion(
         merchant,
         purchaseDate
     );
 
     const handleSuggestReturnDeadline = () => {
-        if (!suggestedReturnDeadline) {
+        if (!returnDeadlineSuggestion) {
             return;
         }
 
-        setReturnDeadline(suggestedReturnDeadline);
+        setReturnDeadline(returnDeadlineSuggestion.deadline);
     };
 
     return (
@@ -124,15 +124,23 @@ export function ProductFormFieldsGroup({
                 keyboardType="numbers-and-punctuation"
             />
 
-            {suggestedReturnDeadline ? (
-                <Pressable
-                    style={styles.suggestionButton}
-                    onPress={handleSuggestReturnDeadline}
-                >
-                    <Text style={styles.suggestionButtonText}>
-                        Suggest return deadline: {suggestedReturnDeadline}
+            {returnDeadlineSuggestion ? (
+                <>
+                    <Pressable
+                        style={styles.suggestionButton}
+                        onPress={handleSuggestReturnDeadline}
+                    >
+                        <Text style={styles.suggestionButtonText}>
+                            Suggest return deadline: {returnDeadlineSuggestion.deadline}
+                        </Text>
+                    </Pressable>
+
+                    <Text style={styles.suggestionHelperText}>
+                        {returnDeadlineSuggestion.isDefaultPolicy
+                            ? `Estimated using a ${returnDeadlineSuggestion.returnWindowDays}-day default return window. Verify with the retailer.`
+                            : `Estimated using ${returnDeadlineSuggestion.merchantLabel}'s ${returnDeadlineSuggestion.returnWindowDays}-day return window. Verify with the retailer.`}
                     </Text>
-                </Pressable>
+                </>
             ) : (
                 <Text style={styles.suggestionHelperText}>
                     Add a merchant and purchase date to suggest a return deadline.
@@ -243,7 +251,7 @@ const styles = StyleSheet.create({
         color: "#64748B",
         fontSize: 13,
         lineHeight: 18,
-        marginTop: -8,
+        marginTop: -6,
         marginBottom: 16,
     },
 });
