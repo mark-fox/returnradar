@@ -615,3 +615,132 @@ def test_list_products_searches_support_metadata(
         product["name"] == "Support Search Product"
         for product in phone_search_response.json()
     )
+
+
+def test_attach_receipt_image_to_product_accepts_png(
+    client: TestClient,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    create_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Receipt Image Product",
+            "merchant": "Target",
+            "source": "manual",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+
+    response = client.post(
+        f"/api/v1/products/{product_id}/receipt-image",
+        files={
+            "image": (
+                "receipt.png",
+                b"fake-image-data",
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+
+    payload = response.json()
+
+    assert payload["id"] == product_id
+    assert payload["receipt_image_path"] is not None
+    assert payload["receipt_image_path"].startswith("uploads/")
+    assert (tmp_path / payload["receipt_image_path"]).exists()
+
+
+def test_attach_receipt_image_to_product_rejects_invalid_type(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Invalid Receipt Image Product",
+            "merchant": "Target",
+            "source": "manual",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+
+    response = client.post(
+        f"/api/v1/products/{product_id}/receipt-image",
+        files={
+            "image": (
+                "receipt.txt",
+                b"not-an-image",
+                "text/plain",
+            )
+        },
+    )
+
+    assert response.status_code == 400
+
+    payload = response.json()
+
+    assert "Unsupported image type" in payload["detail"]
+
+
+def test_attach_receipt_image_to_product_rejects_large_image(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/products",
+        json={
+            "name": "Large Receipt Image Product",
+            "merchant": "Target",
+            "source": "manual",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+
+    oversized_image = b"0" * ((8 * 1024 * 1024) + 1)
+
+    response = client.post(
+        f"/api/v1/products/{product_id}/receipt-image",
+        files={
+            "image": (
+                "large-receipt.png",
+                oversized_image,
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 413
+
+    payload = response.json()
+
+    assert payload["detail"] == "Receipt image is too large. Maximum size is 8 MB."
+
+
+def test_attach_receipt_image_to_missing_product_returns_404(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/v1/products/999999999/receipt-image",
+        files={
+            "image": (
+                "receipt.png",
+                b"fake-image-data",
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Product not found"

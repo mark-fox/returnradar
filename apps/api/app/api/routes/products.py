@@ -1,5 +1,7 @@
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pathlib import Path
+from uuid import uuid4
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.orm import Session
 
@@ -30,6 +32,13 @@ def get_product_or_404(product_id: int, db: Session) -> Product:
 RETURN_REMINDER_WINDOW_DAYS = 7
 WARRANTY_REMINDER_WINDOW_DAYS = 30
 
+MAX_RECEIPT_IMAGE_BYTES = 8 * 1024 * 1024
+
+RECEIPT_IMAGE_EXTENSIONS_BY_CONTENT_TYPE = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+}
 
 def get_days_remaining(deadline: date) -> int:
     return (deadline - date.today()).days
@@ -183,6 +192,49 @@ def list_deadline_reminders(
             reminder.product_name,
         ),
     )
+
+
+@router.post(
+    "/{product_id}/receipt-image",
+    response_model=ProductRead,
+)
+async def attach_receipt_image_to_product(
+    product_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db),
+) -> Product:
+    product = get_product_or_404(product_id, db)
+
+    if image.content_type not in RECEIPT_IMAGE_EXTENSIONS_BY_CONTENT_TYPE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported image type: {image.content_type}",
+        )
+
+    contents = await image.read()
+
+    if len(contents) > MAX_RECEIPT_IMAGE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="Receipt image is too large. Maximum size is 8 MB.",
+        )
+
+    uploads_dir = Path("uploads")
+    uploads_dir.mkdir(exist_ok=True)
+
+    file_extension = RECEIPT_IMAGE_EXTENSIONS_BY_CONTENT_TYPE[image.content_type]
+    filename = f"{uuid4()}{file_extension}"
+    file_path = uploads_dir / filename
+
+    file_path.write_bytes(contents)
+
+    product.receipt_image_path = file_path.as_posix()
+
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+
+    return product
 
 
 @router.get("/{product_id}", response_model=ProductRead)
