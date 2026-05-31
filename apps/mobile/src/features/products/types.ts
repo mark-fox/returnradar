@@ -10,6 +10,11 @@ export type Product = {
     warranty_provider: string | null;
     warranty_claim_url: string | null;
     warranty_notes: string | null;
+    model_number: string | null;
+    serial_number: string | null;
+    manual_url: string | null;
+    support_url: string | null;
+    support_phone: string | null;
     price_cents: number | null;
     currency: string;
     notes: string | null;
@@ -31,6 +36,11 @@ export type CreateProductInput = {
     warranty_provider?: string | null;
     warranty_claim_url?: string | null;
     warranty_notes?: string | null;
+    model_number?: string | null;
+    serial_number?: string | null;
+    manual_url?: string | null;
+    support_url?: string | null;
+    support_phone?: string | null;
     price_cents?: number | null;
     currency?: string;
     notes?: string | null;

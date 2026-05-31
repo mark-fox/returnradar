@@ -42,6 +42,11 @@ export default function EditProductScreen() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationMessage, setValidationMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [modelNumber, setModelNumber] = useState("");
+    const [serialNumber, setSerialNumber] = useState("");
+    const [manualUrl, setManualUrl] = useState("");
+    const [supportUrl, setSupportUrl] = useState("");
+    const [supportPhone, setSupportPhone] = useState("");
 
     const loadProduct = useCallback(async () => {
         try {
@@ -191,6 +196,11 @@ export default function EditProductScreen() {
                         warrantyProvider={warrantyProvider}
                         warrantyClaimUrl={warrantyClaimUrl}
                         warrantyNotes={warrantyNotes}
+                        modelNumber={modelNumber}
+                        serialNumber={serialNumber}
+                        manualUrl={manualUrl}
+                        supportUrl={supportUrl}
+                        supportPhone={supportPhone}
                         notes={notes}
                         setName={setName}
                         setMerchant={setMerchant}
@@ -201,6 +211,11 @@ export default function EditProductScreen() {
                         setWarrantyProvider={setWarrantyProvider}
                         setWarrantyClaimUrl={setWarrantyClaimUrl}
                         setWarrantyNotes={setWarrantyNotes}
+                        setModelNumber={setModelNumber}
+                        setSerialNumber={setSerialNumber}
+                        setManualUrl={setManualUrl}
+                        setSupportUrl={setSupportUrl}
+                        setSupportPhone={setSupportPhone}
                         setNotes={setNotes}
                     />
 

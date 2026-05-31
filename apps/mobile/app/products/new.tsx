@@ -35,6 +35,11 @@ export default function NewProductScreen() {
     const [warrantyProvider, setWarrantyProvider] = useState("");
     const [warrantyClaimUrl, setWarrantyClaimUrl] = useState("");
     const [warrantyNotes, setWarrantyNotes] = useState("");
+    const [modelNumber, setModelNumber] = useState("");
+    const [serialNumber, setSerialNumber] = useState("");
+    const [manualUrl, setManualUrl] = useState("");
+    const [supportUrl, setSupportUrl] = useState("");
+    const [supportPhone, setSupportPhone] = useState("");
 
     const handleSubmit = async () => {
         const trimmedName = name.trim();
@@ -128,6 +133,11 @@ export default function NewProductScreen() {
                         warrantyProvider={warrantyProvider}
                         warrantyClaimUrl={warrantyClaimUrl}
                         warrantyNotes={warrantyNotes}
+                        modelNumber={modelNumber}
+                        serialNumber={serialNumber}
+                        manualUrl={manualUrl}
+                        supportUrl={supportUrl}
+                        supportPhone={supportPhone}
                         notes={notes}
                         setName={setName}
                         setMerchant={setMerchant}
@@ -138,6 +148,11 @@ export default function NewProductScreen() {
                         setWarrantyProvider={setWarrantyProvider}
                         setWarrantyClaimUrl={setWarrantyClaimUrl}
                         setWarrantyNotes={setWarrantyNotes}
+                        setModelNumber={setModelNumber}
+                        setSerialNumber={setSerialNumber}
+                        setManualUrl={setManualUrl}
+                        setSupportUrl={setSupportUrl}
+                        setSupportPhone={setSupportPhone}
                         setNotes={setNotes}
                     />
 

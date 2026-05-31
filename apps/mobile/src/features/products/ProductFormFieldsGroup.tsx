@@ -10,6 +10,11 @@ type ProductFormFieldsGroupProps = {
     warrantyProvider: string;
     warrantyClaimUrl: string;
     warrantyNotes: string;
+    modelNumber: string;
+    serialNumber: string;
+    manualUrl: string;
+    supportUrl: string;
+    supportPhone: string;
     notes: string;
     setName: (value: string) => void;
     setMerchant: (value: string) => void;
@@ -20,6 +25,11 @@ type ProductFormFieldsGroupProps = {
     setWarrantyProvider: (value: string) => void;
     setWarrantyClaimUrl: (value: string) => void;
     setWarrantyNotes: (value: string) => void;
+    setModelNumber: (value: string) => void;
+    setSerialNumber: (value: string) => void;
+    setManualUrl: (value: string) => void;
+    setSupportUrl: (value: string) => void;
+    setSupportPhone: (value: string) => void;
     setNotes: (value: string) => void;
 };
 
@@ -33,6 +43,11 @@ export function ProductFormFieldsGroup({
     warrantyProvider,
     warrantyClaimUrl,
     warrantyNotes,
+    modelNumber,
+    serialNumber,
+    manualUrl,
+    supportUrl,
+    supportPhone,
     notes,
     setName,
     setMerchant,
@@ -43,6 +58,11 @@ export function ProductFormFieldsGroup({
     setWarrantyProvider,
     setWarrantyClaimUrl,
     setWarrantyNotes,
+    setModelNumber,
+    setSerialNumber,
+    setManualUrl,
+    setSupportUrl,
+    setSupportPhone,
     setNotes,
 }: ProductFormFieldsGroupProps) {
     return (
@@ -117,6 +137,48 @@ export function ProductFormFieldsGroup({
                 onChangeText={setWarrantyNotes}
                 placeholder="Claim instructions, serial number requirements, etc."
                 multiline
+            />
+
+            <ProductFormInput
+                label="Model number"
+                value={modelNumber}
+                onChangeText={setModelNumber}
+                placeholder="WH-1000XM5"
+                autoCapitalize="characters"
+            />
+
+            <ProductFormInput
+                label="Serial number"
+                value={serialNumber}
+                onChangeText={setSerialNumber}
+                placeholder="SN123456789"
+                autoCapitalize="characters"
+            />
+
+            <ProductFormInput
+                label="Manual URL"
+                value={manualUrl}
+                onChangeText={setManualUrl}
+                placeholder="https://..."
+                autoCapitalize="none"
+                keyboardType="url"
+            />
+
+            <ProductFormInput
+                label="Support URL"
+                value={supportUrl}
+                onChangeText={setSupportUrl}
+                placeholder="https://..."
+                autoCapitalize="none"
+                keyboardType="url"
+            />
+
+            <ProductFormInput
+                label="Support phone"
+                value={supportPhone}
+                onChangeText={setSupportPhone}
+                placeholder="1-800-555-1234"
+                keyboardType="phone-pad"
             />
 
             <ProductFormInput

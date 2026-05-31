@@ -160,6 +160,13 @@ export default function ProductDetailScreen() {
     const returnDaysRemaining = getDaysUntilDate(product.return_deadline);
     const receiptImageUrl = buildUploadedFileUrl(product.receipt_image_path);
 
+    const hasSupportDetails =
+        Boolean(product.model_number) ||
+        Boolean(product.serial_number) ||
+        Boolean(product.manual_url) ||
+        Boolean(product.support_url) ||
+        Boolean(product.support_phone);
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <Stack.Screen options={{ title: product.name }} />
@@ -275,6 +282,57 @@ export default function ProductDetailScreen() {
                     <DetailRow label="Warranty Notes" value={product.warranty_notes} />
                 ) : null}
             </DetailSection>
+
+            {hasSupportDetails ? (
+                <DetailSection title="Product Support">
+                    {product.model_number ? (
+                        <DetailRow
+                            label="Model number"
+                            value={product.model_number}
+                        />
+                    ) : null}
+
+                    {product.serial_number ? (
+                        <DetailRow
+                            label="Serial number"
+                            value={product.serial_number}
+                        />
+                    ) : null}
+
+                    {product.manual_url ? (
+                        <Pressable
+                            style={styles.supportActionButton}
+                            onPress={() => Linking.openURL(product.manual_url!)}
+                        >
+                            <Text style={styles.supportActionButtonText}>
+                                Open Product Manual
+                            </Text>
+                        </Pressable>
+                    ) : null}
+
+                    {product.support_url ? (
+                        <Pressable
+                            style={styles.supportActionButton}
+                            onPress={() => Linking.openURL(product.support_url!)}
+                        >
+                            <Text style={styles.supportActionButtonText}>
+                                Open Support Page
+                            </Text>
+                        </Pressable>
+                    ) : null}
+
+                    {product.support_phone ? (
+                        <Pressable
+                            style={styles.supportSecondaryButton}
+                            onPress={() => Linking.openURL(`tel:${product.support_phone}`)}
+                        >
+                            <Text style={styles.supportSecondaryButtonText}>
+                                Call Support: {product.support_phone}
+                            </Text>
+                        </Pressable>
+                    ) : null}
+                </DetailSection>
+            ) : null}
 
             <DetailSection title="Notes">
                 <Text style={styles.notes}>{product.notes ?? "No notes added."}</Text>
@@ -441,5 +499,33 @@ const styles = StyleSheet.create({
         lineHeight: 18,
         color: "#64748B",
         marginTop: 8,
+    },
+    supportActionButton: {
+        backgroundColor: "#2563EB",
+        borderRadius: 14,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        marginTop: 10,
+    },
+    supportActionButtonText: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "800",
+    },
+    supportSecondaryButton: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 14,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+        marginTop: 10,
+    },
+    supportSecondaryButtonText: {
+        color: "#0F172A",
+        fontSize: 15,
+        fontWeight: "800",
     },
 });
