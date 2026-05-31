@@ -1,4 +1,6 @@
 import { ProductFormInput } from "./ProductFormFields";
+import { Pressable, StyleSheet, Text } from "react-native";
+import { getSuggestedReturnDeadline } from "./returnPolicySuggestions";
 
 type ProductFormFieldsGroupProps = {
     name: string;
@@ -65,6 +67,20 @@ export function ProductFormFieldsGroup({
     setSupportPhone,
     setNotes,
 }: ProductFormFieldsGroupProps) {
+
+    const suggestedReturnDeadline = getSuggestedReturnDeadline(
+        merchant,
+        purchaseDate
+    );
+
+    const handleSuggestReturnDeadline = () => {
+        if (!suggestedReturnDeadline) {
+            return;
+        }
+
+        setReturnDeadline(suggestedReturnDeadline);
+    };
+
     return (
         <>
             <ProductFormInput
@@ -107,6 +123,21 @@ export function ProductFormFieldsGroup({
                 placeholder="2026-05-28"
                 keyboardType="numbers-and-punctuation"
             />
+
+            {suggestedReturnDeadline ? (
+                <Pressable
+                    style={styles.suggestionButton}
+                    onPress={handleSuggestReturnDeadline}
+                >
+                    <Text style={styles.suggestionButtonText}>
+                        Suggest return deadline: {suggestedReturnDeadline}
+                    </Text>
+                </Pressable>
+            ) : (
+                <Text style={styles.suggestionHelperText}>
+                    Add a merchant and purchase date to suggest a return deadline.
+                </Text>
+            )}
 
             <ProductFormInput
                 label="Warranty deadline"
@@ -191,3 +222,28 @@ export function ProductFormFieldsGroup({
         </>
     );
 }
+
+const styles = StyleSheet.create({
+    suggestionButton: {
+        backgroundColor: "#EFF6FF",
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        borderWidth: 1,
+        borderColor: "#BFDBFE",
+        marginTop: -8,
+        marginBottom: 16,
+    },
+    suggestionButtonText: {
+        color: "#1D4ED8",
+        fontSize: 13,
+        fontWeight: "800",
+    },
+    suggestionHelperText: {
+        color: "#64748B",
+        fontSize: 13,
+        lineHeight: 18,
+        marginTop: -8,
+        marginBottom: 16,
+    },
+});
