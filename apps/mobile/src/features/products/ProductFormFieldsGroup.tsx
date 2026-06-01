@@ -1,6 +1,7 @@
 import { ProductFormInput } from "./ProductFormFields";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { getReturnDeadlineSuggestion } from "./returnPolicySuggestions";
+import { ProductDateInput } from "./ProductDateInput";
 
 type ProductFormFieldsGroupProps = {
     name: string;
@@ -108,20 +109,18 @@ export function ProductFormFieldsGroup({
                 keyboardType="decimal-pad"
             />
 
-            <ProductFormInput
+            <ProductDateInput
                 label="Purchase date"
                 value={purchaseDate}
                 onChangeText={setPurchaseDate}
                 placeholder="2026-04-28"
-                keyboardType="numbers-and-punctuation"
             />
 
-            <ProductFormInput
+            <ProductDateInput
                 label="Return deadline"
                 value={returnDeadline}
                 onChangeText={setReturnDeadline}
                 placeholder="2026-05-28"
-                keyboardType="numbers-and-punctuation"
             />
 
             {returnDeadlineSuggestion ? (
@@ -147,12 +146,11 @@ export function ProductFormFieldsGroup({
                 </Text>
             )}
 
-            <ProductFormInput
+            <ProductDateInput
                 label="Warranty deadline"
                 value={warrantyDeadline}
                 onChangeText={setWarrantyDeadline}
                 placeholder="2027-04-28"
-                keyboardType="numbers-and-punctuation"
             />
 
             <ProductFormInput
