@@ -2,21 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { DeadlineReminder } from "@/src/features/products/types";
-
-import {
-    cancelExistingDeadlineReminderNotifications,
-    scheduleDeadlineReminderNotifications,
-} from "./deadlineReminderNotifications";
-import {
-    getNotificationPermissionStatus,
-    requestNotificationPermissions,
-    type NotificationPermissionStatus,
-} from "./notificationPermissions";
+import type { NotificationPermissionStatus } from "./notificationPermissions";
 import {
     getNotificationPreferences,
     setDeadlineReminderNotificationsEnabled,
     type NotificationPreferences,
 } from "./notificationPreferences";
+
+import { isRunningInExpoGo } from "./notificationEnvironment";
 
 type NotificationPermissionCardProps = {
     reminders: DeadlineReminder[];
@@ -32,6 +25,8 @@ type SchedulingStatus =
 export function NotificationPermissionCard({
     reminders,
 }: NotificationPermissionCardProps) {
+    const notificationsSupported = !isRunningInExpoGo();
+
     const [permissionStatus, setPermissionStatus] =
         useState<NotificationPermissionStatus | null>(null);
     const [preferences, setPreferences] =
@@ -78,6 +73,10 @@ export function NotificationPermissionCard({
                 setSchedulingStatus("scheduling");
                 setStatusMessage(null);
 
+                const { scheduleDeadlineReminderNotifications } = await import(
+                    "./deadlineReminderNotifications"
+                );
+
                 const result =
                     await scheduleDeadlineReminderNotifications(reminders);
 
@@ -107,6 +106,23 @@ export function NotificationPermissionCard({
             try {
                 setSchedulingStatus("checking");
 
+                if (!notificationsSupported) {
+                    const storedPreferences = await getNotificationPreferences();
+
+                    setPreferences(storedPreferences);
+                    setPermissionStatus("denied");
+                    setSchedulingStatus("idle");
+                    setStatusMessage(
+                        "Notifications require a development build. They are disabled in Expo Go."
+                    );
+
+                    return;
+                }
+
+                const { getNotificationPermissionStatus } = await import(
+                    "./notificationPermissions"
+                );
+
                 const [status, storedPreferences] = await Promise.all([
                     getNotificationPermissionStatus(),
                     getNotificationPreferences(),
@@ -125,10 +141,14 @@ export function NotificationPermissionCard({
         };
 
         void loadNotificationState();
-    }, []);
+    }, [notificationsSupported]);
 
     useEffect(() => {
         const autoScheduleReminders = async () => {
+            if (!notificationsSupported) {
+                return;
+            }
+
             if (!notificationsEnabled) {
                 return;
             }
@@ -152,6 +172,7 @@ export function NotificationPermissionCard({
         void autoScheduleReminders();
     }, [
         notificationsEnabled,
+        notificationsSupported,
         permissionStatus,
         reminderSignature,
         lastAutoScheduledReminderSignature,
@@ -162,6 +183,10 @@ export function NotificationPermissionCard({
         try {
             setSchedulingStatus("checking");
             setStatusMessage(null);
+
+            const { requestNotificationPermissions } = await import(
+                "./notificationPermissions"
+            );
 
             const status = await requestNotificationPermissions();
 
@@ -194,6 +219,10 @@ export function NotificationPermissionCard({
             setSchedulingStatus("clearing");
             setStatusMessage(null);
 
+            const { cancelExistingDeadlineReminderNotifications } = await import(
+                "./deadlineReminderNotifications"
+            );
+
             await cancelExistingDeadlineReminderNotifications();
 
             const nextPreferences =
@@ -209,6 +238,10 @@ export function NotificationPermissionCard({
             setStatusMessage("Could not disable reminder notifications.");
         }
     };
+
+    if (!notificationsSupported) {
+        return null;
+    }
 
     return (
         <View style={styles.card}>

@@ -28,6 +28,7 @@ export default function HomeScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deadlineReminders, setDeadlineReminders] = useState<DeadlineReminder[]>([]);
 
+
   const loadProducts = useCallback(async () => {
     try {
       setErrorMessage(null);

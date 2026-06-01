@@ -31,7 +31,6 @@ export async function scheduleDeadlineReminderNotifications(
                 },
             },
             trigger: {
-                type: Notifications.SchedulableTriggerInputTypes.DATE,
                 date: getReminderNotificationDate(reminder),
                 channelId: DEADLINE_REMINDER_CHANNEL_ID,
             },
