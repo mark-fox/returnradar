@@ -3,9 +3,10 @@ import {
     RefreshControl,
     StyleSheet,
 } from "react-native";
+import { useCallback } from "react";
 
 import { archiveProduct } from "@/src/features/products/api";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ProductCard } from "@/src/features/products/ProductCard";
 import { ProductListHeader } from "@/src/features/products/ProductListHeader";
 import { useProductSelection } from "@/src/features/products/useProductSelection";
@@ -41,6 +42,13 @@ export default function ProductsScreen() {
         refreshProducts,
     } = useProductsList();
 
+
+    useFocusEffect(
+        useCallback(() => {
+            void loadProducts();
+        }, [loadProducts])
+    );
+    
 
     async function handleBulkArchive() {
         try {
