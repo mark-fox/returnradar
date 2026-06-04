@@ -16,6 +16,7 @@ class Settings(BaseSettings):
         "http://localhost:3000"
     )
     openai_api_key: str | None = None
+    returnradar_demo_access_key: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env")
 
