@@ -1,3 +1,5 @@
+import { getStoredDemoAccessKey } from "@/src/features/demoAccess/demoAccessStorage";
+
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 if (!API_BASE_URL) {
@@ -8,12 +10,21 @@ export async function apiFetch<T>(
     path: string,
     options: RequestInit = {}
 ): Promise<T> {
+    const demoAccessKey = await getStoredDemoAccessKey();
+
+    const headers = new Headers(options.headers);
+
+    if (!(options.body instanceof FormData)) {
+        headers.set("Content-Type", "application/json");
+    }
+
+    if (demoAccessKey) {
+        headers.set("X-ReturnRadar-Demo-Key", demoAccessKey);
+    }
+
     const response = await fetch(`${API_BASE_URL}${path}`, {
-        headers: {
-            "Content-Type": "application/json",
-            ...options.headers,
-        },
         ...options,
+        headers,
     });
 
     if (!response.ok) {
